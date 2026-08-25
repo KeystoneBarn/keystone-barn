@@ -183,7 +183,7 @@ function productChips(p){
 function productRowHTML(p){
   const cat = CATEGORY_META[p.category] || CATEGORY_META["Other"];
   const idx = PRODUCTS.indexOf(p);
-  const thumb = p.image ? `<img class="row-thumb" src="${API_BASE}/api/product-image/${idx}" alt="" />` : `<div class="row-thumb row-thumb-empty">${cat.emoji}</div>`;
+  const thumb = p.image ? `<img class="row-thumb" src="${p.image}" alt="" />` : `<div class="row-thumb row-thumb-empty">${cat.emoji}</div>`;
   return `<div class="row" style="--catcolor:${cat.color}" data-idx="${idx}"><div class="row-main">${thumb}<div class="row-text"><div class="name">${p.name}</div><div class="row-chips">${productChips(p)}</div></div></div></div>`;
 }
 function openProductSheet(idx){
@@ -191,7 +191,7 @@ function openProductSheet(idx){
   const sheet = document.getElementById("sheet"), backdrop = document.getElementById("sheetBackdrop");
   sheet.innerHTML = `
     <button class="sheet-close" id="sheetCloseBtn">Close ✕</button>
-    ${p.image ? `<img class="sheet-image" src="${API_BASE}/api/product-image/${idx}" alt="${p.name}" />` : ''}
+    ${p.image ? `<img class="sheet-image" src="${p.image}" alt="${p.name}" />` : ''}
     <h2>${p.name}</h2>
     <div class="cat-line">${productChips(p)}</div>
     ${p.purpose ? `<div class="section"><div class="section-label">Purpose</div><div class="section-body">${p.purpose}</div></div>` : ''}
