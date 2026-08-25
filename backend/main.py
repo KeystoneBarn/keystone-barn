@@ -8,10 +8,12 @@ read and write, full stop.
 import sqlite3
 import json
 import os
+import httpx
 from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 app = FastAPI(title="Horse Locations")
@@ -51,6 +53,35 @@ with open(os.path.join(os.path.dirname(__file__), "symptoms_data.json")) as f:
 @app.get("/api/products")
 def get_products():
     return PRODUCTS
+
+
+IMAGE_CACHE_DIR = os.path.join(os.path.dirname(__file__), "data", "images")
+
+
+@app.get("/api/product-image/{idx}")
+def get_product_image(idx: int):
+    if idx < 0 or idx >= len(PRODUCTS):
+        raise HTTPException(404, "No such product")
+    source_url = PRODUCTS[idx].get("image")
+    if not source_url:
+        raise HTTPException(404, "No image for this product")
+
+    os.makedirs(IMAGE_CACHE_DIR, exist_ok=True)
+    cache_path = os.path.join(IMAGE_CACHE_DIR, f"{idx}.jpg")
+
+    if not os.path.exists(cache_path):
+        try:
+            with httpx.Client(follow_redirects=True, timeout=15) as client:
+                resp = client.get(source_url)
+                resp.raise_for_status()
+            with open(cache_path, "wb") as f:
+                f.write(resp.content)
+        except Exception:
+            raise HTTPException(502, "Could not fetch source image")
+
+    with open(cache_path, "rb") as f:
+        data = f.read()
+    return Response(content=data, media_type="image/jpeg")
 
 
 @app.get("/api/symptoms")
