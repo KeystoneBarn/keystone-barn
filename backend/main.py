@@ -46,6 +46,8 @@ with open(os.path.join(os.path.dirname(__file__), "products_data.json")) as f:
     PRODUCTS = json.load(f)
 with open(os.path.join(os.path.dirname(__file__), "symptoms_data.json")) as f:
     SYMPTOMS = json.load(f)
+with open(os.path.join(os.path.dirname(__file__), "feeding_data.json")) as f:
+    FEEDING = json.load(f)
 
 
 @app.get("/api/products")
@@ -56,6 +58,11 @@ def get_products():
 @app.get("/api/symptoms")
 def get_symptoms():
     return SYMPTOMS
+
+
+@app.get("/api/feeding")
+def get_feeding():
+    return FEEDING
 
 
 def get_db():

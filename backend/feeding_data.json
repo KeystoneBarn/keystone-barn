@@ -1,0 +1,137 @@
+[
+  {
+    "horse": "Qu", "breed": "Belgian Warmblood (BWP) Gelding", "height": "17.2 hh",
+    "paddock": "Paddock 1", "station": "Paddock 1", "age": 10, "weight": 1230,
+    "bucket_color_name": "Grey", "bucket_color": "#6B7280", "health_notes": [],
+    "am": [
+      {"item":"TopLine","canonical":"TopLine","amount":2.5,"unit":"lb"},
+      {"item":"Special Care","canonical":"Special Care","amount":3,"unit":"lb"},
+      {"item":"ProElite Sweat","canonical":"ProElite Sweat","amount":1,"unit":"scoop"},
+      {"item":"Vit E Elevate","canonical":"Vit E Elevate","amount":1,"unit":"scoop"},
+      {"item":"SimpliFly","canonical":"SimpliFly","amount":1.2,"unit":"scoop"}
+    ],
+    "pm": [{"item":"Alfalfa Pellets","canonical":"Alfalfa Pellets","amount":4,"unit":"lb"}],
+    "hay_daily_lb": 24.6
+  },
+  {
+    "horse": "Avelin", "breed": "Norwegian Fjord Mare", "height": "14.2 hh",
+    "paddock": "Paddock 2", "station": "Paddock 2 / Stall 2", "age": 19, "weight": 970,
+    "bucket_color_name": "Orange", "bucket_color": "#C2662D", "health_notes": ["Cushings & Hypothyroidism"],
+    "am": [
+      {"item":"TopLine","canonical":"TopLine","amount":1.5,"unit":"lb"},
+      {"item":"Thyro-L","canonical":"Thyro-L","amount":2,"unit":"scoop"},
+      {"item":"Prascend","canonical":"Prascend","amount":1,"unit":"tablet"},
+      {"item":"ProElite Sweat","canonical":"ProElite Sweat","amount":1,"unit":"scoop"},
+      {"item":"SimpliFly","canonical":"SimpliFly","amount":1,"unit":"scoop"}
+    ],
+    "pm": [], "pm_note": "Fed once daily (AM) — no separate PM feeding",
+    "hay_daily_lb": 19.4
+  },
+  {
+    "horse": "Dahlia", "breed": "Oldenburg Mare", "height": "16.2 hh",
+    "paddock": "Paddock 2", "station": "North Porch", "age": 14, "weight": 1000,
+    "bucket_color_name": "Dusty Pink", "bucket_color": "#B8577A", "health_notes": [],
+    "am": [
+      {"item":"TopLine","canonical":"TopLine","amount":2.5,"unit":"lb"},
+      {"item":"SafeChoice Spec. Care","canonical":"Special Care","amount":1,"unit":"lb"},
+      {"item":"Alfalfa Pellets","canonical":"Alfalfa Pellets","amount":1,"unit":"lb"},
+      {"item":"ProElite Sweat","canonical":"ProElite Sweat","amount":1,"unit":"scoop"},
+      {"item":"SimpliFly","canonical":"SimpliFly","amount":1.2,"unit":"scoop"}
+    ],
+    "pm": [
+      {"item":"SafeChoice Spec. Care","canonical":"Special Care","amount":1,"unit":"lb"},
+      {"item":"Alfalfa Pellets","canonical":"Alfalfa Pellets","amount":1,"unit":"lb"}
+    ],
+    "hay_daily_lb": 20.0
+  },
+  {
+    "horse": "Mickey", "breed": "Norwegian Fjord Mare", "height": "14.5 hh",
+    "paddock": "Paddock 2", "station": "Stall 1", "age": 28, "weight": 975,
+    "bucket_color_name": "Blue", "bucket_color": "#2F6690", "health_notes": ["Monthly IV Legend"],
+    "am": [
+      {"item":"TopLine","canonical":"TopLine","amount":1.5,"unit":"lb"},
+      {"item":"Special Care","canonical":"Special Care","amount":1,"unit":"lb"},
+      {"item":"Prascend","canonical":"Prascend","amount":2,"unit":"tablet"},
+      {"item":"ProElite Sweat","canonical":"ProElite Sweat","amount":1,"unit":"scoop"},
+      {"item":"SimpliFly","canonical":"SimpliFly","amount":1,"unit":"scoop"}
+    ],
+    "pm": [
+      {"item":"Special Care","canonical":"Special Care","amount":1,"unit":"lb"},
+      {"item":"Timothy Pellets","canonical":"Timothy Pellets","amount":1,"unit":"lb"}
+    ],
+    "hay_daily_lb": 19.5
+  },
+  {
+    "horse": "Hugo", "breed": "Swiss Warmblood Gelding", "height": "15.3 hh",
+    "paddock": "Paddock 3", "station": "Stall 4", "age": 11, "weight": 1015,
+    "bucket_color_name": "Purple", "bucket_color": "#6B4F9E", "health_notes": [],
+    "am": [
+      {"item":"TopLine","canonical":"TopLine","amount":2.5,"unit":"lb"},
+      {"item":"Digestive Balance","canonical":"Digestive Balance","amount":1,"unit":"lb"},
+      {"item":"ProElite Sweat","canonical":"ProElite Sweat","amount":1,"unit":"scoop"},
+      {"item":"SimpliFly","canonical":"SimpliFly","amount":1.2,"unit":"scoop"}
+    ],
+    "pm": [{"item":"Digestive Balance","canonical":"Digestive Balance","amount":1,"unit":"lb"}],
+    "hay_daily_lb": 20.3
+  },
+  {
+    "horse": "Linka", "breed": "Norwegian Fjord Mare", "height": "14.3 hh",
+    "paddock": "Paddock 3", "station": "South Porch", "age": 22, "weight": 895,
+    "bucket_color_name": "Green", "bucket_color": "#4D8B52", "health_notes": ["Picky eater", "Delicate stomach"],
+    "am": [
+      {"item":"TopLine","canonical":"TopLine","amount":1.5,"unit":"lb"},
+      {"item":"Special Care","canonical":"Special Care","amount":1,"unit":"lb"},
+      {"item":"Digestive Balance","canonical":"Digestive Balance","amount":0.75,"unit":"lb"},
+      {"item":"ProElite Sweat","canonical":"ProElite Sweat","amount":1,"unit":"scoop"},
+      {"item":"SimpliFly","canonical":"SimpliFly","amount":1,"unit":"scoop"}
+    ],
+    "pm": [
+      {"item":"Special Care","canonical":"Special Care","amount":1,"unit":"lb"},
+      {"item":"Timothy Pellets","canonical":"Timothy Pellets","amount":1,"unit":"lb"},
+      {"item":"Digestive Balance","canonical":"Digestive Balance","amount":0.75,"unit":"lb"}
+    ],
+    "hay_daily_lb": 17.9
+  },
+  {
+    "horse": "Tammy", "breed": "Norwegian Fjord Mare", "height": "14.2 hh",
+    "paddock": "Paddock 3", "station": "Stall 3", "age": 28, "weight": 950,
+    "bucket_color_name": "Brown", "bucket_color": "#8B5A2B", "health_notes": ["IM Pergolide 0.25mL every other Friday", "Monthly IV Legend"],
+    "am": [
+      {"item":"TopLine","canonical":"TopLine","amount":1.5,"unit":"lb"},
+      {"item":"Special Care","canonical":"Special Care","amount":1,"unit":"lb"},
+      {"item":"ProElite Sweat","canonical":"ProElite Sweat","amount":1,"unit":"scoop"},
+      {"item":"SimpliFly","canonical":"SimpliFly","amount":1,"unit":"scoop"}
+    ],
+    "pm": [
+      {"item":"Special Care","canonical":"Special Care","amount":1,"unit":"lb"},
+      {"item":"Timothy Pellets","canonical":"Timothy Pellets","amount":1,"unit":"lb"}
+    ],
+    "hay_daily_lb": 19.0
+  },
+  {
+    "horse": "Stendahl", "breed": "Brown Dun Gelding", "height": "14.3 hh",
+    "paddock": "Paddock 4", "station": "Paddock 4a", "age": 18, "weight": 930,
+    "bucket_color_name": "Black", "bucket_color": "#27272A", "health_notes": [],
+    "am": [
+      {"item":"TopLine","canonical":"TopLine","amount":1.5,"unit":"lb"},
+      {"item":"Thyro-L","canonical":"Thyro-L","amount":3,"unit":"scoop"},
+      {"item":"ProElite Sweat","canonical":"ProElite Sweat","amount":1,"unit":"scoop"},
+      {"item":"SimpliFly","canonical":"SimpliFly","amount":1,"unit":"scoop"}
+    ],
+    "pm": [], "pm_note": "Fed once daily (AM) — no separate PM feeding",
+    "hay_daily_lb": 18.6
+  },
+  {
+    "horse": "Ulyssa", "breed": "Norwegian Fjord Mare", "height": "14 hh",
+    "paddock": "Paddock 4", "station": "Paddock 4b", "age": 23, "weight": 1045,
+    "bucket_color_name": "Pink", "bucket_color": "#C05270", "health_notes": [],
+    "am": [
+      {"item":"TopLine","canonical":"TopLine","amount":1.5,"unit":"lb"},
+      {"item":"Thyro-L","canonical":"Thyro-L","amount":2,"unit":"scoop"},
+      {"item":"ProElite Sweat","canonical":"ProElite Sweat","amount":1,"unit":"scoop"},
+      {"item":"SimpliFly","canonical":"SimpliFly","amount":1,"unit":"scoop"}
+    ],
+    "pm": [], "pm_note": "Fed once daily (AM) — no separate PM feeding",
+    "hay_daily_lb": 20.9
+  }
+]
