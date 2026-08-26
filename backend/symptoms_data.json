@@ -1,1 +1,264 @@
-[{"name": "Eye Injury / Infection", "products": []}, {"name": "Minor cut or scrape", "products": ["Vetericyn Plus Wound & Skin Care Spray", "Silver Sulfadiazine Cream 1% (Ascend)"]}, {"name": "Choke", "products": []}, {"name": "Swelling - From Kick", "products": ["Bute Paste (Phenylbutazone/Butequine)", "Durvet Epsom Salt Poultice (Flowable Gel)", "Vetericyn Mobility Liniment"]}, {"name": "Itchy", "products": ["EQyss Micro-Tek Equine Shampoo", "EQyss Micro-Tek Equine Spray", "EQyss Premier Equine Conditioner", "Dex (Dexamethasone Tablets)", "Cetirizine Hydrochloride Tablets USP, 10mg (Dr. Reddy's)", "Hydroxyzine Hydrochloride Tablets USP, 50mg (Avet Pharma)", "Vetalog Parenteral (Triamcinolone Acetonide Suspension), 2mg/mL", "Dex (Dexamethasone Injectable)", "Kinetic Vet EquiShield IBH / IR", "EquiShield\u00ae IBH Spray", "EquiShield\u00ae IR (Itch Relief) Spray", "EquiShield\u00ae IR (Itch Relief) Shampoo", "Coat Defense"]}, {"name": "Insulin Resistance / Metabolic Weight Gain", "products": ["Ertugliflozin (SGLT2 Inhibitor, \"Horsey Ozempic\")", "InsulinWise", "Nutrena SafeChoice Senior Molasses-Free", "Smart Metabo-Lean Pellets", "Nutrena SafeChoice Special Care Pellet", "Standlee Certified Timothy Pellets", "Thyro-L (Levothyroxine Sodium)", "Standlee Teff Grass Pellets"]}, {"name": "Sore Hooves", "products": ["Bute Paste (Phenylbutazone/Butequine)", "Bute Tablets (Phenylbutazone)", "Sore No-More Performance Ultra Poultice (Arnica Cooling Clay)", "Field Paste (Red Horse Products) - 750g"]}, {"name": "Rain Rot / Skin Infection", "products": ["Silvetrasol", "EQyss Micro-Tek Equine Shampoo", "EquiShield\u00ae CK HC Spray", "EquiShield\u00ae CK HC Salve"]}, {"name": "Respiratory Allergies", "products": ["Hydroxyzine Hydrochloride Tablets USP, 50mg (Avet Pharma)", "Cetirizine Hydrochloride Tablets USP, 10mg (Dr. Reddy's)"]}, {"name": "Joint Swelling", "products": ["Bute Paste (Phenylbutazone/Butequine)", "Vetericyn Mobility Liniment", "Zycosan (Pentosan Polysulfate)", "Adequan (Polysulfated Glycosaminoglycan)", "Legend (Hyaluronic Acid)", "Proleve Joint Supplement", "Equioxx (Firocoxib) Tablets"]}, {"name": "Chronic Diarrhea / Gut Health", "products": ["Pro-Elite Gut Biome", "Nutrena Empower Digestive Balance Pelleted Supplement"]}, {"name": "EPM / Neurologic Signs (tripping, hind-end weakness)", "products": ["Marquis / Protazil (Ponazuril / Diclazuril)", "Rebalance (Sulfadiazine/Pyrimethamine)", "Off-label EPM Compounds (Diclazuril, Decoquinate, Levamisole)"]}, {"name": "Cushings", "products": ["IM Pergolide (Injectable, for Prascend horses)", "Prascend (Pergolide) Tablets", "Smart Pituitary Senior"]}, {"name": "Colic", "products": ["Banamine (Flunixin Meglumine) Paste"]}, {"name": "Thrush", "products": ["Silvetrasol", "Thrush Ender", "Artimud (Red Horse Products) - 300g", "Hoof-Stuff (Red Horse Products) - 290g", "Field Paste (Red Horse Products) - 750g"]}, {"name": "Sore Muscles/Joints", "products": ["Liniment (Farnam Vetrolin)", "Sore No-More Performance Ultra Poultice (Arnica Cooling Clay)", "Bigeloil Liquid Gel (Topical Pain Relief Gel)", "Vetericyn Mobility Liniment", "Durvet Epsom Salt Poultice (Flowable Gel)", "Zycosan (Pentosan Polysulfate)", "Adequan (Polysulfated Glycosaminoglycan)", "Legend (Hyaluronic Acid)", "Proleve Joint Supplement", "Equioxx (Firocoxib) Tablets"]}, {"name": "Hoof Abscess", "products": ["Sore No-More Performance Ultra Poultice (Arnica Cooling Clay)", "Durvet Epsom Salt Poultice (Flowable Gel)"]}, {"name": "Tiny Bumps - From Bug Bites", "products": ["Dex (Dexamethasone Tablets)", "Silver Sulfadiazine Cream 1% (Ascend)", "Pure Sole Bug Off Balm", "EquiShield\u00ae IBH Spray", "Equiderma Neem & Aloe Herbal Fly Spray"]}, {"name": "Swelling - From Bug Bites", "products": ["Dex (Dexamethasone Tablets)", "Equiderma Neem & Aloe Herbal Fly Spray"]}, {"name": "Heat Stress", "products": ["Dex (Dexamethasone Tablets)", "ProElite Sweat"]}]
+[
+  {
+    "name": "Minor cut or scrape",
+    "products": [
+      "Durvet Chlorhexidine Solution 2%",
+      "AluShield Aerosol Bandage (Ideal/Neogen)",
+      "VetOne Chlorhexidine 2% Ointment",
+      "Farnam Wonder Dust",
+      "Vetericyn Plus Antimicrobial Hydrogel",
+      "Betadine Solution (Povidone-Iodine)",
+      "Triodine-7 (Priority Care)",
+      "Corona Multi-Purpose Ointment (Manna Pro)",
+      "Farnam Tri-Care Triple Action Wound Treatment",
+      "Silver Sulfadiazine Cream 1% (Ascend)",
+      "Silvetrasol",
+      "Wound Ender",
+      "SWAT Fly Repellent Ointment",
+      "Vetericyn Plus Wound & Skin Care Spray"
+    ]
+  },
+  {
+    "name": "Rain Rot / Skin Infectin",
+    "products": [
+      "Durvet Chlorhexidine Solution 2%",
+      "Vetericyn FoamCare Medicated Shampoo",
+      "EQyss Micro-Tek Equine Gel",
+      "Equiderma Neem Shampoo",
+      "VetOne Chlorhexidine 2% Ointment",
+      "Coat Defense Trouble Spot Drying Paste",
+      "Riggin's Nu-Stock",
+      "EquiShield CK HC Salve",
+      "EquiShield CK HC Spray",
+      "It's A Fungus Amungus",
+      "Silvetrasol"
+    ]
+  },
+  {
+    "name": "Sore Muscles Joints",
+    "products": [
+      "AniMed Epsom Salt (Magnesium Sulfate)",
+      "DMSO Gel (Neogen)",
+      "Ultimate RepairV Pain Relief & Recovery Cream",
+      "Proleve Joint Supplement",
+      "Legend (Hyaluronic Acid)",
+      "Adequan (PSGAG)",
+      "Zycosan (Pentosan Polysulfate)",
+      "Liniment (Farnam Vetrolin)",
+      "Vetericyn Mobility Liniment",
+      "Bigeloil Liquid Gel",
+      "Durvet Epsom Salt Poultice (Flowable Gel)",
+      "Sore No-More Performance Ultra Poultice",
+      "Equioxx (Firocoxib) Tablets"
+    ]
+  },
+  {
+    "name": "Sore Hooves",
+    "products": [
+      "AniMed Epsom Salt (Magnesium Sulfate)",
+      "Sore No-More Performance Ultra Poultice",
+      "Bute Tablets (Phenylbutazone)",
+      "Bute Paste (Phenylbutazone)"
+    ]
+  },
+  {
+    "name": "Coat",
+    "products": [
+      "Shiny Hiney Spray",
+      "Smart Grooming Peppermint Splosh Wash",
+      "Essential Equine QuikClenz Foam-On Wash",
+      "Smart Grooming Hot Cloth Wash",
+      "Equiderma Neem Conditioner",
+      "Cowboy Magic Yellowout Whitening Shampoo",
+      "Vetrolin White 'N Brite (Farnam)",
+      "Winky Wash n Udder Stuff",
+      "EQyss Premier Equine Shampoo",
+      "EquinElite Silky Shine & Shield",
+      "Vetrolin Bath (Farnam)",
+      "Essential Equine Tea Tree Oil Shampoo",
+      "Quic Silver Whitening Shampoo",
+      "Cowboy Magic Rosewater Conditioner",
+      "ShowSheen Detangler & Shine Spray"
+    ]
+  },
+  {
+    "name": "Itchy",
+    "products": [
+      "Vetericyn FoamCare Medicated Shampoo",
+      "EQyss Micro-Tek Equine Gel",
+      "Equiderma Neem Shampoo",
+      "Coat Defense Trouble Spot Drying Paste",
+      "Burt's Bees Baby Dusting Powder",
+      "Riggin's Nu-Stock",
+      "EquiShield IR (Itch Relief) Spray",
+      "EquiShield IBH Spray",
+      "EquiShield IR (Itch Relief) Shampoo",
+      "Coat Defense",
+      "Kinetic Vet EquiShield IBH / IR",
+      "Vetalog Parenteral (Triamcinolone Acetonide)",
+      "Hydroxyzine Hydrochloride 50mg",
+      "Cetirizine Hydrochloride 10mg",
+      "Dex (Dexamethasone Tablets)",
+      "Dex (Dexamethasone Injectable)",
+      "EQyss Micro-Tek Equine Spray",
+      "EQyss Premier Equine Conditioner",
+      "EQyss Micro-Tek Equine Shampoo"
+    ]
+  },
+  {
+    "name": "Mane/Tail",
+    "products": [
+      "Equiderma Neem Conditioner",
+      "BioMane Signature Conditioner",
+      "Vetrolin Bath (Farnam)",
+      "EQyss Survivor Equine Detangler",
+      "EQyss Mega-Tek Horse Rebuilder",
+      "Canter Mane & Tail Conditioner",
+      "Essential Equine Tea Tree Oil Shampoo",
+      "Mane 'n Tail Original Shampoo",
+      "MTG (Mane Tail Groom)"
+    ]
+  },
+  {
+    "name": "Bugs",
+    "products": [
+      "Fly Bye! Plus Shampoo",
+      "Equiderma Neem Shampoo",
+      "Equiderma Neem & Aloe Herbal Fly Spray",
+      "Pure Sole Bug Off Balm",
+      "Absorbine Ultra Shield Gold Fly Spray",
+      "Pyranha Zero-Bite Fly Spray",
+      "Fly Bye! Plus Fly Spray",
+      "NaturVet Fly Spray Concentrate",
+      "Charlee's Fly Spray",
+      "Absorbine Ultra Shield Green Fly Spray",
+      "Bronco Gold Equine Fly Spray",
+      "Equicare Flysect Super-7 Fly Spray",
+      "Ultrashield EX Fly Spray",
+      "SWAT Fly Repellent Ointment"
+    ]
+  },
+  {
+    "name": "Cushings",
+    "products": [
+      "Cabergoline Injectable (BET Pharm)",
+      "Smart Pituitary Senior",
+      "IM Pergolide (Injectable)",
+      "Prascend (Pergolide) Tablets"
+    ]
+  },
+  {
+    "name": "Chronic Diarrhea",
+    "products": [
+      "Platinum Performance Bio-Sponge",
+      "Probios Equine One Oral Gel",
+      "Nutrena Empower Digestive Balance",
+      "Pro-Elite Gut Biome"
+    ]
+  },
+  {
+    "name": "Colic",
+    "products": [
+      "Probios Equine One Oral Gel",
+      "GastroGard (Omeprazole) Oral Paste",
+      "Banamine (Flunixin Meglumine) Paste"
+    ]
+  },
+  {
+    "name": "Joint Swelling",
+    "products": [
+      "DMSO Gel (Neogen)",
+      "Proleve Joint Supplement",
+      "Legend (Hyaluronic Acid)",
+      "Adequan (PSGAG)",
+      "Zycosan (Pentosan Polysulfate)",
+      "Liniment (Farnam Vetrolin)",
+      "Vetericyn Mobility Liniment",
+      "Bigeloil Liquid Gel",
+      "Sore No-More Performance Ultra Poultice",
+      "Equioxx (Firocoxib) Tablets",
+      "Bute Paste (Phenylbutazone)"
+    ]
+  },
+  {
+    "name": "Thrush",
+    "products": [
+      "Betadine Solution (Povidone-Iodine)",
+      "Triodine-7 (Priority Care)",
+      "Hoof-Stuff (Red Horse Products)",
+      "Artimud (Red Horse Products)",
+      "Field Paste (Red Horse Products)",
+      "Silvetrasol",
+      "Thrush Ender (Silvetrasol)"
+    ]
+  },
+  {
+    "name": "Eye Injury / Infection",
+    "products": [
+      "Dr. Easy Eye Wipes (Dogs & Cats)",
+      "Noveha Dog Eye Wipes"
+    ]
+  },
+  {
+    "name": "Insulin Resistance",
+    "products": [
+      "Smart Metabo-Lean Pellets",
+      "Nutrena SafeChoice Senior Molasses-Free",
+      "Nutrena SafeChoice Special Care",
+      "InsulinWise",
+      "Ertugliflozin (SGLT2 Inhibitor)",
+      "Thyro-L (Levothyroxine Sodium)"
+    ]
+  },
+  {
+    "name": "EPM",
+    "products": [
+      "Off-label EPM Compounds",
+      "Rebalance (Sulfadiazine/Pyrimethamine)",
+      "Marquis / Protazil (Ponazuril / Diclazuril)"
+    ]
+  },
+  {
+    "name": "Tiny Bumps From Bug Bites",
+    "products": [
+      "Pure Sole Bug Off Balm",
+      "Dex (Dexamethasone Tablets)",
+      "Silver Sulfadiazine Cream 1% (Ascend)"
+    ]
+  },
+  {
+    "name": "Swelling From Kick",
+    "products": [
+      "Liniment (Farnam Vetrolin)",
+      "Vetericyn Mobility Liniment",
+      "Bigeloil Liquid Gel",
+      "Durvet Epsom Salt Poultice (Flowable Gel)",
+      "Sore No-More Performance Ultra Poultice",
+      "Bute Paste (Phenylbutazone)"
+    ]
+  },
+  {
+    "name": "Swelling From Bug Bites",
+    "products": [
+      "Liniment (Farnam Vetrolin)",
+      "Dex (Dexamethasone Tablets)",
+      "Vetericyn Mobility Liniment",
+      "Bigeloil Liquid Gel",
+      "Sore No-More Performance Ultra Poultice"
+    ]
+  },
+  {
+    "name": "Heat Stress",
+    "products": [
+      "Dex (Dexamethasone Tablets)"
+    ]
+  },
+  {
+    "name": "Hoof Abscess",
+    "products": [
+      "Durvet Epsom Salt Poultice (Flowable Gel)",
+      "Sore No-More Performance Ultra Poultice",
+      "Silvetrasol"
+    ]
+  }
+]
