@@ -1,5 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { PADDOCKS, PADDOCK_META, HORSE_COLOR, CONTACTS, ZONES } from "./data";
+
+// The board is shared: every change is saved to the barn server so the
+// next person to open the site sees horses where the last person left
+// them. Same-origin in production (FastAPI serves this app); localhost
+// backend during `npm run dev`. localStorage is kept as an offline cache.
+const API = import.meta.env.DEV ? "http://localhost:8000" : "";
+const LS_KEY = "kb-horse-locations";
 
 const ALL_LOCATIONS = [
   ...PADDOCKS.map((p) => ({ id: "pad-" + p.id, name: p.name, type: "paddock", corner: p.corner })),
@@ -17,16 +24,49 @@ const ZONE_COLOR = { track: "#8c6a1e", pasture: "#3F6B45", arena: "#A0522D", sta
 export default function Paddocks() {
   const [assignments, setAssignments] = useState(() => {
     try {
-      const saved = localStorage.getItem("kb-horse-locations");
+      const saved = localStorage.getItem(LS_KEY);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return INITIAL_ASSIGNMENTS;
   });
   const [selected, setSelected] = useState(null); // horse being moved
+  const selectedRef = useRef(null);
+  selectedRef.current = selected;
+  const lastSavedAt = useRef(0);
+
+  // Pull the shared board from the server on mount, then poll so one
+  // person's move shows up on everyone else's screen. Skips while a move
+  // is in progress or just after a local save, so it never clobbers an
+  // edit mid-tap.
+  useEffect(() => {
+    let alive = true;
+    const pull = async () => {
+      if (selectedRef.current) return;
+      if (Date.now() - lastSavedAt.current < 8000) return;
+      try {
+        const r = await fetch(API + "/api/locations");
+        if (!r.ok) return;
+        const data = await r.json();
+        if (alive && data && data.assignments) {
+          setAssignments(data.assignments);
+          try { localStorage.setItem(LS_KEY, JSON.stringify(data.assignments)); } catch (e) {}
+        }
+      } catch (e) {}
+    };
+    pull();
+    const t = setInterval(pull, 15000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
 
   const save = (next) => {
     setAssignments(next);
-    try { localStorage.setItem("kb-horse-locations", JSON.stringify(next)); } catch (e) {}
+    lastSavedAt.current = Date.now();
+    try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch (e) {}
+    fetch(API + "/api/locations", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assignments: next }),
+    }).catch((e) => {});
   };
 
   const moveHorse = (horse, locId) => {

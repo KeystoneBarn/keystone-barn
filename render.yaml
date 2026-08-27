@@ -1,10 +1,22 @@
+# Render Blueprint for keystone-barn.onrender.com
+#
+# One Docker web service: the Dockerfile builds the React app (src/) and
+# serves it from the FastAPI backend, which also exposes /api/* backed by
+# SQLite. The SQLite file lives on a persistent disk so the shared horse-
+# location board survives deploys and restarts.
+#
+# NOTE: persistent disks require a paid instance type (starter or higher).
+# On the free tier the disk block is ignored/rejected and /app/data resets
+# on every deploy.
 services:
   - type: web
     name: keystone-barn
-    runtime: static
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    autoDeploy: true
+    healthCheckPath: /api/zones
+    disk:
+      name: zones-data
+      mountPath: /app/data
+      sizeGB: 1

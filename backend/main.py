@@ -113,6 +113,47 @@ def touch_updated():
     conn.close()
 
 
+class LocationsBody(BaseModel):
+    assignments: dict
+
+
+@app.get("/api/locations")
+def get_locations():
+    """Shared horse -> location map for the React app's Paddocks board.
+
+    Stored as a single JSON blob in the meta table so it does not depend
+    on the (separately modelled) zones schema below. Returns assignments
+    as None until the first write.
+    """
+    conn = get_db()
+    row = conn.execute("SELECT value FROM meta WHERE key='horse_locations'").fetchone()
+    updated = conn.execute("SELECT value FROM meta WHERE key='horse_locations_updated'").fetchone()
+    conn.close()
+    return {
+        "assignments": json.loads(row["value"]) if row else None,
+        "updated": updated["value"] if updated else None,
+    }
+
+
+@app.put("/api/locations")
+def put_locations(body: LocationsBody):
+    now = datetime.now(timezone.utc).isoformat()
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO meta (key, value) VALUES ('horse_locations', ?) "
+        "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+        (json.dumps(body.assignments),),
+    )
+    conn.execute(
+        "INSERT INTO meta (key, value) VALUES ('horse_locations_updated', ?) "
+        "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+        (now,),
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True, "updated": now}
+
+
 @app.get("/api/zones")
 def get_zones():
     conn = get_db()
