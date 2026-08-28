@@ -34,12 +34,12 @@ import Experiments from "./Experiments";
 
 
 const TABS = [
-  { id: "products", label: "Products", count: PRODUCTS.filter((p) => !p.retired).length },
-  { id: "buckets", label: "Feed Buckets", count: 9 },
-  { id: "symptoms", label: "What's Wrong", count: SYMPTOMS.length },
-  { id: "tack", label: "Tack Board", count: 9 },
-  { id: "experiments", label: "Experiments", count: 1 },
-  { id: "paddocks", label: "Paddocks", count: 9 },
+  { id: "products", label: "Products", count: PRODUCTS.filter((p) => !p.retired).length, icon: "🧴" },
+  { id: "buckets", label: "Feed Buckets", count: 9, icon: "🌾" },
+  { id: "symptoms", label: "Symptoms", count: SYMPTOMS.length, icon: "🩺" },
+  { id: "tack", label: "Tack Board", count: 9, icon: "🐴" },
+  { id: "experiments", label: "Experiments", count: 1, icon: "🧪" },
+  { id: "paddocks", label: "Paddocks", count: 9, icon: "📍" },
 ];
 
 export default function App() {
@@ -66,28 +66,26 @@ export default function App() {
     <>
       <header className="sign">
         <div className="sign-inner">
-          <img data-el="logo" src={logoIcon} alt="Keystone Barn" />
+          <img data-el="logo" src={logoIcon} alt="Keystone Barn" style={{ height: 36, width: "auto" }} />
           <div data-el="text">
             <h1 className="sign-title">Keystone Barn</h1>
             <p className="sign-motto">Raising Horses, Raising Each Other.</p>
-            <div className="sign-note">
-              <span>No login needed. Bookmark it on your phone.</span>
-              <span>{PRODUCTS.filter((p) => !p.retired).length} products on the shelves</span>
-            </div>
           </div>
         </div>
       </header>
 
       <nav className="nav">
-        <div className="nav-inner">
+        <div className="nav-chips">
           {TABS.map((t) => (
             <button
               key={t.id}
+              className="nav-chip"
               data-on={tab === t.id ? "1" : "0"}
               onClick={() => setTab(t.id)}
             >
-              {t.label}
-              <span className="count">{t.count}</span>
+              <span className="nav-chip-icon">{t.icon}</span>
+              <span className="nav-chip-label">{t.label}</span>
+              <span className="nav-chip-count">{t.count}</span>
             </button>
           ))}
         </div>

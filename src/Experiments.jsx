@@ -1,105 +1,120 @@
 import { useState } from "react";
-import { EXPERIMENTS } from "./experimentsData";
-import { HORSE_COLOR } from "./data";
+import { WEEKS, HORSE_NOTES, CHEAT_SHEET, NUTRITION } from "./experimentsData";
 
-function ExperimentCard({ exp }) {
-  const [showNotes, setShowNotes] = useState(false);
+function WeekCard({ week, expanded, onToggle }) {
+  return (
+    <div className="exp-week" style={{ "--wc": week.color }}>
+      <button className="exp-week-head" onClick={onToggle}>
+        <span className="exp-week-badge" style={{ background: week.color }}>Week {week.num}</span>
+        <span className="exp-week-title">{week.title}</span>
+        <span className={"sx-caret" + (expanded ? " open" : "")}>›</span>
+      </button>
+
+      {expanded && (
+        <div className="exp-week-body">
+          <p className="exp-week-goal"><strong>Goal:</strong> {week.goal}</p>
+          {week.rule && <p className="exp-week-rule">{week.rule}</p>}
+
+          {week.days.map((d, i) => (
+            <div className="exp-day" key={i}>
+              <div className="exp-day-head">
+                <span className="exp-day-name">{d.day}</span>
+                <span className="exp-day-session">{d.session}</span>
+              </div>
+              <div className="exp-day-body">
+                {d.exercises.map((ex, j) => (
+                  <div className="exp-ex-row" key={j}>
+                    <span className="exp-ex-label">{ex.label}</span>
+                    <span className="exp-ex-text">{ex.text}</span>
+                  </div>
+                ))}
+                {Object.keys(d.flags).length > 0 && (
+                  <div className="exp-flags">
+                    {Object.entries(d.flags).map(([horse, note]) => (
+                      <div className="exp-flag" key={horse}>
+                        <strong>{horse}:</strong> {note}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function Experiments() {
+  const [openWeek, setOpenWeek] = useState(1);
   const [showCheat, setShowCheat] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
 
   return (
-    <article className="exp-card">
-      <header className="exp-head">
-        <span className="exp-icon">🧪</span>
-        <div className="exp-title-wrap">
-          <h3 className="exp-title">{exp.name}</h3>
-          <p className="exp-goal">{exp.goal}</p>
-        </div>
-      </header>
-
-      <div className="exp-meta">
-        <span className="exp-tag">{exp.weeks} weeks</span>
-        <span className="exp-tag">{exp.horses.length} horses</span>
-        <span className="exp-tag">{exp.method}</span>
+    <div className="bk-wrap">
+      <div className="bk-intro">
+        <h2 style={{ margin: 0, fontSize: 22, letterSpacing: "-0.02em", fontWeight: 700 }}>
+          🧪 4-Week Pole Work Program
+        </h2>
+        <p className="prose" style={{ margin: "6px 0 0" }}>
+          Hind end strength and topline development. 12 sessions across 4 weeks, progressive in-hand and ridden poles.
+        </p>
       </div>
 
-      <div className="exp-horses">
-        {exp.horses.map((h) => (
-          <span className="hchip" key={h}>
-            <span className="swatch" style={{ background: HORSE_COLOR[h] || "#46535c" }} />
-            <span className="hn">{h}</span>
-          </span>
-        ))}
-      </div>
-
-      <div className="exp-actions">
-        <button className="toggle" data-on={showNotes ? "1" : "0"}
-          onClick={() => setShowNotes(!showNotes)}>
-          Horse-Specific Notes
-        </button>
-        <button className="toggle" data-on={showCheat ? "1" : "0"}
-          onClick={() => setShowCheat(!showCheat)}>
+      <div className="exp-actions" style={{ marginBottom: 14 }}>
+        <button className="toggle" data-on={showCheat ? "1" : "0"} onClick={() => setShowCheat(!showCheat)}>
           Cheat Sheet
         </button>
+        <button className="toggle" data-on={showNotes ? "1" : "0"} onClick={() => setShowNotes(!showNotes)}>
+          Horse Notes
+        </button>
       </div>
 
+      {showCheat && (
+        <div className="exp-cheat" style={{ marginBottom: 16 }}>
+          <div className="exp-table">
+            {CHEAT_SHEET.distances.map((d) => (
+              <div className="exp-table-row" key={d.label}>
+                <span className="exp-table-k">{d.label}</span>
+                <span className="exp-table-v">{d.value}</span>
+              </div>
+            ))}
+          </div>
+          <div className="exp-table" style={{ marginTop: 8 }}>
+            {CHEAT_SHEET.terms.map((d) => (
+              <div className="exp-table-row" key={d.label}>
+                <span className="exp-table-k">{d.label}</span>
+                <span className="exp-table-v">{d.value}</span>
+              </div>
+            ))}
+          </div>
+          <div className="rule-note" style={{ marginTop: 10 }}>
+            <strong>🥩 Nutrition:</strong> {NUTRITION}
+          </div>
+        </div>
+      )}
+
       {showNotes && (
-        <div className="exp-notes">
-          {exp.notes.map((n) => (
+        <div className="exp-notes" style={{ marginBottom: 16 }}>
+          {HORSE_NOTES.map((n) => (
             <div className="exp-note-row" key={n.horse}>
-              <span className="exp-note-horse" style={{ color: HORSE_COLOR[n.horse] || "#4A4A4A" }}>
-                {n.horse}
-              </span>
+              <span className="exp-note-horse">{n.horse}</span>
               <span className="exp-note-text">{n.note}</span>
             </div>
           ))}
         </div>
       )}
 
-      {showCheat && (
-        <div className="exp-cheat">
-          <div className="field-label">Distances & Heights</div>
-          <div className="exp-table">
-            {exp.cheatSheet.distances.map((d) => (
-              <div className="exp-table-row" key={d.label}>
-                <span className="exp-table-k">{d.label}</span>
-                <span className="exp-table-v">{d.value}</span>
-              </div>
-            ))}
-          </div>
-          <div className="field-label" style={{ marginTop: 14 }}>Terms</div>
-          <div className="exp-table">
-            {exp.cheatSheet.terms.map((d) => (
-              <div className="exp-table-row" key={d.label}>
-                <span className="exp-table-k">{d.label}</span>
-                <span className="exp-table-v">{d.value}</span>
-              </div>
-            ))}
-          </div>
-          {exp.nutrition && (
-            <div className="rule-note" style={{ marginTop: 14 }}>
-              <strong>🥩 Nutrition:</strong> {exp.nutrition}
-            </div>
-          )}
-        </div>
-      )}
-    </article>
-  );
-}
-
-export default function Experiments() {
-  return (
-    <div className="bk-wrap">
-      <div className="bk-intro">
-        <h2 style={{ margin: 0, fontSize: 26, letterSpacing: "-0.03em", fontWeight: 700 }}>
-          Active Experiments
-        </h2>
-        <p className="prose" style={{ margin: "8px 0 0" }}>
-          Structured programs currently running across the herd.
-        </p>
-      </div>
-
-      <div style={{ display: "grid", gap: 14, paddingBottom: 60 }}>
-        {EXPERIMENTS.map((e) => <ExperimentCard key={e.id} exp={e} />)}
+      <div className="exp-weeks">
+        {WEEKS.map((w) => (
+          <WeekCard
+            key={w.num}
+            week={w}
+            expanded={openWeek === w.num}
+            onToggle={() => setOpenWeek(openWeek === w.num ? null : w.num)}
+          />
+        ))}
       </div>
     </div>
   );

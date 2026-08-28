@@ -1,26 +1,18 @@
+import { IMG } from "./images";
+
 // Feed bucket data: sourced from the Horse Health Log 🌾Feed and 💊Treatment (oral meds) tasks with status "in progress"
-import toplineImg from "./img/topline-balance.jpg";
-import digestiveImg from "./img/digestive-balance.jpg";
-import specialCareImg from "./img/special-care.jpg";
-import alfalfaImg from "./img/alfalfa-pellets.jpg";
-import timothyImg from "./img/timothy-pellets.jpg";
-import simpliflyImg from "./img/simplifly.jpg";
-import prascendImg from "./img/prascend.jpg";
-import thyrolImg from "./img/thyro-l.jpg";
-import sweatImg from "./img/proelite-sweat.jpg";
-import viteImg from "./img/vitamin-e.jpg";
 
 export const BUCKET_PRODUCTS = {
-  "TopLine": { full: "Empower Topline Balance", img: toplineImg, type: "feed" },
-  "ProElite Sweat": { full: "ProElite Sweat (Electrolytes)", img: sweatImg, type: "supplement" },
-  "Digestive Blend": { full: "Empower Digestive Balance", img: digestiveImg, type: "feed" },
-  "SimpliFly": { full: "SimpliFly Feed-Thru Fly Control", img: simpliflyImg, type: "supplement" },
-  "Vitamin E Elevate": { full: "Platinum Performance Vitamin E", img: viteImg, type: "supplement" },
-  "Special Care": { full: "SafeChoice Special Care", img: specialCareImg, type: "feed" },
-  "Alfalfa Pellets": { full: "Standlee Alfalfa Pellets", img: alfalfaImg, type: "feed" },
-  "Timothy Pellets": { full: "Standlee Certified Timothy Pellets", img: timothyImg, type: "feed" },
-  "Prascend (oral)": { full: "Prascend (Pergolide)", img: prascendImg, type: "med" },
-  "Thyro-L": { full: "Thyro-L (Levothyroxine)", img: thyrolImg, type: "med" },
+  "TopLine": { full: "Empower Topline Balance", img: IMG["Nutrena Empower Topline Balance"], type: "feed" },
+  "ProElite Sweat": { full: "ProElite Sweat (Electrolytes)", img: IMG["ProElite Sweat (Electrolytes)"], type: "supplement" },
+  "Digestive Blend": { full: "Empower Digestive Balance", img: IMG["Nutrena Empower Digestive Balance"], type: "feed" },
+  "SimpliFly": { full: "SimpliFly Feed-Thru Fly Control", img: IMG["SimpliFly Feed-Thru Fly Control"], type: "supplement" },
+  "Vitamin E Elevate": { full: "Platinum Performance Vitamin E", img: IMG["Platinum Performance Vitamin E Powder"], type: "supplement" },
+  "Special Care": { full: "SafeChoice Special Care", img: IMG["Nutrena SafeChoice Special Care"], type: "feed" },
+  "Alfalfa Pellets": { full: "Standlee Alfalfa Pellets", img: IMG["Standlee Alfalfa Pellets"], type: "feed" },
+  "Timothy Pellets": { full: "Standlee Certified Timothy Pellets", img: IMG["Standlee Certified Timothy Pellets"], type: "feed" },
+  "Prascend (oral)": { full: "Prascend (Pergolide)", img: IMG["Prascend (Pergolide) Tablets"], type: "med" },
+  "Thyro-L": { full: "Thyro-L (Levothyroxine)", img: IMG["Thyro-L (Levothyroxine Sodium)"], type: "med" },
 };
 
 // Oral meds that go in the bucket (from Treatment records in-progress)

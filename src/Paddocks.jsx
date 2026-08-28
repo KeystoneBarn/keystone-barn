@@ -1,11 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { PADDOCKS, PADDOCK_META, HORSE_COLOR, CONTACTS, ZONES } from "./data";
 
-// The board is shared: every change is saved to the barn server so the
-// next person to open the site sees horses where the last person left
-// them. Same-origin in production (FastAPI serves this app); localhost
-// backend during `npm run dev`. localStorage is kept as an offline cache.
-const API = import.meta.env.DEV ? "http://localhost:8000" : "";
+// In dev (vite), hit localhost:8000. In production, same-origin (empty string).
+const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV) ? "http://localhost:8000" : "";
 const LS_KEY = "kb-horse-locations";
 
 const ALL_LOCATIONS = [
@@ -29,15 +26,12 @@ export default function Paddocks() {
     } catch (e) {}
     return INITIAL_ASSIGNMENTS;
   });
-  const [selected, setSelected] = useState(null); // horse being moved
-  const selectedRef = useRef(null);
-  selectedRef.current = selected;
+  const [selected, setSelected] = useState(null);
+
+  // --- Backend persistence (shared board) ---
+  const selectedRef = useRef(null); selectedRef.current = selected;
   const lastSavedAt = useRef(0);
 
-  // Pull the shared board from the server on mount, then poll so one
-  // person's move shows up on everyone else's screen. Skips while a move
-  // is in progress or just after a local save, so it never clobbers an
-  // edit mid-tap.
   useEffect(() => {
     let alive = true;
     const pull = async () => {
@@ -68,6 +62,7 @@ export default function Paddocks() {
       body: JSON.stringify({ assignments: next }),
     }).catch((e) => {});
   };
+  // --- End backend persistence ---
 
   const moveHorse = (horse, locId) => {
     const next = { ...assignments, [horse]: locId };
@@ -95,8 +90,8 @@ export default function Paddocks() {
       {selected && (
         <div className="move-banner">
           <span className="move-swatch" style={{ background: HORSE_COLOR[selected] }} />
-          Moving <strong>{selected}</strong> \u2014 tap a location below
-          <button className="move-cancel" onClick={() => setSelected(null)}>\u00d7</button>
+          Moving <strong>{selected}</strong> — tap a location below
+          <button className="move-cancel" onClick={() => setSelected(null)}>×</button>
         </div>
       )}
 
@@ -150,6 +145,7 @@ export default function Paddocks() {
             <span className="r">{c.role}</span>
             <span className="n">{c.name}</span>
             {c.detail && <span className="d">{c.detail}</span>}
+            {c.phone && <a className="contact-phone" href={"tel:" + c.phone}>{c.phone}</a>}
           </div>
         ))}
       </div>

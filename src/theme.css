@@ -68,24 +68,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 .sign-eyebrow .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--iodine-lt); }
 
-.sign-title {
-  margin: 12px 0 0;
-  font-weight: 800;
-  font-size: clamp(40px, 11.5vw, 96px);
-  line-height: 0.86;
-  letter-spacing: -0.035em;
-  text-transform: uppercase;
-  color: #f1f3ec;
-}
-.sign-title .thin { display: block; font-weight: 400; color: #a6b1b7; letter-spacing: -0.02em; }
 
-.sign-motto {
-  margin: 16px 0 0;
-  font-family: Bitter, serif;
-  font-style: italic;
-  font-size: clamp(15px, 3.4vw, 19px);
-  color: #cdd5d2;
-}
+
+
+
 .sign-note {
   margin: 18px 0 0; padding-top: 14px;
   border-top: 1px solid rgba(255,255,255,0.14);
@@ -113,22 +99,33 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .nav {
   position: sticky; top: 0; z-index: 40;
   background: var(--limewash);
-  border-bottom: 2px solid var(--alfalfa);
+  border-bottom: 1px solid var(--rule);
   box-shadow: 0 4px 12px -10px rgba(74,74,74,0.3);
+  padding: 10px 14px;
 }
-.nav-inner { display: flex; max-width: 1080px; margin: 0 auto; padding: 0 18px; gap: 0; }
-.nav button {
-  flex: 1; background: none; border: 0;
-  padding: 15px 4px 12px; white-space: nowrap;
+.nav-chips {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  max-width: 1080px; margin: 0 auto;
+}
+@media (min-width: 720px) { .nav-chips { grid-template-columns: repeat(6, 1fr); } }
+.nav-chip {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: var(--panel); border: 2px solid var(--rule);
+  border-radius: 8px; padding: 8px 4px 7px;
+  transition: all 0.16s; text-align: center;
+}
+.nav-chip:hover { border-color: var(--alfalfa); }
+.nav-chip[data-on="1"] { border-color: var(--alfalfa); background: #eef2e8; }
+.nav-chip-icon { font-size: 18px; line-height: 1; }
+.nav-chip-label {
   font-family: "Archivo Narrow", sans-serif; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.09em; font-size: 13px;
-  color: #3b454b;
-  border-bottom: 3px solid transparent;
-  transition: color 0.18s, border-color 0.18s;
+  font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--ink); line-height: 1.15;
 }
-.nav button:hover { color: var(--ink); }
-.nav button[data-on="1"] { color: var(--alfalfa); border-bottom-color: var(--alfalfa); }
-.nav .count { font-size: 12px; color: #566067; font-weight: 500; margin-left: 5px; letter-spacing: 0.04em; }
+.nav-chip-count {
+  font-family: "Archivo Narrow", sans-serif; font-weight: 600;
+  font-size: 11px; color: #555;
+}
 
 /* ---------------------------------------------------------------- search */
 .tools { padding: 20px 0 4px; }
@@ -708,3 +705,75 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 .exp-table-v { flex: 1; padding: 8px 10px; font-size: 13px; color: var(--ink-2); }
 @media (max-width: 520px) { .exp-table-k { width: 90px; font-size: 12px; } }
+
+/* header compact override */
+.sign-title {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: #F5F0E6;
+}
+
+.sign-motto {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+  font-size: 11px;
+  color: #c8c3b5;
+}
+
+/* fix symptom card text overflow */
+.sx-name { font-size: 14px; word-wrap: break-word; }
+.sx-head { padding: 12px 10px; gap: 8px; }
+.sx-emoji { font-size: 22px; }
+
+/* product detail overlay (from symptoms) */
+.pd-overlay { padding: 16px 0 60px; }
+.pd-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--rule); background: var(--panel); border-radius: 3px;
+  padding: 8px 14px; margin-bottom: 14px;
+  font-family: "Archivo Narrow", sans-serif; font-weight: 600; font-size: 13px;
+  letter-spacing: 0.04em; color: var(--ink-2);
+}
+.pd-back:hover { border-color: var(--alfalfa); color: var(--alfalfa); }
+.pd-card {
+  background: var(--panel); border: 1px solid var(--rule); border-radius: 3px;
+  padding: 18px; box-shadow: var(--shadow);
+}
+.pd-img { width: 120px; float: right; margin: 0 0 12px 14px; border: 1px solid var(--rule-2); border-radius: 3px; overflow: hidden; }
+.pd-img img { width: 100%; display: block; }
+.pd-name { margin: 0 0 10px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.pd-tags { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-bottom: 14px; }
+
+/* experiment weeks */
+.exp-weeks { display: grid; gap: 10px; padding-bottom: 60px; }
+.exp-week { border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; border-left: 5px solid var(--wc); background: var(--panel); }
+.exp-week-head { width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: none; border: 0; text-align: left; }
+.exp-week-badge { color: #fff; font-weight: 800; font-size: 12px; padding: 3px 10px; border-radius: 12px; flex: none; }
+.exp-week-title { flex: 1; font-weight: 700; font-size: 15px; }
+.exp-week-head .sx-caret { font-size: 20px; color: var(--ink-3); transition: transform 0.2s; }
+.exp-week-head .sx-caret.open { transform: rotate(90deg); }
+.exp-week-body { padding: 0 14px 16px; }
+.exp-week-goal { margin: 0 0 4px; font-size: 13.5px; color: var(--ink-2); }
+.exp-week-rule { margin: 0 0 12px; font-size: 12.5px; font-style: italic; color: var(--ink-3); }
+
+.exp-day { background: #fff; border: 1px solid var(--rule-2); border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
+.exp-day-head { padding: 10px 12px; border-bottom: 1px solid var(--rule-2); }
+.exp-day-name { font-weight: 700; font-size: 13px; }
+.exp-day-session { font-size: 13px; color: var(--ink-2); margin-left: 6px; }
+.exp-day-body { padding: 10px 12px; }
+.exp-ex-row { display: flex; gap: 8px; padding: 4px 0; }
+.exp-ex-label { flex: none; width: 80px; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-3); padding-top: 2px; }
+.exp-ex-text { flex: 1; font-size: 13.5px; color: var(--ink); }
+.exp-flags { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--rule-2); }
+.exp-flag { font-size: 12.5px; color: #8B2020; padding: 2px 0; }
+
+.contact-phone {
+  font-family: "Archivo Narrow", sans-serif; font-weight: 600; font-size: 14px;
+  color: var(--alfalfa); text-decoration: none; letter-spacing: 0.02em;
+}
+.contact-phone:hover { text-decoration: underline; }

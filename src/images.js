@@ -45,7 +45,125 @@ import p321 from "./img/p321.png";
 
 import cetirizine from "./img/cetirizine.jpg";
 
+import alushield from "./img/alushield.jpeg";
+import animed_epsom from "./img/animed-epsom.jpg";
+import biomane_conditioner from "./img/biomane-conditioner.jpg";
+import biomane_detangler from "./img/biomane-detangler.jpeg";
+import burts_bees from "./img/burts-bees.jpeg";
+import cabergoline from "./img/cabergoline.jpg";
+import coat_defense_paste from "./img/coat-defense-paste.jpeg";
+import coat_defense from "./img/coat-defense.jpeg";
+import corona_ointment from "./img/corona-ointment.jpeg";
+import cowboy_yellowout from "./img/cowboy-yellowout.jpg";
+import dex_tablets from "./img/dex-tablets.jpg";
+import dmso_gel from "./img/dmso-gel.jpeg";
+import dr_easy_wipes from "./img/dr-easy-wipes.jpeg";
+import durvet_chlorhex from "./img/durvet-chlorhex.jpg";
+import effol_volumizer from "./img/effol-volumizer.jpeg";
+import epsom_poultice from "./img/epsom-poultice.jpeg";
+import equiderma_fly from "./img/equiderma-fly.jpeg";
+import equiderma_neem_cond from "./img/equiderma-neem-cond.jpg";
+import equiderma_neem_shamp from "./img/equiderma-neem-shamp.jpg";
+import equiderma_zinc from "./img/equiderma-zinc.jpeg";
+import equinature_antistatic from "./img/equinature-antistatic.jpeg";
+import equinelite_leavein from "./img/equinelite-leavein.jpeg";
+import equinelite_shine from "./img/equinelite-shine.jpeg";
+import equioxx from "./img/equioxx.jpg";
+import equishield_ck_salve from "./img/equishield-ck-salve.jpeg";
+import equishield_ck_spray from "./img/equishield-ck-spray.jpeg";
+import equishield_ir_spray from "./img/equishield-ir-spray.jpeg";
+import eqyss_megatek from "./img/eqyss-megatek.jpeg";
+import eqyss_microtek_gel from "./img/eqyss-microtek-gel.jpg";
+import eqyss_premier_shampoo from "./img/eqyss-premier-shampoo.jpg";
+import gastroguard from "./img/gastroguard.jpg";
+import pink_stuff from "./img/pink-stuff.jpeg";
+import quikclenz from "./img/quikclenz.jpg";
+import tricare from "./img/tricare.jpeg";
+import wonder_dust from "./img/wonder-dust.jpeg";
+
+import topline_balance from "./img/topline-balance.jpg";
+import special_care from "./img/special-care.jpg";
+import alfalfa_pellets from "./img/alfalfa-pellets.jpg";
+import timothy_pellets from "./img/timothy-pellets.jpg";
+import digestive_balance from "./img/digestive-balance.jpg";
+
+import bio_sponge from "./img/bio-sponge.jpg";
+import hydroxyzine from "./img/hydroxyzine.jpg";
+import liniment_vetrolin from "./img/liniment-vetrolin.jpg";
+import probios_gel from "./img/probios-gel.jpg";
+import riggins_nustock from "./img/riggins-nustock.jpeg";
+import sunflower_suncoat from "./img/sunflower-suncoat.jpeg";
+import vetericyn_foamcare from "./img/vetericyn-foamcare.jpg";
+
+import prascend from "./img/prascend.jpg";
+
+import thyro_l from "./img/thyro-l.jpg";
+
+import proelite_sweat from "./img/proelite-sweat.jpg";
+
+import vitamin_e from "./img/vitamin-e.jpg";
+
+import simplifly from "./img/simplifly.jpg";
+
+import flybye_plus from "./img/flybye-plus.png";
+
+import charlees_flyspray from "./img/charlees-flyspray.png";
+
 export const IMG = {
+"Charlee's Fly Spray": charlees_flyspray,
+"Fly Bye! Plus Fly Spray": flybye_plus,
+  "SimpliFly Feed-Thru Fly Control": simplifly,
+  "Platinum Performance Vitamin E Powder": vitamin_e,
+  "ProElite Sweat (Electrolytes)": proelite_sweat,
+  "Thyro-L (Levothyroxine Sodium)": thyro_l,
+  "Prascend (Pergolide) Tablets": prascend,
+  "Platinum Performance Bio-Sponge": bio_sponge,
+  "Hydroxyzine Hydrochloride 50mg": hydroxyzine,
+  "Liniment (Farnam Vetrolin)": liniment_vetrolin,
+  "Probios Equine One Oral Gel": probios_gel,
+  "Riggin's Nu-Stock": riggins_nustock,
+  "Sunflower Suncoat Spray": sunflower_suncoat,
+  "Vetericyn FoamCare Medicated Shampoo": vetericyn_foamcare,
+  "Nutrena Empower Topline Balance": topline_balance,
+  "Nutrena SafeChoice Special Care": special_care,
+  "Standlee Alfalfa Pellets": alfalfa_pellets,
+  "Standlee Certified Timothy Pellets": timothy_pellets,
+  "Nutrena Empower Digestive Balance": digestive_balance,
+  "AluShield Aerosol Bandage (Ideal/Neogen)": alushield,
+  "AniMed Epsom Salt (Magnesium Sulfate)": animed_epsom,
+  "BioMane Signature Conditioner": biomane_conditioner,
+  "BioMane Detangler": biomane_detangler,
+  "Burt's Bees Baby Dusting Powder": burts_bees,
+  "Cabergoline Injectable (BET Pharm)": cabergoline,
+  "Coat Defense Trouble Spot Drying Paste": coat_defense_paste,
+  "Coat Defense": coat_defense,
+  "Corona Multi-Purpose Ointment (Manna Pro)": corona_ointment,
+  "Cowboy Magic Yellowout Whitening Shampoo": cowboy_yellowout,
+  "Dex (Dexamethasone Tablets)": dex_tablets,
+  "DMSO Gel (Neogen)": dmso_gel,
+  "Dr. Easy Eye Wipes (Dogs & Cats)": dr_easy_wipes,
+  "Durvet Chlorhexidine Solution 2%": durvet_chlorhex,
+  "Effol Mane-Tail-Volumizer": effol_volumizer,
+  "Durvet Epsom Salt Poultice (Flowable Gel)": epsom_poultice,
+  "Equiderma Neem & Aloe Herbal Fly Spray": equiderma_fly,
+  "Equiderma Neem Conditioner": equiderma_neem_cond,
+  "Equiderma Neem Shampoo": equiderma_neem_shamp,
+  "Equiderma Zinc Oxide Paste": equiderma_zinc,
+  "EquiNature No Shock Anti-Static": equinature_antistatic,
+  "EquinElite Leave-In Conditioner": equinelite_leavein,
+  "EquinElite Silky Shine & Shield": equinelite_shine,
+  "Equioxx (Firocoxib) Tablets": equioxx,
+  "EquiShield CK HC Salve": equishield_ck_salve,
+  "EquiShield CK HC Spray": equishield_ck_spray,
+  "EquiShield IR (Itch Relief) Spray": equishield_ir_spray,
+  "EQyss Mega-Tek Horse Rebuilder": eqyss_megatek,
+  "EQyss Micro-Tek Equine Gel": eqyss_microtek_gel,
+  "EQyss Premier Equine Shampoo": eqyss_premier_shampoo,
+  "GastroGard (Omeprazole) Oral Paste": gastroguard,
+  "Hair Moisturizer Concentrate (\"The Pink Stuff\")": pink_stuff,
+  "Essential Equine QuikClenz Foam-On Wash": quikclenz,
+  "Farnam Tri-Care Triple Action Wound Treatment": tricare,
+  "Farnam Wonder Dust": wonder_dust,
   cetirizine,
   278: p278,
   279: p279,
