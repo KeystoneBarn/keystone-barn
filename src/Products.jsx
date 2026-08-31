@@ -21,6 +21,17 @@ function Verdict({ v }) {
 
 const norm = (s) => s.toLowerCase();
 
+// Sort priority: best verdict first, unrated last, alpha within a tie.
+const VERDICT_RANK = {
+  "Barn Favorite": 1, "Proven": 2, "Does the Job": 3,
+  "Hit or Miss": 4, "Underwhelming": 5, "Testing": 6,
+};
+const byVerdict = (a, b) => {
+  const ra = a.v ? (VERDICT_RANK[a.v] || 90) : 99;
+  const rb = b.v ? (VERDICT_RANK[b.v] || 90) : 99;
+  return ra - rb || a.n.localeCompare(b.n);
+};
+
 function Card({ p, open, onToggle, onSymptom }) {
   const color = CAT_COLOR[p.c] || "#46535c";
   return (
@@ -120,7 +131,7 @@ export default function Products({ query, setQuery, cat, setCat, onSymptom }) {
       if (!q) return true;
       const hay = [p.n, p.c, p.d, p.dose, p.loc, p.note, ...(p.sx || []), ...(p.sx || []).map(sxLabel)].filter(Boolean).join(" ");
       return norm(hay).includes(q);
-    });
+    }).sort(byVerdict);
   }, [query, cat, showRetired]);
 
   const counts = useMemo(() => {

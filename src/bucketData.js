@@ -1,6 +1,8 @@
 import { IMG } from "./images";
 
 // Feed bucket data: sourced from the Horse Health Log 🌾Feed and 💊Treatment (oral meds) tasks with status "in progress"
+// Updated 2026-08-31: split into AM / PM / oral meds, weights from the 8/31 weigh-in,
+// hay recalculated per horse (metabolic horses at 1.5% BW, everyone else at 2.0%).
 
 export const BUCKET_PRODUCTS = {
   "TopLine": { full: "Empower Topline Balance", img: IMG["Nutrena Empower Topline Balance"], type: "feed" },
@@ -15,121 +17,157 @@ export const BUCKET_PRODUCTS = {
   "Thyro-L": { full: "Thyro-L (Levothyroxine)", img: IMG["Thyro-L (Levothyroxine Sodium)"], type: "med" },
 };
 
-// Oral meds that go in the bucket (from Treatment records in-progress)
-const ORAL_MEDS = {
-  "Mickey": [{ product: "Prascend (oral)", dose: "2 tablets daily" }],
-  "Avelin": [
-    { product: "Thyro-L", dose: "2 scoops daily" },
-    { product: "Prascend (oral)", dose: "1 tablet daily" },
-  ],
-  "Ulyssa": [{ product: "Thyro-L", dose: "2 scoops daily" }],
-  "Stendahl": [{ product: "Thyro-L", dose: "3 scoops daily" }],
-};
-
-// Feed records grouped by horse
+// Feed records grouped by horse, split AM / PM. oralMeds are mixed into the AM bucket.
 export const BUCKETS = [
   {
     horse: "Hugo",
-    items: [
+    am: [
       { product: "TopLine", amount: "2.5 lbs" },
-      { product: "Digestive Blend", amount: "2 lbs (1 lb AM, 1 lb PM)" },
+      { product: "Digestive Blend", amount: "1 lb" },
       { product: "ProElite Sweat", amount: "1 scoop" },
       { product: "SimpliFly", amount: "1 scoop" },
     ],
+    pm: [
+      { product: "Digestive Blend", amount: "1 lb" },
+    ],
+    oralMeds: [],
   },
   {
     horse: "Qu",
-    items: [
-      { product: "Special Care", amount: "3 lbs" },
-      { product: "Alfalfa Pellets", amount: "4 lbs" },
+    am: [
       { product: "TopLine", amount: "2.5 lbs" },
+      { product: "Alfalfa Pellets", amount: "4 lbs" },
       { product: "Vitamin E Elevate", amount: "2 scoops" },
       { product: "ProElite Sweat", amount: "1 scoop" },
       { product: "SimpliFly", amount: "1 scoop" },
     ],
+    pm: [
+      { product: "Special Care", amount: "3 lbs" },
+    ],
+    oralMeds: [],
   },
   {
     horse: "Dahlia",
-    items: [
-      { product: "Special Care", amount: "2 lbs" },
-      { product: "Alfalfa Pellets", amount: "2 lbs" },
+    am: [
       { product: "TopLine", amount: "2.5 lbs" },
+      { product: "Alfalfa Pellets", amount: "2 lbs" },
       { product: "ProElite Sweat", amount: "1 scoop" },
       { product: "SimpliFly", amount: "1 scoop" },
     ],
+    pm: [
+      { product: "Special Care", amount: "2 lbs" },
+    ],
+    oralMeds: [],
   },
   {
     horse: "Mickey",
-    items: [
-      { product: "Special Care", amount: "2 lbs" },
-      { product: "Timothy Pellets", amount: "1 lb (PM only)" },
+    am: [
       { product: "TopLine", amount: "1.5 lbs" },
       { product: "ProElite Sweat", amount: "1 scoop" },
       { product: "SimpliFly", amount: "1 scoop" },
-      { product: "Prascend (oral)", amount: "2 tablets" },
+    ],
+    pm: [
+      { product: "Special Care", amount: "2 lbs" },
+      { product: "Timothy Pellets", amount: "1 lb" },
+    ],
+    oralMeds: [
+      { product: "Prascend (oral)", amount: "2 tablets", note: "Cushings" },
     ],
   },
   {
     horse: "Avelin",
-    items: [
+    am: [
       { product: "TopLine", amount: "1.5 lbs" },
       { product: "ProElite Sweat", amount: "1 scoop" },
       { product: "SimpliFly", amount: "1 scoop" },
-      { product: "Thyro-L", amount: "2 scoops" },
-      { product: "Prascend (oral)", amount: "1 tablet" },
+    ],
+    pm: [],
+    oralMeds: [
+      { product: "Thyro-L", amount: "2 scoops", note: "Cushings / IR" },
+      { product: "Prascend (oral)", amount: "1 tablet", note: "Cushings" },
     ],
   },
   {
     horse: "Ulyssa",
-    items: [
+    am: [
       { product: "TopLine", amount: "1.5 lbs" },
       { product: "ProElite Sweat", amount: "1 scoop" },
       { product: "SimpliFly", amount: "1 scoop" },
-      { product: "Thyro-L", amount: "2 scoops" },
+    ],
+    pm: [],
+    oralMeds: [
+      { product: "Thyro-L", amount: "2 scoops", note: "Cushings / IR, weight mgmt" },
     ],
   },
   {
     horse: "Stendahl",
-    items: [
+    am: [
       { product: "TopLine", amount: "1.5 lbs" },
       { product: "ProElite Sweat", amount: "1 scoop" },
       { product: "SimpliFly", amount: "1 scoop" },
-      { product: "Thyro-L", amount: "3 scoops" },
+    ],
+    pm: [],
+    oralMeds: [
+      { product: "Thyro-L", amount: "3 scoops", note: "Cushings / IR" },
     ],
   },
   {
     horse: "Tammy",
-    items: [
-      { product: "Special Care", amount: "2 lbs" },
-      { product: "Timothy Pellets", amount: "1 lb" },
+    am: [
       { product: "TopLine", amount: "1.5 lbs" },
+      { product: "Timothy Pellets", amount: "1 lb" },
       { product: "ProElite Sweat", amount: "1 scoop" },
       { product: "SimpliFly", amount: "1 scoop" },
     ],
+    pm: [
+      { product: "Special Care", amount: "2 lbs" },
+    ],
+    oralMeds: [],
   },
   {
     horse: "Linka",
-    items: [
-      { product: "Special Care", amount: "3 lbs" },
-      { product: "Timothy Pellets", amount: "1 lb" },
+    am: [
       { product: "TopLine", amount: "2.5 lbs" },
+      { product: "Timothy Pellets", amount: "1 lb" },
       { product: "ProElite Sweat", amount: "1 scoop" },
       { product: "SimpliFly", amount: "1 scoop" },
     ],
+    pm: [
+      { product: "Special Care", amount: "3 lbs" },
+    ],
+    oralMeds: [],
   },
 ];
 
-// Current weights (from most recent weigh-in) and hay rate
-export const HAY_RATE = 0.02; // 2% of body weight per day
+// PM-only summary — horses that get a second (evening) feeding, for the barn's PM round.
+export const PM_SUMMARY = BUCKETS
+  .filter((b) => b.pm.length > 0)
+  .map((b) => ({ horse: b.horse, items: b.pm }));
 
+// Current weights — weighed 2026-08-31.
 export const WEIGHTS = {
-  Hugo: 1033,
-  Qu: 1220,
-  Dahlia: 1010,
-  Mickey: 940,
-  Avelin: 969,
-  Ulyssa: 1070,
-  Stendahl: 895,
-  Tammy: 925,
-  Linka: 930,
+  Stendahl: 915,
+  Dahlia: 1055,
+  Qu: 1245,
+  Hugo: 1040,
+  Ulyssa: 1060,
+  Avelin: 990,
+  Mickey: 950,
+  Tammy: 965,
+  Linka: 860,
+};
+
+// Hay is fed at a percent of body weight per day. Metabolic horses (Cushing's / IR)
+// are held to 1.5%; everyone else gets 2.0%.
+export const HAY_RATE = 0.02; // default / non-metabolic
+export const HAY = {
+  Stendahl: { pct: 0.015, metabolic: true },
+  Ulyssa:   { pct: 0.015, metabolic: true },
+  Avelin:   { pct: 0.015, metabolic: true },
+  Mickey:   { pct: 0.015, metabolic: true },
+  Dahlia:   { pct: 0.02,  metabolic: false },
+  Qu:       { pct: 0.02,  metabolic: false },
+  Hugo:     { pct: 0.02,  metabolic: false },
+  Tammy:    { pct: 0.02,  metabolic: false },
+  Linka:    { pct: 0.02,  metabolic: false },
 };

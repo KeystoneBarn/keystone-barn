@@ -1,5 +1,57 @@
 import { useState } from "react";
-import { WEEKS, HORSE_NOTES, CHEAT_SHEET, NUTRITION } from "./experimentsData";
+import { WEEKS, HORSE_NOTES, CHEAT_SHEET, NUTRITION, PROGRESS, SIDE_EXPERIMENTS } from "./experimentsData";
+
+function ProgressStrip() {
+  const pct = Math.round((PROGRESS.sessionsCompleted / PROGRESS.totalSessions) * 100);
+  return (
+    <div className="exp-progress">
+      <div className="exp-progress-head">
+        <strong>Week {PROGRESS.currentWeek}, Day {PROGRESS.currentDay}</strong>
+        <span>{PROGRESS.sessionsCompleted} of {PROGRESS.totalSessions} sessions done</span>
+      </div>
+      <div className="exp-progress-bar"><span style={{ width: pct + "%" }} /></div>
+      <div className="exp-progress-log">
+        {PROGRESS.weekLog.map((w) => (
+          <div className="exp-plog-week" key={w.week}>
+            <span className="exp-plog-label">W{w.week}</span>
+            {w.days.map((d) => (
+              <span
+                key={d.day}
+                className="exp-plog-dot"
+                data-done={d.date && d.note !== "Upcoming" ? "1" : "0"}
+                title={`Day ${d.day}${d.date ? " — " + d.date : ""}: ${d.note}`}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SideExperiments() {
+  return (
+    <div className="exp-side">
+      <h3 className="sec-h">Other Trials</h3>
+      {SIDE_EXPERIMENTS.map((e, i) => (
+        <div className="exp-side-row" key={i}>
+          <div className="exp-side-top">
+            <span className="exp-side-title">{e.title}</span>
+            <span className="exp-side-status" data-s={e.status.startsWith("concluded") ? "done" : e.status}>
+              {e.status}
+            </span>
+          </div>
+          <p className="exp-side-detail">{e.detail}</p>
+          {(e.horse || e.started) && (
+            <p className="exp-side-meta">
+              {e.horse ? e.horse : "Herd-wide"}{e.started ? ` · started ${e.started}` : ""}{e.window ? ` · ${e.window}` : ""}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function WeekCard({ week, expanded, onToggle }) {
   return (
@@ -47,7 +99,7 @@ function WeekCard({ week, expanded, onToggle }) {
 }
 
 export default function Experiments() {
-  const [openWeek, setOpenWeek] = useState(1);
+  const [openWeek, setOpenWeek] = useState(PROGRESS.currentWeek);
   const [showCheat, setShowCheat] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
 
@@ -61,6 +113,8 @@ export default function Experiments() {
           Hind end strength and topline development. 12 sessions across 4 weeks, progressive in-hand and ridden poles.
         </p>
       </div>
+
+      <ProgressStrip />
 
       <div className="exp-actions" style={{ marginBottom: 14 }}>
         <button className="toggle" data-on={showCheat ? "1" : "0"} onClick={() => setShowCheat(!showCheat)}>
@@ -116,6 +170,8 @@ export default function Experiments() {
           />
         ))}
       </div>
+
+      <SideExperiments />
     </div>
   );
 }

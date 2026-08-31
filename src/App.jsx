@@ -38,7 +38,7 @@ const TABS = [
   { id: "buckets", label: "Feed Buckets", count: 9, icon: "🌾" },
   { id: "symptoms", label: "Symptoms", count: SYMPTOMS.length, icon: "🩺" },
   { id: "tack", label: "Tack Board", count: 9, icon: "🐴" },
-  { id: "experiments", label: "Experiments", count: 1, icon: "🧪" },
+  { id: "experiments", label: "Experiments", count: 9, icon: "🧪" },
   { id: "paddocks", label: "Paddocks", count: 9, icon: "📍" },
 ];
 

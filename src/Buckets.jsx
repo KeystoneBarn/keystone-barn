@@ -1,9 +1,15 @@
 import { useState, useMemo } from "react";
-import { BUCKETS, BUCKET_PRODUCTS, WEIGHTS, HAY_RATE } from "./bucketData";
+import { BUCKETS, BUCKET_PRODUCTS, PM_SUMMARY, WEIGHTS, HAY, HAY_RATE } from "./bucketData";
 import { HORSE_COLOR } from "./data";
 
 const TYPE_LABEL = { feed: "Feed", supplement: "Supplement", med: "Medication" };
 const TYPE_COLOR = { feed: "#3F6B45", supplement: "#5A6822", med: "#5b3e7a" };
+
+const hayFor = (horse) => {
+  const w = WEIGHTS[horse] || 0;
+  const pct = HAY[horse]?.pct ?? HAY_RATE;
+  return { lbs: Math.round(w * pct * 10) / 10, pct, weight: w, metabolic: !!HAY[horse]?.metabolic };
+};
 
 function HorseIndex({ horses, selected, onSelect }) {
   return (
@@ -29,47 +35,95 @@ function HorseIndex({ horses, selected, onSelect }) {
   );
 }
 
+function ItemRow({ item }) {
+  const p = BUCKET_PRODUCTS[item.product];
+  const tc = TYPE_COLOR[p?.type] || "#46535c";
+  return (
+    <li className="bk-item" style={{ "--tc": tc }}>
+      {p?.img && (
+        <span className="bk-thumb">
+          <img src={p.img} alt="" loading="lazy" />
+        </span>
+      )}
+      <span className="bk-info">
+        <span className="bk-product">{p?.full || item.product}</span>
+        <span className="bk-type-inline" style={{ color: tc }}>
+          {item.note || TYPE_LABEL[p?.type] || ""}
+        </span>
+      </span>
+      <span className="bk-amount-right">{item.amount}</span>
+    </li>
+  );
+}
+
+function Meal({ label, items }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="bk-meal">
+      <div className="field-label">{label}</div>
+      <ul className="bk-items">
+        {items.map((item) => <ItemRow key={label + item.product} item={item} />)}
+      </ul>
+    </div>
+  );
+}
+
 function BucketCard({ bucket }) {
   const color = HORSE_COLOR[bucket.horse] || "#46535c";
-  const weight = WEIGHTS[bucket.horse] || 0;
-  const hayLbs = Math.round(weight * HAY_RATE * 10) / 10;
+  const hay = hayFor(bucket.horse);
+  const count = bucket.am.length + bucket.pm.length + bucket.oralMeds.length;
   return (
     <article className="bk-card" style={{ "--hc": color }}>
       <header className="bk-head">
         <span className="bk-swatch" style={{ background: color }} />
         <h3 className="bk-name">{bucket.horse}</h3>
-        <span className="bk-count">{bucket.items.length} items daily</span>
+        <span className="bk-count">{count} items daily</span>
       </header>
       <div className="bk-hay">
         <span className="bk-hay-icon">🌾</span>
         <span className="bk-hay-text">
-          <strong>{hayLbs} lbs hay/day</strong>
-          <span className="bk-hay-note">{weight} lb × 2%</span>
+          <strong>{hay.lbs} lbs hay/day</strong>
+          <span className="bk-hay-note">
+            {hay.weight} lb × {Math.round(hay.pct * 1000) / 10}%{hay.metabolic ? " · metabolic" : ""}
+          </span>
         </span>
       </div>
-      <ul className="bk-items">
-        {bucket.items.map((item) => {
-          const p = BUCKET_PRODUCTS[item.product];
-          const tc = TYPE_COLOR[p?.type] || "#46535c";
-          return (
-            <li className="bk-item" key={item.product} style={{ "--tc": tc }}>
-              {p?.img && (
-                <span className="bk-thumb">
-                  <img src={p.img} alt="" loading="lazy" />
-                </span>
-              )}
-              <span className="bk-info">
-                <span className="bk-product">{p?.full || item.product}</span>
-                <span className="bk-type-inline" style={{ color: tc }}>
-                  {TYPE_LABEL[p?.type] || ""}
-                </span>
-              </span>
-              <span className="bk-amount-right">{item.amount}</span>
-            </li>
-          );
-        })}
-      </ul>
+      <Meal label="AM bucket" items={bucket.am} />
+      {bucket.oralMeds.length > 0 && <Meal label="Oral meds (in AM bucket)" items={bucket.oralMeds} />}
+      <Meal label="PM bucket" items={bucket.pm} />
     </article>
+  );
+}
+
+function PmSummary() {
+  if (PM_SUMMARY.length === 0) return null;
+  return (
+    <div className="bk-card bk-pm-card">
+      <header className="bk-head">
+        <span className="bk-swatch" style={{ background: "#46535c" }} />
+        <h3 className="bk-name">PM round</h3>
+        <span className="bk-count">{PM_SUMMARY.length} horses</span>
+      </header>
+      <p className="prose" style={{ margin: "0 0 10px", fontSize: 13 }}>
+        Everyone else is AM only. These horses get a second bucket in the evening:
+      </p>
+      <ul className="bk-items">
+        {PM_SUMMARY.map((row) =>
+          row.items.map((item) => {
+            const p = BUCKET_PRODUCTS[item.product];
+            return (
+              <li className="bk-item" key={row.horse + item.product}>
+                <span className="bk-info">
+                  <span className="bk-product">{row.horse}</span>
+                  <span className="bk-type-inline">{p?.full || item.product}</span>
+                </span>
+                <span className="bk-amount-right">{item.amount}</span>
+              </li>
+            );
+          })
+        )}
+      </ul>
+    </div>
   );
 }
 
@@ -77,9 +131,8 @@ function WeeklyTotals({ buckets }) {
   const totals = useMemo(() => {
     const map = {};
     buckets.forEach((b) => {
-      b.items.forEach((item) => {
+      [...b.am, ...b.pm, ...b.oralMeds].forEach((item) => {
         if (!map[item.product]) map[item.product] = { product: item.product, daily: 0, unit: "" };
-        // Parse amount
         const m = item.amount.match(/([\d.]+)\s*(\w+)/);
         if (m) {
           map[item.product].daily += parseFloat(m[1]);
@@ -90,7 +143,7 @@ function WeeklyTotals({ buckets }) {
     return Object.values(map).sort((a, b) => b.daily - a.daily);
   }, [buckets]);
 
-  const totalHayDay = Object.values(WEIGHTS).reduce((s, w) => s + w * HAY_RATE, 0);
+  const totalHayDay = buckets.reduce((s, b) => s + hayFor(b.horse).lbs, 0);
   const totalHayWeek = Math.round(totalHayDay * 7);
 
   return (
@@ -129,8 +182,8 @@ export default function Buckets() {
           Feed Buckets
         </h2>
         <p className="prose" style={{ margin: "8px 0 0" }}>
-          What goes in each horse's bucket daily. Feed and supplements are top-dressed together.
-          Oral meds (purple) are mixed in too. Hay is calculated at 2% of current body weight.
+          What goes in each horse's bucket. AM and PM are split out; oral meds (purple) go in the
+          AM bucket. Hay is 2% of body weight for most horses, 1.5% for the metabolic ones.
         </p>
       </div>
 
@@ -138,6 +191,7 @@ export default function Buckets() {
 
       <div className="bk-grid">
         {visible.map((b) => <BucketCard key={b.horse} bucket={b} />)}
+        {selected === null && <PmSummary />}
       </div>
 
       <WeeklyTotals buckets={BUCKETS} />

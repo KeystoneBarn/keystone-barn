@@ -144,3 +144,78 @@ export const CHEAT_SHEET = {
 };
 
 export const NUTRITION = "Aim for 0.8-1.0 g crude protein per kg bodyweight daily. Lysine is the limiting amino acid. If hay tests low, a quality ration balancer goes a long way.";
+
+// Where the pole work program stands. Updated 2026-08-31.
+export const PROGRESS = {
+  startDate: "2026-08-17",
+  currentWeek: 3,
+  currentDay: 1,
+  sessionsCompleted: 7,
+  totalSessions: 12,
+  weekLog: [
+    { week: 1, days: [
+      { day: 1, date: "Aug 17", note: "All horses started. Hugo: walked + raised poles, short RF/LH, knocked poles." },
+      { day: 2, date: "~Aug 19", note: "Completed, nothing significant noted." },
+      { day: 3, date: "~Aug 21", note: "Completed, nothing significant noted." },
+    ] },
+    { week: 2, days: [
+      { day: 1, date: "~Aug 24", note: "Completed. All horses on schedule." },
+      { day: 2, date: "~Aug 26", note: "Completed." },
+      { day: 3, date: "~Aug 28", note: "Completed." },
+    ] },
+    { week: 3, days: [
+      { day: 1, date: "Aug 31", note: "Completed. Hugo: short on RF/LH, kept knocking poles, got Bemer after." },
+      { day: 2, date: null, note: "Upcoming" },
+      { day: 3, date: null, note: "Upcoming" },
+    ] },
+    { week: 4, days: [
+      { day: 1, date: null, note: "Upcoming" },
+      { day: 2, date: null, note: "Upcoming" },
+      { day: 3, date: null, note: "Upcoming" },
+    ] },
+  ],
+};
+
+// Smaller trials running alongside the pole program. From the Experiments list.
+export const SIDE_EXPERIMENTS = [
+  {
+    title: "Mega-Tek daily on Dahlia's mane & tail",
+    horse: "Dahlia", status: "active", started: "Aug 7", window: "30 days",
+    detail: "EQYSS Mega-Tek Rebuilder to mane, forelock, and tail roots basically daily. Testing whether those areas grow in thicker. ~24 days in.",
+  },
+  {
+    title: "Multi-product grooming protocol — Qu",
+    horse: "Qu", status: "active", started: "Aug 7",
+    detail: "Equiderma coat spray on the coat, EquinElite Shine & Shield on forelock/mane/tail ends, EQYSS Mega-Tek on roots and feathers.",
+  },
+  {
+    title: "Multi-product grooming protocol — Avelin",
+    horse: "Avelin", status: "active", started: "Aug 7",
+    detail: "Equiderma coat spray on the coat, EquinElite Shine & Shield on forelock/tail, EQYSS Mega-Tek on feathers.",
+  },
+  {
+    title: "Charlee's Fly Spray staying power — Avelin",
+    horse: "Avelin", status: "active", started: "Aug 25",
+    detail: "Does one application keep flies off the body for at least 75 minutes? 8/25: yes, held 75 minutes.",
+  },
+  {
+    title: "Feed increase — Qu",
+    horse: "Qu", status: "inconclusive", started: "Aug 4",
+    detail: "Whether more feed produces a measurable positive response for weight gain. No clear result yet.",
+  },
+  {
+    title: "Micro-Tek vs Coat Defense — Qu",
+    horse: "Qu", status: "inconclusive",
+    detail: "Split-body trial for sweat itch: Micro-Tek on one side, Coat Defense on the other.",
+  },
+  {
+    title: "Silvetrasol only for hooves",
+    horse: null, status: "concluded — worked",
+    detail: "Dropped every other hoof product and kept only Silvetrasol. It held up on its own.",
+  },
+  {
+    title: "Special Care + Alfalfa pellets for weight — Dahlia",
+    horse: "Dahlia", status: "concluded — worked",
+    detail: "Within 3 weeks her body composition improved.",
+  },
+];

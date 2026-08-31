@@ -463,6 +463,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .bk-count { font-family: "Archivo Narrow", sans-serif; font-size: 12.5px;
   letter-spacing: 0.08em; text-transform: uppercase; color: #5c666c; }
 
+.bk-meal { border-bottom: 1px solid var(--rule-2); }
+.bk-meal:last-child { border-bottom: 0; }
+.bk-meal > .field-label {
+  padding: 9px 14px 4px;
+  font-family: "Archivo Narrow", sans-serif; font-weight: 700;
+  font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: #5c666c;
+}
+.bk-meal .bk-items .bk-item { padding-top: 8px; padding-bottom: 8px; }
+.bk-pm-card { border-left-color: var(--galv); }
+.bk-pm-card > .prose { padding: 12px 14px 0; }
+
 .bk-items { list-style: none; margin: 0; padding: 0; }
 .bk-item {
   display: flex; align-items: center; gap: 11px;
@@ -771,6 +783,35 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .exp-ex-text { flex: 1; font-size: 13.5px; color: var(--ink); }
 .exp-flags { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--rule-2); }
 .exp-flag { font-size: 12.5px; color: #8B2020; padding: 2px 0; }
+
+/* ---- pole program progress ---- */
+.exp-progress { border: 1px solid var(--rule); border-radius: 8px; background: var(--panel); padding: 12px 14px; margin-bottom: 14px; }
+.exp-progress-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; }
+.exp-progress-head strong { font-size: 14.5px; letter-spacing: -0.01em; }
+.exp-progress-head span { font-family: "Archivo Narrow", sans-serif; color: var(--ink-2); }
+.exp-progress-bar { height: 6px; border-radius: 3px; background: var(--rule-2); margin: 8px 0 10px; overflow: hidden; }
+.exp-progress-bar span { display: block; height: 100%; background: var(--alfalfa, #3F6B45); }
+.exp-progress-log { display: flex; flex-wrap: wrap; gap: 12px; }
+.exp-plog-week { display: inline-flex; align-items: center; gap: 5px; }
+.exp-plog-label { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.08em; color: var(--ink-3); }
+.exp-plog-dot { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--rule); background: transparent; }
+.exp-plog-dot[data-done="1"] { background: var(--alfalfa, #3F6B45); border-color: var(--alfalfa, #3F6B45); }
+
+/* ---- side experiments ---- */
+.exp-side { margin-top: 26px; padding-bottom: 50px; }
+.exp-side-row { border: 1px solid var(--rule-2); border-radius: 6px; padding: 11px 13px; margin-bottom: 9px; background: var(--panel); }
+.exp-side-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.exp-side-title { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
+.exp-side-status {
+  flex: none; font-family: "Archivo Narrow", sans-serif; font-weight: 700;
+  font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 3px; background: #e2e4e1; color: #5c6266; white-space: nowrap;
+}
+.exp-side-status[data-s="active"] { background: #e4efe5; color: #2f5d38; }
+.exp-side-status[data-s="inconclusive"] { background: #f3ead6; color: #8f6606; }
+.exp-side-status[data-s="done"] { background: #dde8f0; color: #2A6280; }
+.exp-side-detail { margin: 5px 0 0; font-size: 13px; color: var(--ink); }
+.exp-side-meta { margin: 4px 0 0; font-family: "Archivo Narrow", sans-serif; font-size: 12px; color: var(--ink-3); }
 
 .contact-phone {
   font-family: "Archivo Narrow", sans-serif; font-weight: 600; font-size: 14px;
