@@ -63,12 +63,12 @@ export const BUCKETS = [
     horse: "Mickey",
     am: [
       { product: "TopLine", amount: "1.5 lbs" },
+      { product: "Timothy Pellets", amount: "1 lb" },
       { product: "ProElite Sweat", amount: "1 scoop" },
       { product: "SimpliFly", amount: "1 scoop" },
     ],
     pm: [
       { product: "Special Care", amount: "2 lbs" },
-      { product: "Timothy Pellets", amount: "1 lb" },
     ],
     oralMeds: [
       { product: "Prascend (oral)", amount: "2 tablets", note: "Cushings" },
