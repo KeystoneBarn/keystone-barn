@@ -107,7 +107,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
   max-width: 1080px; margin: 0 auto;
 }
-@media (min-width: 720px) { .nav-chips { grid-template-columns: repeat(6, 1fr); } }
+@media (min-width: 720px) { .nav-chips { grid-template-columns: repeat(8, 1fr); } }
 .nav-chip {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   background: var(--panel); border: 2px solid var(--rule);
@@ -818,3 +818,76 @@ button { font: inherit; color: inherit; cursor: pointer; }
   color: var(--alfalfa); text-decoration: none; letter-spacing: 0.02em;
 }
 .contact-phone:hover { text-decoration: underline; }
+
+/* ---------------------------------------------------- feed mill (Buckets) */
+.bk-mill-sub {
+  display: block; font-family: "Archivo Narrow", sans-serif; font-weight: 500;
+  font-size: 12px; color: var(--ink-3); letter-spacing: 0.01em; margin-top: 1px;
+}
+.bk-total-row .bk-total-label { align-self: center; }
+@media (max-width: 520px) {
+  .bk-total-row { flex-wrap: wrap; gap: 4px 12px; }
+  .bk-total-week { display: block; min-width: 0; text-align: left; }
+  .bk-total-val { min-width: 0; text-align: left; }
+}
+
+/* ------------------------------------------------- experiments: timeline */
+.exp-timeline { margin: 16px 0 4px; }
+.exp-tl-list {
+  border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; background: var(--panel);
+}
+.exp-tl-row { display: flex; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--rule-2); }
+.exp-tl-row:last-child { border-bottom: 0; }
+.exp-tl-when {
+  flex: none; width: 96px; font-family: "Archivo Narrow", sans-serif; font-weight: 700;
+  font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--galv);
+  padding-top: 2px;
+}
+.exp-tl-what { flex: 1; font-size: 13.5px; color: var(--ink); }
+@media (max-width: 520px) { .exp-tl-row { flex-direction: column; gap: 2px; } .exp-tl-when { width: auto; } }
+
+/* -------------------------------------- experiments: day rows (new schema) */
+.exp-day-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.exp-day-num {
+  font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 11px;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3);
+}
+.exp-day-mode {
+  margin-left: auto; font-family: "Archivo Narrow", sans-serif; font-weight: 600;
+  font-size: 10.5px; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--galv-dk); background: #eef1e8; border-radius: 999px; padding: 2px 8px;
+}
+.exp-day-detail { margin: 8px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+.exp-day-horses { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.exp-horse-chip {
+  font-family: "Archivo Narrow", sans-serif; font-weight: 600; font-size: 11.5px;
+  letter-spacing: 0.02em; color: var(--ink-2);
+  border: 1px solid var(--rule); border-radius: 999px; padding: 1px 8px; background: #fff;
+}
+
+/* --------------------------------------- experiments: coming next card */
+.exp-coming { margin-top: 22px; padding-bottom: 50px; }
+.exp-coming-card {
+  border: 2px dashed var(--rule); border-radius: 8px; padding: 14px 16px;
+  background: repeating-linear-gradient(135deg, transparent 0 10px, rgba(91,98,54,0.03) 10px 20px);
+}
+.exp-coming-badge {
+  display: inline-block; font-family: "Archivo Narrow", sans-serif; font-weight: 700;
+  font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: #5c6266; background: #e6e8e3; border-radius: 999px; padding: 2px 9px;
+}
+.exp-coming-title { margin: 8px 0 0; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+.exp-coming-blurb { margin: 5px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.exp-coming-status {
+  margin: 7px 0 0; font-family: "Archivo Narrow", sans-serif; font-size: 12px;
+  font-style: italic; color: var(--ink-3);
+}
+.exp-coming-link {
+  margin-top: 10px; border: 1px solid var(--rule); background: var(--panel); border-radius: 3px;
+  padding: 6px 11px; font-family: "Archivo Narrow", sans-serif; font-size: 12px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--galv-dk);
+}
+.exp-coming-link:hover { border-color: var(--alfalfa); }
+
+/* --------------------------------------------------- embedded field guides */
+.guide-embed { display: block; margin: 4px 0 40px; }

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5B6236">
+<title>Red Light Therapy — Keystone Barn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&family=Source+Sans+3:wght@400;600;700&family=Archivo+Narrow:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --olive:#5B6236;
+    --olive-dark:#3F4426;
+    --olive-light:#8B9463;
+    --cream:#F5F0E6;
+    --cream-2:#EFE6D2;
+    --card:#FFFFFF;
+    --sienna:#A0522D;
+    --sienna-dark:#7E4023;
+    --sienna-light:#D98756;
+    --gold:#D9A441;
+    --teal:#4E8B84;
+    --slate:#4A4A4A;
+    --ink:#2F2C1D;
+    --hair:#DCD3BE;
+
+    /* fluid type: phone -> Cozyla wall display */
+    --t-label: clamp(0.68rem, 0.42rem + 0.42vw, 0.92rem);
+    --t-body:  clamp(1rem, 0.86rem + 0.42vw, 1.31rem);
+    --t-small: clamp(0.92rem, 0.82rem + 0.3vw, 1.16rem);
+    --t-h3:    clamp(1.3rem, 1.02rem + 0.85vw, 2.05rem);
+    --t-h2:    clamp(1.5rem, 1.14rem + 1.1vw, 2.45rem);
+    --t-h1:    clamp(2.4rem, 1.4rem + 4.2vw, 5.4rem);
+    --t-big:   clamp(1.5rem, 1.1rem + 1.5vw, 2.6rem);
+
+    --gap: clamp(0.7rem, 0.4rem + 1.1vw, 1.4rem);
+    --pad: clamp(0.95rem, 0.6rem + 1.2vw, 1.7rem);
+    --radius: clamp(12px, 10px + 0.4vw, 20px);
+  }
+
+  *{box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  html{ -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;
+    background:var(--cream);
+    font-family:'Source Sans 3', system-ui, sans-serif;
+    font-size:var(--t-body);
+    line-height:1.4;
+    color:var(--ink);
+    padding:
+      env(safe-area-inset-top)
+      max(env(safe-area-inset-right), clamp(0.85rem, 0.4rem + 2vw, 2.6rem))
+      calc(env(safe-area-inset-bottom) + 1.5rem)
+      max(env(safe-area-inset-left), clamp(0.85rem, 0.4rem + 2vw, 2.6rem));
+  }
+  .wrap{ max-width:1680px; margin-inline:auto; padding-block:clamp(1.1rem,0.6rem+1.6vw,2.4rem); }
+
+  .label{
+    font-family:'Archivo Narrow', sans-serif; font-weight:700;
+    font-size:var(--t-label); letter-spacing:0.13em; text-transform:uppercase;
+    color:var(--sienna); display:inline-block;
+  }
+  .label.mute{ color:#958C77; }
+  .label.on-dark{ color:rgba(245,240,230,0.7); }
+
+  h1,h2,h3,h4{ font-family:'Playfair Display', Georgia, serif; margin:0; line-height:1.06; }
+
+  /* ---------- header ---------- */
+  header{
+    display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between;
+    gap:var(--gap); padding-bottom:clamp(0.8rem,0.5rem+1vw,1.5rem);
+    border-bottom:3px solid var(--olive);
+  }
+  .head-main{ flex:1 1 min(100%, 26ch); min-width:0; }
+  h1{
+    font-size:var(--t-h1); font-weight:700; color:var(--olive-dark);
+    letter-spacing:-0.015em; margin-bottom:0.35em;
+  }
+  h1 em{ font-style:italic; font-weight:600; color:var(--sienna); }
+  .dek{ font-size:var(--t-body); color:var(--slate); max-width:62ch; }
+  .dek b{ color:var(--sienna-dark); }
+  .brand{ flex:0 1 auto; text-align:left; }
+  @media (min-width:52rem){ .brand{ text-align:right; } }
+  .brand .bn{ font-family:'Playfair Display',serif; font-weight:700; font-size:var(--t-h3); color:var(--olive-dark); }
+  .brand .bt{ font-family:'Playfair Display',serif; font-style:italic; font-weight:600; font-size:var(--t-small); color:var(--sienna); }
+  .brand .bm{ font-family:'Archivo Narrow',sans-serif; font-weight:600; font-size:var(--t-label); letter-spacing:0.12em; text-transform:uppercase; color:#958C77; margin-top:0.5em; line-height:1.6; }
+
+  /* ---------- nm vs hz ---------- */
+  .strip{
+    margin-top:var(--gap); background:var(--cream-2);
+    border:2px solid var(--hair); border-radius:var(--radius); padding:var(--pad);
+  }
+  .strip-grid{ display:grid; gap:var(--gap); grid-template-columns:1fr; align-items:start; }
+  @media (min-width:46rem){ .strip-grid{ grid-template-columns:1fr auto 1fr; } }
+  .vs{
+    font-family:'Playfair Display',serif; font-style:italic; font-weight:600;
+    font-size:var(--t-h3); color:var(--sienna-light); text-align:center;
+    align-self:center;
+  }
+  @media (max-width:45.99rem){
+    .vs{ padding:0.1em 0; }
+    .strip-grid > .sc + .vs{ border-top:2px dashed var(--hair); padding-top:0.5em; }
+  }
+  .sc h3{ font-size:var(--t-h3); font-weight:600; color:var(--olive-dark); margin:0.3em 0 0.25em; }
+  .sc p{ margin:0; font-size:var(--t-small); color:var(--slate); }
+  .strip-foot{
+    margin-top:var(--pad); padding-top:0.75em; border-top:2px dashed var(--hair);
+    text-align:center; font-size:var(--t-small); color:var(--slate);
+  }
+  .strip-foot b{ color:var(--sienna-dark); }
+
+  /* ---------- layout ---------- */
+  .cols{ display:grid; gap:var(--gap); grid-template-columns:1fr; margin-top:var(--gap); align-items:start; }
+  @media (min-width:64rem){ .cols{ grid-template-columns:minmax(0,0.85fr) minmax(0,1.15fr); } }
+
+  .sec-head{
+    display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between;
+    gap:0.4em 1em; margin:calc(var(--gap) * 1.35) 0 var(--gap);
+    padding-bottom:0.4em; border-bottom:3px solid var(--olive);
+  }
+  .col > .sec-head:first-child{ margin-top:0; }
+  h2{ font-size:var(--t-h2); font-weight:600; color:var(--olive-dark); }
+
+  .card{ background:var(--card); border:2px solid var(--hair); border-radius:var(--radius); padding:var(--pad); }
+
+  /* wavelengths */
+  .wave + .wave{ margin-top:var(--pad); padding-top:var(--pad); border-top:2px dashed var(--hair); }
+  .wave h3{ font-size:var(--t-h3); font-weight:600; color:var(--olive-dark); margin:0.3em 0 0.25em; }
+  .wave p{ margin:0; font-size:var(--t-small); color:var(--slate); }
+  .wave p b{ color:var(--sienna-dark); }
+  .reaches{ margin-top:0.8em; }
+  .reaches ul{ margin:0.35em 0 0; padding:0; list-style:none; display:grid; gap:0.2em; }
+  .reaches li{
+    font-size:var(--t-small); font-weight:600; color:var(--slate);
+    padding-left:1.1em; position:relative;
+  }
+  .reaches li::before{
+    content:"◆"; position:absolute; left:0; top:0.42em;
+    font-size:0.44em; color:var(--sienna-light);
+  }
+
+  /* equipment */
+  .kit{ display:grid; gap:calc(var(--gap) * 0.55); }
+  .kit-row{ display:flex; gap:0.7em; align-items:flex-start; }
+  .kit-ico{ flex:0 0 auto; font-size:var(--t-h3); line-height:1.1; }
+  .kit-body{ flex:1; min-width:0; }
+  .kit-top{ display:flex; flex-wrap:wrap; align-items:baseline; gap:0.3em 0.5em; }
+  .kit-name{ font-family:'Playfair Display',serif; font-weight:600; font-size:var(--t-h3); color:var(--olive-dark); }
+  .kit-top .label{ font-size:var(--t-label); color:#958C77; }
+  .kit-qty{
+    margin-left:auto; font-family:'Archivo Narrow',sans-serif; font-weight:700;
+    font-size:var(--t-label); letter-spacing:0.05em; color:var(--cream);
+    background:var(--sienna); border-radius:999px; padding:0.15em 0.65em;
+  }
+  .kit-target{ font-size:var(--t-small); font-weight:700; color:var(--sienna); margin-top:0.15em; }
+  .kit-how{ font-size:var(--t-small); color:var(--slate); margin-top:0.3em; }
+
+  /* how often */
+  .often{ background:var(--olive); color:var(--cream); border-radius:var(--radius); padding:var(--pad); }
+  .often .sec-head{ margin:0 0 0.5em; border-bottom-color:rgba(245,240,230,0.35); }
+  .often h2{ color:var(--cream); }
+  .often-row{ display:flex; flex-wrap:wrap; align-items:baseline; gap:0.3em 1em; padding:0.75em 0; }
+  .often-row + .often-row{ border-top:2px solid rgba(245,240,230,0.2); }
+  .often-key{
+    flex:0 0 auto; min-width:7.5em;
+    font-family:'Archivo Narrow',sans-serif; font-weight:600; font-size:var(--t-label);
+    letter-spacing:0.13em; text-transform:uppercase; color:rgba(245,240,230,0.72);
+  }
+  .often-val{ flex:1 1 12ch; min-width:0; }
+  .often-val .big{ font-family:'Playfair Display',serif; font-weight:600; font-size:var(--t-big); color:#fff; }
+  .often-val .sub{ font-size:var(--t-small); color:rgba(245,240,230,0.78); margin-top:0.2em; }
+
+  /* tool / problem */
+  .tool{ display:grid; gap:calc(var(--gap) * 0.5); }
+  .tool-row{
+    background:var(--card); border:2px solid var(--hair); border-radius:var(--radius);
+    padding:calc(var(--pad) * 0.72) var(--pad);
+    display:flex; flex-wrap:wrap; align-items:center; gap:0.5em 0.8em;
+  }
+  .tool-ico{ flex:0 0 auto; font-size:var(--t-h3); line-height:1.1; }
+  .tool-body{ flex:1 1 14ch; min-width:0; }
+  .tool-name{ font-family:'Playfair Display',serif; font-weight:600; font-size:var(--t-h3); color:var(--olive-dark); }
+  .tool-sub{ font-size:var(--t-small); color:var(--slate); margin-top:0.1em; }
+  .tool-rx{ flex:0 0 auto; margin-left:auto; text-align:left; }
+  @media (min-width:30rem){ .tool-rx{ text-align:right; } }
+  .tool-rx .dev{
+    font-family:'Archivo Narrow',sans-serif; font-weight:700; font-size:var(--t-label);
+    letter-spacing:0.1em; text-transform:uppercase; color:var(--sienna);
+  }
+  .pill{
+    display:inline-block; margin-top:0.25em;
+    font-family:'Archivo Narrow',sans-serif; font-weight:600; font-size:var(--t-label);
+    letter-spacing:0.09em; text-transform:uppercase; color:var(--olive-dark);
+    border:2px solid var(--olive-light); border-radius:999px; padding:0.15em 0.7em;
+    white-space:nowrap;
+  }
+
+  /* modes */
+  .modes{ display:grid; gap:calc(var(--gap) * 0.6); grid-template-columns:repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+  .mode{ background:var(--card); border:2px solid var(--hair); border-radius:var(--radius); padding:var(--pad); }
+  .mode-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:0.5em; }
+  .mode-ico{ font-size:var(--t-h3); line-height:1.1; }
+  .mode-badge{
+    font-family:'Archivo Narrow',sans-serif; font-weight:700; font-size:var(--t-label);
+    letter-spacing:0.1em; text-transform:uppercase; color:var(--cream);
+    background:var(--olive); border-radius:999px; padding:0.15em 0.65em; white-space:nowrap;
+  }
+  .mode h3{ font-size:var(--t-h3); font-weight:600; color:var(--olive-dark); margin:0.4em 0 0.25em; }
+  .mode p{ margin:0; font-size:var(--t-small); color:var(--slate); }
+
+  /* never alone */
+  .never{
+    margin-top:calc(var(--gap) * 1.35); background:var(--cream-2);
+    border:3px solid var(--sienna); border-radius:var(--radius); padding:var(--pad);
+  }
+  .never .sec-head{ margin:0 0 var(--gap); border-bottom:0; padding-bottom:0; }
+  .never h2{ color:var(--sienna-dark); display:flex; align-items:center; gap:0.4em; }
+  .never-grid{ display:grid; gap:var(--gap); grid-template-columns:repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); }
+  .never-item{ padding-top:0.6em; border-top:3px solid var(--sienna-light); }
+  .never-item h4{ font-size:var(--t-h3); font-weight:600; color:var(--olive-dark); margin-bottom:0.15em; }
+  .never-item p{ margin:0; font-size:var(--t-small); color:var(--slate); }
+
+  /* footer */
+  footer{
+    margin-top:calc(var(--gap) * 1.35); padding-top:var(--gap);
+    border-top:3px solid var(--olive);
+    display:flex; flex-wrap:wrap; gap:var(--gap); justify-content:space-between;
+  }
+  .foot-note{ flex:1 1 min(100%, 40ch); font-size:var(--t-small); color:var(--slate); }
+  .foot-note b{ color:var(--sienna-dark); }
+  .vets{ flex:0 1 auto; display:grid; gap:0.15em; align-content:start; }
+  .vets a{
+    font-family:'Archivo Narrow',sans-serif; font-weight:700; font-size:var(--t-small);
+    letter-spacing:0.05em; text-transform:uppercase; color:var(--olive-dark);
+    text-decoration:none; border-bottom:2px solid var(--sienna-light);
+    padding:0.35em 0; display:inline-block; min-height:44px;
+  }
+  .vets a:active{ color:var(--sienna); }
+
+  @media (prefers-contrast:more){
+    body{ color:#000; }
+    .card,.tool-row,.mode{ border-color:var(--olive-dark); }
+  }
+  @media print{
+    body{ background:#fff; padding:0; }
+    .wrap{ max-width:none; }
+    .never,.card,.tool-row,.mode,.often{ break-inside:avoid; }
+    @page{ margin:0.4in; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="head-main">
+      <h1>Red <em>Light</em> Therapy</h1>
+      <p class="dek"><b>Photobiomodulation.</b> Two wavelengths of non-thermal light pressed against the coat, feeding mitochondria the energy they use to repair tissue, calm inflammation, and move blood.</p>
+    </div>
+    <div class="brand">
+      <div class="bn">Keystone Barn</div>
+      <div class="bt">Raising Horses, Raising Each Other.</div>
+      <div class="bm">RedWell · Wellness USA<br>8 Devices · Aug 2026</div>
+    </div>
+  </header>
+
+  <section class="strip">
+    <div class="strip-grid">
+      <div class="sc">
+        <span class="label">Nanometers (nm)</span>
+        <h3>Which light, and how deep</h3>
+        <p>Fixed by the hardware. Every device fires both 660&nbsp;+&nbsp;850 at once, always.</p>
+      </div>
+      <div class="vs">is not</div>
+      <div class="sc">
+        <span class="label">Hertz (hz)</span>
+        <h3>How the light blinks</h3>
+        <p>The only thing a mode changes. 10&nbsp;Hz means the LEDs switch on and off ten times a second.</p>
+      </div>
+    </div>
+    <p class="strip-foot">Depth comes from <b>which device you strap where</b>, never from the mode you pick.</p>
+  </section>
+
+  <div class="cols">
+
+    <div class="col">
+      <section class="card">
+        <div class="wave">
+          <span class="label">660 nm · Red Light</span>
+          <h3>Skin deep, on purpose</h3>
+          <p>Visible red. Stops at <b>1–2&nbsp;mm</b>. Targets epidermis, dermis, fibroblasts and hair follicles.</p>
+          <div class="reaches">
+            <span class="label mute">Reaches</span>
+            <ul>
+              <li>Wounds + proud flesh</li>
+              <li>Skin, coat + surface tissue</li>
+              <li>Scars and slow-closing cuts</li>
+            </ul>
+          </div>
+        </div>
+        <div class="wave">
+          <span class="label">850 nm · Near-Infrared</span>
+          <h3>You won't see it working</h3>
+          <p>Invisible. Reaches <b>3–5&nbsp;cm</b> into muscle, nerve and joint tissue.</p>
+          <div class="reaches">
+            <span class="label mute">Reaches</span>
+            <ul>
+              <li>Joints, hocks + fetlocks</li>
+              <li>Muscle soreness + fatigue</li>
+              <li>Back pain and deep tension</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div class="sec-head">
+        <h2>Our equipment</h2>
+        <span class="label mute">Where each one goes</span>
+      </div>
+
+      <section class="card kit">
+        <div class="kit-row">
+          <div class="kit-ico">🐴</div>
+          <div class="kit-body">
+            <div class="kit-top"><span class="kit-name">Equine Blanket</span><span class="label">Short Back</span><span class="kit-qty">×1</span></div>
+            <div class="kit-target">Full back + spine</div>
+            <div class="kit-how">Drape across withers to croup, centered on the spine. Secure front buckle snug but not tight.</div>
+          </div>
+        </div>
+        <div class="kit-row">
+          <div class="kit-ico">🦵</div>
+          <div class="kit-body">
+            <div class="kit-top"><span class="kit-name">Tendon Wrap</span><span class="label">SDFT</span><span class="kit-qty">×2</span></div>
+            <div class="kit-target">Tendon + soft tissue</div>
+            <div class="kit-how">Wrap around cannon bone, LEDs against the back of the leg over the SDFT. Velcro snug.</div>
+          </div>
+        </div>
+        <div class="kit-row">
+          <div class="kit-ico">🦴</div>
+          <div class="kit-body">
+            <div class="kit-top"><span class="kit-name">Hock Wrap</span><span class="label">Hind Limb</span><span class="kit-qty">×2</span></div>
+            <div class="kit-target">Hock joint + lower limb</div>
+            <div class="kit-how">Wrap around the hock joint. LEDs should cup the point of hock and inner/outer surfaces.</div>
+          </div>
+        </div>
+        <div class="kit-row">
+          <div class="kit-ico">🐎</div>
+          <div class="kit-body">
+            <div class="kit-top"><span class="kit-name">Hoof Wrap</span><span class="label">Pastern</span><span class="kit-qty">×2</span></div>
+            <div class="kit-target">Hoof + pastern circulation</div>
+            <div class="kit-how">Wrap from coronary band down, covering the hoof wall. Secure at pastern. Hoof must be clean + dry.</div>
+          </div>
+        </div>
+        <div class="kit-row">
+          <div class="kit-ico">🐾</div>
+          <div class="kit-body">
+            <div class="kit-top"><span class="kit-name">Dog / Cat Mat</span><span class="label">Pets</span><span class="kit-qty">×1</span></div>
+            <div class="kit-target">Full-body pet recovery</div>
+            <div class="kit-how">Lay flat. Let the pet lie on it. Never force or restrain.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="often">
+        <div class="sec-head">
+          <h2>How often</h2>
+          <span class="label on-dark">Sessions run 10–20 min</span>
+        </div>
+        <div class="often-row">
+          <div class="often-key">🔥 Acute</div>
+          <div class="often-val"><div class="big">Daily, days 1–7</div><div class="sub">then every other day</div></div>
+        </div>
+        <div class="often-row">
+          <div class="often-key">🔄 Chronic</div>
+          <div class="often-val"><div class="big">2–3× per week</div><div class="sub">ongoing maintenance</div></div>
+        </div>
+        <div class="often-row">
+          <div class="often-key">💪 General</div>
+          <div class="often-val"><div class="big">3–5× per week</div><div class="sub">post-work + upkeep</div></div>
+        </div>
+      </section>
+
+      <div class="sec-head">
+        <h2>Which tool, which problem</h2>
+        <span class="label mute">Not a prescription</span>
+      </div>
+
+      <section class="tool">
+        <div class="tool-row">
+          <div class="tool-ico">🦵</div>
+          <div class="tool-body"><div class="tool-name">Tendon + ligament injury</div><div class="tool-sub">SDFT, suspensory</div></div>
+          <div class="tool-rx"><div class="dev">Tendon Wrap</div><span class="pill">Pulse 10 Hz</span></div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-ico">🦴</div>
+          <div class="tool-body"><div class="tool-name">Arthritis + joint stiffness</div><div class="tool-sub">Hock, fetlock, coffin</div></div>
+          <div class="tool-rx"><div class="dev">Hock Wrap</div><span class="pill">Pulse 40 Hz</span></div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-ico">🐴</div>
+          <div class="tool-body"><div class="tool-name">Back pain + kissing spines</div><div class="tool-sub">SI, epaxial tension</div></div>
+          <div class="tool-rx"><div class="dev">Blanket</div><span class="pill">Pulse 40 Hz</span></div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-ico">🩹</div>
+          <div class="tool-body"><div class="tool-name">Wound healing</div><div class="tool-sub">Proud flesh, slow closure</div></div>
+          <div class="tool-rx"><div class="dev">Nearest Wrap</div><span class="pill">Continuous</span></div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-ico">🐎</div>
+          <div class="tool-body"><div class="tool-name">Laminitis + hoof circulation</div><div class="tool-sub">Support, not a cure</div></div>
+          <div class="tool-rx"><div class="dev">Hoof Wrap</div><span class="pill">Continuous</span></div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-ico">🐴</div>
+          <div class="tool-body"><div class="tool-name">Post-work soreness</div><div class="tool-sub">Muscle fatigue, recovery</div></div>
+          <div class="tool-rx"><div class="dev">Blanket</div><span class="pill">Continuous</span></div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-ico">😌</div>
+          <div class="tool-body"><div class="tool-name">Calming + relaxation</div><div class="tool-sub">Spa day, pre-clip, anxious</div></div>
+          <div class="tool-rx"><div class="dev">Blanket</div><span class="pill">Breath</span></div>
+        </div>
+      </section>
+
+      <div class="sec-head">
+        <h2>Which mode, and when</h2>
+        <span class="label mute">Four delivery settings</span>
+      </div>
+
+      <section class="modes">
+        <div class="mode">
+          <div class="mode-top"><span class="mode-ico">🔆</span><span class="mode-badge">Default</span></div>
+          <h3>Continuous</h3>
+          <p>Steady, no blinking. Daily upkeep and everyday soreness. Start here.</p>
+        </div>
+        <div class="mode">
+          <div class="mode-top"><span class="mode-ico">〰️</span><span class="mode-badge">Tendon</span></div>
+          <h3>Pulse 10 Hz</h3>
+          <p>Blinks 10×/sec. Tendon and ligament work, per published repair protocols.</p>
+        </div>
+        <div class="mode">
+          <div class="mode-top"><span class="mode-ico">⚡</span><span class="mode-badge">Deep</span></div>
+          <h3>Pulse 40 Hz</h3>
+          <p>Blinks 40×/sec. Joints and muscle. Favored for deeper tissue work.</p>
+        </div>
+        <div class="mode">
+          <div class="mode-top"><span class="mode-ico">🌬</span><span class="mode-badge">Gentle</span></div>
+          <h3>Breath</h3>
+          <p>Ramps up and down slowly. Best for a nervous or first-time horse.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="never">
+    <div class="sec-head">
+      <h2><span>🚫</span> Never red light alone</h2>
+      <span class="label">Call the vet first</span>
+    </div>
+    <div class="never-grid">
+      <div class="never-item"><h4>Fractures</h4><p>Needs imaging + stabilization</p></div>
+      <div class="never-item"><h4>Active infection</h4><p>Light can mask a worsening problem</p></div>
+      <div class="never-item"><h4>Surgical soft-tissue injury</h4><p>Vet first, light second</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <p class="foot-note"><b>Consistency beats intensity.</b> Three honest 20-minute sessions a week will always outrun one long one. This is adjunctive care, not a replacement for veterinary diagnosis. Log every session as a 💊 Treatment on the Horse Health Log.</p>
+    <div class="vets">
+      <a href="tel:16517757623">Dr. Jon Engstrom · 651-775-7623</a>
+      <a href="tel:13175098308">Dr. Erin Wilson · 317-509-8308</a>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

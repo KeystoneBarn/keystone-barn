@@ -109,7 +109,12 @@ import flybye_plus from "./img/flybye-plus.png";
 
 import charlees_flyspray from "./img/charlees-flyspray.png";
 
+import proelite_hoof from "./img/proelite-hoof.png";
+import proelite_joint from "./img/proelite-joint.png";
+
 export const IMG = {
+  "ProElite Hoof": proelite_hoof,
+  "ProElite Joint Supplement": proelite_joint,
 "Charlee's Fly Spray": charlees_flyspray,
 "Fly Bye! Plus Fly Spray": flybye_plus,
   "SimpliFly Feed-Thru Fly Control": simplifly,

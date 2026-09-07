@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { WEEKS, HORSE_NOTES, CHEAT_SHEET, NUTRITION, PROGRESS, SIDE_EXPERIMENTS } from "./experimentsData";
+import {
+  WEEKS, HORSE_NOTES, CHEAT_SHEET, NUTRITION, TIMELINE, COMING_NEXT, PROGRESS,
+} from "./experimentsData";
+
+// The consolidated program has no per-week color in the data anymore; keep the
+// visual banding here, indexed by week number.
+const WEEK_COLORS = ["#2563eb", "#16a34a", "#ca8a04", "#9333ea"];
+const weekColor = (num) => WEEK_COLORS[(num - 1) % WEEK_COLORS.length];
 
 function ProgressStrip() {
   const pct = Math.round((PROGRESS.sessionsCompleted / PROGRESS.totalSessions) * 100);
@@ -29,23 +36,35 @@ function ProgressStrip() {
   );
 }
 
-function SideExperiments() {
+function Timeline() {
   return (
-    <div className="exp-side">
-      <h3 className="sec-h">Other Trials</h3>
-      {SIDE_EXPERIMENTS.map((e, i) => (
-        <div className="exp-side-row" key={i}>
-          <div className="exp-side-top">
-            <span className="exp-side-title">{e.title}</span>
-            <span className="exp-side-status" data-s={e.status.startsWith("concluded") ? "done" : e.status}>
-              {e.status}
-            </span>
+    <div className="exp-timeline">
+      <h3 className="sec-h">What to expect</h3>
+      <div className="exp-tl-list">
+        {TIMELINE.map((t) => (
+          <div className="exp-tl-row" key={t.when}>
+            <span className="exp-tl-when">{t.when}</span>
+            <span className="exp-tl-what">{t.what}</span>
           </div>
-          <p className="exp-side-detail">{e.detail}</p>
-          {(e.horse || e.started) && (
-            <p className="exp-side-meta">
-              {e.horse ? e.horse : "Herd-wide"}{e.started ? ` · started ${e.started}` : ""}{e.window ? ` · ${e.window}` : ""}
-            </p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ComingNext({ onGuide }) {
+  return (
+    <div className="exp-coming">
+      {COMING_NEXT.map((c) => (
+        <div className="exp-coming-card" key={c.title}>
+          <span className="exp-coming-badge">{c.badge}</span>
+          <h4 className="exp-coming-title">{c.title}</h4>
+          <p className="exp-coming-blurb">{c.blurb}</p>
+          <p className="exp-coming-status">{c.status}</p>
+          {c.guide && onGuide && (
+            <button className="exp-coming-link" onClick={() => onGuide(c.guide)}>
+              Open the Sure Foot guide →
+            </button>
           )}
         </div>
       ))}
@@ -54,38 +73,37 @@ function SideExperiments() {
 }
 
 function WeekCard({ week, expanded, onToggle }) {
+  const color = weekColor(week.num);
   return (
-    <div className="exp-week" style={{ "--wc": week.color }}>
+    <div className="exp-week" style={{ "--wc": color }}>
       <button className="exp-week-head" onClick={onToggle}>
-        <span className="exp-week-badge" style={{ background: week.color }}>Week {week.num}</span>
+        <span className="exp-week-badge" style={{ background: color }}>Week {week.num}</span>
         <span className="exp-week-title">{week.title}</span>
         <span className={"sx-caret" + (expanded ? " open" : "")}>›</span>
       </button>
 
       {expanded && (
         <div className="exp-week-body">
-          <p className="exp-week-goal"><strong>Goal:</strong> {week.goal}</p>
           {week.rule && <p className="exp-week-rule">{week.rule}</p>}
 
-          {week.days.map((d, i) => (
-            <div className="exp-day" key={i}>
+          {week.days.map((d) => (
+            <div className="exp-day" key={d.day}>
               <div className="exp-day-head">
-                <span className="exp-day-name">{d.day}</span>
-                <span className="exp-day-session">{d.session}</span>
+                <span className="exp-day-num">Day {d.day}</span>
+                <span className="exp-day-name">{d.name}</span>
+                {d.mode && <span className="exp-day-mode">{d.mode}</span>}
               </div>
               <div className="exp-day-body">
-                {d.exercises.map((ex, j) => (
-                  <div className="exp-ex-row" key={j}>
-                    <span className="exp-ex-label">{ex.label}</span>
-                    <span className="exp-ex-text">{ex.text}</span>
-                  </div>
-                ))}
-                {Object.keys(d.flags).length > 0 && (
+                <p className="exp-day-detail">{d.detail}</p>
+                {d.note && (
                   <div className="exp-flags">
-                    {Object.entries(d.flags).map(([horse, note]) => (
-                      <div className="exp-flag" key={horse}>
-                        <strong>{horse}:</strong> {note}
-                      </div>
+                    <div className="exp-flag">{d.note}</div>
+                  </div>
+                )}
+                {d.horses?.length > 0 && (
+                  <div className="exp-day-horses">
+                    {d.horses.map((h) => (
+                      <span className="exp-horse-chip" key={h}>{h}</span>
                     ))}
                   </div>
                 )}
@@ -98,7 +116,7 @@ function WeekCard({ week, expanded, onToggle }) {
   );
 }
 
-export default function Experiments() {
+export default function Experiments({ onGuide }) {
   const [openWeek, setOpenWeek] = useState(PROGRESS.currentWeek);
   const [showCheat, setShowCheat] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
@@ -110,13 +128,16 @@ export default function Experiments() {
           🧪 4-Week Pole Work Program
         </h2>
         <p className="prose" style={{ margin: "6px 0 0" }}>
-          Hind end strength and topline development. 12 sessions across 4 weeks, progressive in-hand and ridden poles.
+          Hind end strength and topline development. 12 sessions across 4 weeks, progressive
+          in-hand and ridden poles. Day numbering is sequential, Day 1–12.
         </p>
       </div>
 
       <ProgressStrip />
 
-      <div className="exp-actions" style={{ marginBottom: 14 }}>
+      <Timeline />
+
+      <div className="exp-actions" style={{ margin: "16px 0 14px" }}>
         <button className="toggle" data-on={showCheat ? "1" : "0"} onClick={() => setShowCheat(!showCheat)}>
           Cheat Sheet
         </button>
@@ -128,18 +149,18 @@ export default function Experiments() {
       {showCheat && (
         <div className="exp-cheat" style={{ marginBottom: 16 }}>
           <div className="exp-table">
-            {CHEAT_SHEET.distances.map((d) => (
-              <div className="exp-table-row" key={d.label}>
-                <span className="exp-table-k">{d.label}</span>
-                <span className="exp-table-v">{d.value}</span>
+            {CHEAT_SHEET.distances.map(([k, v]) => (
+              <div className="exp-table-row" key={k}>
+                <span className="exp-table-k">{k}</span>
+                <span className="exp-table-v">{v}</span>
               </div>
             ))}
           </div>
           <div className="exp-table" style={{ marginTop: 8 }}>
-            {CHEAT_SHEET.terms.map((d) => (
-              <div className="exp-table-row" key={d.label}>
-                <span className="exp-table-k">{d.label}</span>
-                <span className="exp-table-v">{d.value}</span>
+            {CHEAT_SHEET.terms.map(([k, v]) => (
+              <div className="exp-table-row" key={k}>
+                <span className="exp-table-k">{k}</span>
+                <span className="exp-table-v">{v}</span>
               </div>
             ))}
           </div>
@@ -154,7 +175,10 @@ export default function Experiments() {
           {HORSE_NOTES.map((n) => (
             <div className="exp-note-row" key={n.horse}>
               <span className="exp-note-horse">{n.horse}</span>
-              <span className="exp-note-text">{n.note}</span>
+              <span className="exp-note-text">
+                {n.who && <em>({n.who}) </em>}
+                {n.note}
+              </span>
             </div>
           ))}
         </div>
@@ -171,7 +195,7 @@ export default function Experiments() {
         ))}
       </div>
 
-      <SideExperiments />
+      <ComingNext onGuide={onGuide} />
     </div>
   );
 }

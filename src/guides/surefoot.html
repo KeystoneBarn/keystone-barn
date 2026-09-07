@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5B6236">
+<title>Sure Foot Stability Pads — Keystone Barn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&family=Bangers&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --olive:#5B6236;
+    --olive-dark:#3F4426;
+    --olive-light:#8B9463;
+    --cream:#F5F0E6;
+    --cream-2:#EFE6D2;
+    --sienna:#A0522D;
+    --sienna-dark:#7E4023;
+    --sienna-light:#D98756;
+    --gold:#D9A441;
+    --teal:#4E8B84;
+    --slate:#4A4A4A;
+    --ink:#3A3428;
+    --hair:#DCD3BE;
+
+    --t-label: clamp(0.7rem, 0.45rem + 0.4vw, 0.95rem);
+    --t-body:  clamp(1rem, 0.88rem + 0.4vw, 1.3rem);
+    --t-small: clamp(0.92rem, 0.83rem + 0.3vw, 1.14rem);
+    --t-h3:    clamp(1.22rem, 1rem + 0.75vw, 1.9rem);
+    --t-h2:    clamp(1.55rem, 1.2rem + 1.2vw, 2.6rem);
+    --t-h1:    clamp(2.1rem, 1.25rem + 3.7vw, 4.7rem);
+    --t-burst: clamp(1.05rem, 0.85rem + 0.75vw, 1.65rem);
+
+    --gap: clamp(0.7rem, 0.4rem + 1.1vw, 1.4rem);
+    --pad: clamp(0.95rem, 0.6rem + 1.2vw, 1.7rem);
+    --radius: clamp(12px, 10px + 0.4vw, 20px);
+  }
+
+  *{box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  html{ -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%; }
+  body{
+    margin:0; background:var(--cream);
+    font-family:'Nunito', system-ui, sans-serif;
+    font-size:var(--t-body); line-height:1.4; color:var(--ink);
+    padding:
+      env(safe-area-inset-top)
+      max(env(safe-area-inset-right), clamp(0.85rem, 0.4rem + 2vw, 2.6rem))
+      calc(env(safe-area-inset-bottom) + 1.5rem)
+      max(env(safe-area-inset-left), clamp(0.85rem, 0.4rem + 2vw, 2.6rem));
+  }
+  .wrap{ max-width:1680px; margin-inline:auto; padding-block:clamp(1.1rem,0.6rem+1.6vw,2.4rem); }
+
+  h1,h2,h3,h4{ margin:0; line-height:1.08; }
+
+  /* ---------- header ---------- */
+  header{ display:flex; align-items:center; gap:var(--gap); flex-wrap:wrap; }
+  .head-horse{ width:clamp(3.2rem, 2rem + 5vw, 6.5rem); flex:0 0 auto; height:auto; }
+  .kicker{
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:var(--t-label);
+    letter-spacing:0.1em; text-transform:uppercase; color:var(--sienna-dark);
+  }
+  h1{
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:var(--t-h1);
+    color:var(--olive-dark); text-shadow:0.035em 0.035em 0 var(--sienna-light);
+    margin-top:0.1em;
+  }
+
+  .banner{
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:var(--t-h3);
+    color:#fff; background:var(--olive); border:3px solid var(--olive-dark);
+    border-radius:999px; padding:0.3em 0.85em;
+    display:inline-flex; align-items:center; gap:0.4em; margin-bottom:0.5em;
+  }
+
+  .card{ background:#fff; border:3px solid var(--hair); border-radius:var(--radius); padding:var(--pad); }
+
+  /* ---------- top grid ---------- */
+  .top{ display:grid; gap:var(--gap); grid-template-columns:1fr; margin-top:var(--gap); align-items:start; }
+  @media (min-width:62rem){ .top{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+
+  /* comic mission panel */
+  .comic{
+    background:
+      radial-gradient(circle, rgba(0,0,0,0.13) 1.2px, transparent 1.8px) 0 0/9px 9px,
+      var(--cream-2);
+    border:5px solid var(--ink); border-radius:var(--radius);
+    padding:var(--pad); overflow:hidden;
+  }
+  .ribbon{
+    display:inline-block; font-family:'Bangers',cursive;
+    font-size:clamp(1.6rem, 1.2rem + 1.6vw, 2.9rem); letter-spacing:0.02em;
+    color:var(--cream); background:var(--olive-dark); border:4px solid var(--ink);
+    padding:0.08em 0.5em; transform:rotate(-2deg);
+    box-shadow:4px 4px 0 var(--ink); margin-bottom:0.8em;
+  }
+  .bursts{ display:grid; gap:calc(var(--gap) * 0.75); grid-template-columns:repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); }
+  .burst{ position:relative; aspect-ratio:3/2; min-height:4.5rem; }
+  .burst .layer{ position:absolute; inset:0; border:3px solid var(--ink); border-radius:10px; }
+  .burst .l2{ transform:rotate(-6deg); }
+  .burst .l3{ transform:rotate(6deg); }
+  .burst .word{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    text-align:center; font-family:'Bangers',cursive; color:#fff;
+    -webkit-text-stroke:1.6px var(--ink); paint-order:stroke fill;
+    font-size:var(--t-burst); line-height:1.05; z-index:5;
+    transform:rotate(-2deg); padding:0.4em 0.2em;
+  }
+  .mission-sub{
+    display:block; text-align:center; font-family:'Fredoka',sans-serif; font-weight:600;
+    font-size:var(--t-small); color:var(--ink); background:#fff;
+    border:3px solid var(--ink); border-radius:var(--radius);
+    padding:0.5em 0.9em; margin-top:calc(var(--gap) * 0.85);
+  }
+
+  /* pad order flow */
+  .flow{ background:#fff; border:3px solid var(--olive); border-radius:var(--radius); padding:var(--pad); }
+  .flow-list{ position:relative; display:grid; gap:calc(var(--gap) * 0.5); }
+  .flow-row{ display:flex; align-items:center; gap:0.7em; position:relative; z-index:1; }
+  .pad-icon{
+    width:clamp(2.5rem, 1.9rem + 1.9vw, 3.6rem); aspect-ratio:1; border-radius:50%;
+    border:3px solid var(--ink); display:flex; align-items:center; justify-content:center;
+    flex:0 0 auto; font-family:'Fredoka',sans-serif; font-weight:700;
+    font-size:var(--t-h3); color:#fff; box-shadow:2px 3px 0 rgba(0,0,0,0.18);
+  }
+  .flow-row .info{ flex:1; min-width:0; }
+  .flow-row .name{
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:var(--t-h3);
+    color:var(--olive-dark); display:flex; flex-wrap:wrap; align-items:baseline; gap:0.35em;
+  }
+  .flow-row .desc{ font-size:var(--t-small); font-weight:600; color:var(--slate); margin-top:0.1em; }
+  .slant-tag{
+    font-family:'Nunito',sans-serif; font-size:var(--t-label); font-weight:700; color:#fff;
+    padding:0.15em 0.55em; border-radius:999px; white-space:nowrap;
+  }
+  .slant-note{
+    margin-top:var(--pad); padding-top:0.8em; border-top:3px dashed var(--teal);
+    font-size:var(--t-small); font-weight:600; color:var(--slate);
+  }
+  .slant-note b{ color:var(--teal); }
+
+  /* ---------- hoof order ---------- */
+  .section{ margin-top:calc(var(--gap) * 1.4); }
+  .hoof{ background:#fff; border:3px solid var(--sienna); border-radius:var(--radius); padding:var(--pad); }
+  .hoof-stage + .hoof-stage{ margin-top:calc(var(--gap) * 0.9); }
+  .stage-label{
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:var(--t-small);
+    color:var(--slate); margin-bottom:0.5em;
+  }
+  .steps{ display:grid; gap:calc(var(--gap) * 0.6); grid-template-columns:repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); }
+  .step{ text-align:center; }
+  .hf-badge{
+    width:clamp(2.7rem, 2rem + 2.2vw, 3.9rem); aspect-ratio:1; border-radius:50%;
+    background:var(--olive); border:3px solid var(--olive-dark); color:#fff;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:var(--t-small);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 0.4em;
+    line-height:1.05; text-align:center;
+  }
+  .hf-badge.m{ background:var(--sienna); border-color:var(--sienna-dark); }
+  .hf-badge.h{ background:var(--teal); border-color:#3a6a64; }
+  .hf-badge.all{ background:var(--gold); border-color:#8a6a1f; color:var(--ink); }
+  .hf-label{ font-size:var(--t-small); font-weight:700; color:var(--slate); line-height:1.2; }
+  .hf-note{ font-size:var(--t-label); font-weight:600; font-style:italic; color:var(--sienna-dark); margin-top:0.15em; }
+  .divider{
+    text-align:center; font-size:var(--t-label); font-weight:700; font-style:italic;
+    color:var(--teal); margin:calc(var(--gap) * 0.7) 0 0;
+  }
+  .hoof-safety{
+    margin-top:var(--pad); padding-top:0.8em; border-top:3px dashed var(--olive-light);
+    text-align:center; font-size:var(--t-small); font-weight:700; color:var(--slate);
+  }
+  .hoof-safety b{ color:var(--sienna-dark); }
+
+  /* ---------- milestones ---------- */
+  .miles{ display:grid; gap:var(--gap); grid-template-columns:1fr; }
+  @media (min-width:48rem){ .miles{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  .mile{ background:#fff; border-radius:var(--radius); padding:var(--pad); }
+  .mile.up{ border:4px solid var(--olive); }
+  .mile.stay{ border:4px solid var(--sienna); }
+  .mile-title{
+    font-family:'Bangers',cursive; font-size:clamp(1.4rem, 1.15rem + 1vw, 2.2rem);
+    letter-spacing:0.02em; margin-bottom:0.4em;
+  }
+  .mile.up .mile-title{ color:var(--olive-dark); }
+  .mile.stay .mile-title{ color:var(--sienna-dark); }
+  .mile ul{ margin:0; padding-left:1.1em; display:grid; gap:0.3em; }
+  .mile li{ font-size:var(--t-small); font-weight:700; color:var(--slate); line-height:1.28; }
+
+  /* ---------- tracker ---------- */
+  .tracker{ background:#fff; border:3px solid var(--hair); border-radius:var(--radius); overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; font-size:var(--t-small); text-align:left; }
+  thead th{
+    background:var(--olive); color:#fff; font-family:'Fredoka',sans-serif; font-weight:600;
+    font-size:var(--t-small); padding:0.6em 0.7em; border:2px solid var(--olive-dark);
+  }
+  tbody td{
+    border:2px solid var(--olive-light); padding:0.55em 0.7em;
+    color:var(--slate); font-weight:600; background:#fff;
+  }
+  tbody td.horse{
+    font-family:'Fredoka',sans-serif; font-weight:700; color:var(--ink);
+    border-left:9px solid var(--swatch, var(--olive));
+  }
+  tbody td.blank{ background:#FBF8F1; min-height:2.2em; }
+  .vet{ color:var(--sienna-dark); font-weight:800; }
+
+  /* tracker -> cards on small screens */
+  @media (max-width:52rem){
+    .tracker{ border:0; background:none; }
+    table, tbody, tr, td{ display:block; width:100%; }
+    thead{ display:none; }
+    tbody tr{
+      background:#fff; border:3px solid var(--hair); border-radius:var(--radius);
+      padding:calc(var(--pad) * 0.7); margin-bottom:calc(var(--gap) * 0.6);
+      border-left-width:10px; border-left-color:var(--swatch, var(--olive));
+    }
+    tbody td{ border:0; padding:0.3em 0; background:none !important; }
+    tbody td.horse{
+      border-left:0; font-size:var(--t-h3); padding-bottom:0.35em;
+      margin-bottom:0.35em; border-bottom:2px dashed var(--hair);
+    }
+    tbody td[data-label]::before{
+      content:attr(data-label) ": ";
+      font-family:'Fredoka',sans-serif; font-weight:700; color:var(--olive-dark);
+    }
+    tbody td.blank:not([data-note])::after{
+      content:"—"; color:#B9AF98;
+    }
+  }
+  .tracker-note{
+    font-size:var(--t-small); font-weight:700; font-style:italic; color:var(--sienna-dark);
+    margin-top:var(--gap); text-align:center;
+  }
+
+  footer{
+    text-align:center; font-size:var(--t-small); font-weight:600; color:var(--slate);
+    border-top:3px dashed var(--olive-light);
+    padding-top:var(--gap); margin-top:calc(var(--gap) * 1.4);
+  }
+  footer .brandline{
+    font-family:'Fredoka',sans-serif; font-weight:700; color:var(--olive);
+    font-size:var(--t-h3); margin-bottom:0.3em;
+  }
+
+  @media (prefers-contrast:more){ body{ color:#000; } }
+  @media print{
+    body{ background:#fff; padding:0; }
+    .wrap{ max-width:none; }
+    .card,.comic,.flow,.hoof,.mile,.tracker tbody tr{ break-inside:avoid; }
+    @page{ margin:0.4in; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <svg class="head-horse" viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Keystone Barn horse">
+      <ellipse cx="38" cy="64" rx="30" ry="19" fill="#A0522D" stroke="#3F4426" stroke-width="3"/>
+      <path d="M10 55 C -2 60 -4 76 4 90 C 2 78 4 66 14 58 Z" fill="#5B6236" stroke="#3F4426" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M22 80 L18 97" stroke="#3F4426" stroke-width="6" stroke-linecap="round"/>
+      <path d="M34 82 L32 98" stroke="#3F4426" stroke-width="6" stroke-linecap="round"/>
+      <path d="M50 82 L53 98" stroke="#3F4426" stroke-width="6" stroke-linecap="round"/>
+      <path d="M60 80 L65 97" stroke="#3F4426" stroke-width="6" stroke-linecap="round"/>
+      <ellipse cx="18" cy="99" rx="5" ry="2.4" fill="#D9A441" stroke="#3F4426" stroke-width="2"/>
+      <ellipse cx="32" cy="100" rx="5" ry="2.4" fill="#D9A441" stroke="#3F4426" stroke-width="2"/>
+      <ellipse cx="53" cy="100" rx="5" ry="2.4" fill="#D9A441" stroke="#3F4426" stroke-width="2"/>
+      <ellipse cx="65" cy="99" rx="5" ry="2.4" fill="#D9A441" stroke="#3F4426" stroke-width="2"/>
+      <path d="M52 48 C64 34 78 26 90 28 L86 46 C74 46 64 52 58 62 Z" fill="#A0522D" stroke="#3F4426" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M56 30 L62 22 L64 34 L70 24 L71 36 L78 26 L78 38 L85 30 L84 42" fill="none" stroke="#5B6236" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <ellipse cx="104" cy="40" rx="26" ry="13" fill="#D98756" stroke="#3F4426" stroke-width="3" transform="rotate(-18 104 40)"/>
+      <ellipse cx="86" cy="30" rx="13" ry="13" fill="#D98756" stroke="#3F4426" stroke-width="3"/>
+      <path d="M80 20 L84 10 L88 21 L92 9 L95 20" fill="none" stroke="#5B6236" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M78 22 L74 6 L86 18 Z" fill="#D98756" stroke="#3F4426" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M90 18 L90 2 L100 14 Z" fill="#D98756" stroke="#3F4426" stroke-width="3" stroke-linejoin="round"/>
+      <ellipse cx="88" cy="34" rx="3.4" ry="4" fill="#3A3428"/>
+      <circle cx="89.3" cy="32.3" r="1.1" fill="#fff"/>
+      <ellipse cx="125" cy="47" rx="3.6" ry="2.4" fill="#3A3428" transform="rotate(-18 125 47)"/>
+      <path d="M118 54 Q124 57 129 53" stroke="#3F4426" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <div class="kicker">Keystone Barn Field Guide</div>
+      <h1>Sure Foot Stability Pads</h1>
+    </div>
+  </header>
+
+  <div class="top">
+
+    <section class="comic">
+      <div class="ribbon">THE MISSION!</div>
+      <div class="bursts">
+        <div class="burst">
+          <div class="layer l1" style="background:var(--olive)"></div>
+          <div class="layer l2" style="background:var(--olive)"></div>
+          <div class="layer l3" style="background:var(--olive)"></div>
+          <div class="word">PROPRIO&shy;CEPTION!</div>
+        </div>
+        <div class="burst">
+          <div class="layer l1" style="background:var(--sienna)"></div>
+          <div class="layer l2" style="background:var(--sienna)"></div>
+          <div class="layer l3" style="background:var(--sienna)"></div>
+          <div class="word">CORE MUSCLES!</div>
+        </div>
+        <div class="burst">
+          <div class="layer l1" style="background:var(--teal)"></div>
+          <div class="layer l2" style="background:var(--teal)"></div>
+          <div class="layer l3" style="background:var(--teal)"></div>
+          <div class="word">CALM MIND!</div>
+        </div>
+        <div class="burst">
+          <div class="layer l1" style="background:#8a6a1f"></div>
+          <div class="layer l2" style="background:#8a6a1f"></div>
+          <div class="layer l3" style="background:#8a6a1f"></div>
+          <div class="word">BETTER CARRIAGE!</div>
+        </div>
+        <div class="burst">
+          <div class="layer l1" style="background:var(--olive-dark)"></div>
+          <div class="layer l2" style="background:var(--olive-dark)"></div>
+          <div class="layer l3" style="background:var(--olive-dark)"></div>
+          <div class="word">NEW PATHWAYS!</div>
+        </div>
+        <div class="burst">
+          <div class="layer l1" style="background:var(--sienna-dark)"></div>
+          <div class="layer l2" style="background:var(--sienna-dark)"></div>
+          <div class="layer l3" style="background:var(--sienna-dark)"></div>
+          <div class="word">REST = MAGIC!</div>
+        </div>
+      </div>
+      <span class="mission-sub">2–3&times;/week, a few minutes each · Qu: Dr. Jon sets the pace</span>
+    </section>
+
+    <section>
+      <div class="flow">
+        <div class="banner"><span>🚩</span> Order to offer the pads</div>
+        <div class="flow-list">
+          <div class="flow-row">
+            <div class="pad-icon" style="background:#8B6B4A">0</div>
+            <div class="info"><div class="name">Ground</div><div class="desc">Bare footing — the baseline</div></div>
+          </div>
+          <div class="flow-row">
+            <div class="pad-icon" style="background:#E58A2E">1</div>
+            <div class="info"><div class="name">Physiopad</div><div class="desc">Orange/grey — gentlest first surface</div></div>
+          </div>
+          <div class="flow-row">
+            <div class="pad-icon" style="background:#E5822A">2</div>
+            <div class="info"><div class="name">Hard <span class="slant-tag" style="background:#D6598C">+Pink Slant</span></div><div class="desc">Orange — solid, holds hoofprint</div></div>
+          </div>
+          <div class="flow-row">
+            <div class="pad-icon" style="background:#3F8B4E">3</div>
+            <div class="info"><div class="name">Firm <span class="slant-tag" style="background:#E8C547; color:#5c4a10">+Yellow Slant</span></div><div class="desc">Green — everyday standard</div></div>
+          </div>
+          <div class="flow-row">
+            <div class="pad-icon" style="background:#2E6DA4">4</div>
+            <div class="info"><div class="name">Soft</div><div class="desc">Blue — more lateral give</div></div>
+          </div>
+          <div class="flow-row">
+            <div class="pad-icon" style="background:#6B4F9E">5</div>
+            <div class="info"><div class="name">Medium</div><div class="desc">Purple — springiest, most advanced</div></div>
+          </div>
+        </div>
+        <p class="slant-note">↗ <b>Slants aren't a further step up</b> — Hard Slant (pink) and Firm Slant (yellow) sit at the <i>same</i> level as Hard/Firm. Use one only for a specific angle goal: stifle/back strain, long-toe/low-heel, or arthritis comfort. No angle issue → just use the flat pad.</p>
+      </div>
+    </section>
+
+  </div>
+
+  <section class="section">
+    <div class="banner"><span>🦶</span> Which hoof, in what order</div>
+    <div class="hoof">
+      <div class="hoof-stage">
+        <div class="stage-label">Fronts first</div>
+        <div class="steps">
+          <div class="step"><div class="hf-badge">LF</div><div class="hf-label">Left front</div><div class="hf-note">2–3&times; before switching</div></div>
+          <div class="step"><div class="hf-badge">RF</div><div class="hf-label">Right front</div><div class="hf-note">same pattern</div></div>
+          <div class="step"><div class="hf-badge m">2&nbsp;Front</div><div class="hf-label">Both fronts</div><div class="hf-note">first milestone</div></div>
+        </div>
+        <div class="divider">↓ once fronts are solid ↓</div>
+      </div>
+      <div class="hoof-stage">
+        <div class="stage-label">Then hinds</div>
+        <div class="steps">
+          <div class="step"><div class="hf-badge">LH</div><div class="hf-label">Left hind</div><div class="hf-note">2–3&times;, solo</div></div>
+          <div class="step"><div class="hf-badge">RH</div><div class="hf-label">Right hind</div><div class="hf-note">same pattern</div></div>
+          <div class="step"><div class="hf-badge h">2&nbsp;Hind</div><div class="hf-label">Both hinds</div><div class="hf-note">once each is solid alone</div></div>
+        </div>
+        <div class="divider">↓ once both fronts &amp; both hinds are solid ↓</div>
+      </div>
+      <div class="hoof-stage">
+        <div class="stage-label">The finish line</div>
+        <div class="steps" style="grid-template-columns:1fr">
+          <div class="step"><div class="hf-badge all">All&nbsp;4</div><div class="hf-label">All four together</div><div class="hf-note">final stage — only if he wants it</div></div>
+        </div>
+      </div>
+      <p class="hoof-safety">🚫 <b>Never cross-tied</b> — lead line or a single cross-tie only, so he can always walk off if he needs to.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="banner"><span>⭐</span> How do we know? The milestones</div>
+    <div class="miles">
+      <div class="mile up">
+        <div class="mile-title">LEVEL UP! ⬆️</div>
+        <ul>
+          <li>Calm &amp; settled by the end — barely any swaying</li>
+          <li>Walks onto the pad on his own, no hesitation</li>
+          <li>Licks, chews, yawns, or drops his head</li>
+          <li>Wants to stay longer, session stretches out on its own</li>
+          <li>Same calm response, several sessions in a row</li>
+          <li>Leg feels lighter &amp; easier to lift each time</li>
+        </ul>
+      </div>
+      <div class="mile stay">
+        <div class="mile-title">STAY PUT ✋</div>
+        <ul>
+          <li>Still swaying or bracing by session's end</li>
+          <li>Hesitates, backs up, or needs coaxing onto the pad</li>
+          <li>Anxious signs: head high, snorting, tense body</li>
+          <li>Wants off quickly, session staying short</li>
+          <li>Response changes a lot day to day — not settled yet</li>
+          <li>Leg still feels stiff, heavy, or reluctant to lift</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="banner"><span>📋</span> Per-horse tracker</div>
+    <div class="tracker">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:14%">Horse</th>
+            <th style="width:20%">Current level</th>
+            <th style="width:16%">Slant in use?</th>
+            <th style="width:16%">Last session</th>
+            <th style="width:34%">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="--swatch:#27272A">
+            <td class="horse">Stendahl</td>
+            <td class="blank" data-label="Current level"></td>
+            <td class="blank" data-label="Slant"></td>
+            <td class="blank" data-label="Last session"></td>
+            <td class="blank" data-label="Notes"></td>
+          </tr>
+          <tr style="--swatch:#C2662D">
+            <td class="horse">Avelin</td>
+            <td class="blank" data-label="Current level"></td>
+            <td class="blank" data-label="Slant"></td>
+            <td class="blank" data-label="Last session"></td>
+            <td class="blank" data-label="Notes"></td>
+          </tr>
+          <tr style="--swatch:#2F6690">
+            <td class="horse">Mickey</td>
+            <td class="blank" data-label="Current level"></td>
+            <td class="blank" data-label="Slant"></td>
+            <td class="blank" data-label="Last session"></td>
+            <td class="blank" data-label="Notes"></td>
+          </tr>
+          <tr style="--swatch:#8B5A2B">
+            <td class="horse">Tammy</td>
+            <td class="blank" data-label="Current level"></td>
+            <td class="blank" data-label="Slant"></td>
+            <td class="blank" data-label="Last session"></td>
+            <td class="blank" data-label="Notes"></td>
+          </tr>
+          <tr style="--swatch:#C05270">
+            <td class="horse">Ulyssa</td>
+            <td class="blank" data-label="Current level"></td>
+            <td class="blank" data-label="Slant"></td>
+            <td class="blank" data-label="Last session"></td>
+            <td class="blank" data-label="Notes"></td>
+          </tr>
+          <tr style="--swatch:#4D8B52">
+            <td class="horse">Linka</td>
+            <td class="blank" data-label="Current level"></td>
+            <td class="blank" data-label="Slant"></td>
+            <td class="blank" data-label="Last session"></td>
+            <td class="blank" data-label="Notes"></td>
+          </tr>
+          <tr style="--swatch:#6B4F9E">
+            <td class="horse">Hugo</td>
+            <td class="blank" data-label="Current level"></td>
+            <td class="blank" data-label="Slant"></td>
+            <td class="blank" data-label="Last session"></td>
+            <td data-label="Notes" data-note>Hard/Firm Slant on LF (dropped heel), maybe both fronts — confirm angle w/ farrier or Dr. Jon.</td>
+          </tr>
+          <tr style="--swatch:#6B7280">
+            <td class="horse">Qu</td>
+            <td class="blank" data-label="Current level"></td>
+            <td class="blank" data-label="Slant"></td>
+            <td class="blank" data-label="Last session"></td>
+            <td data-label="Notes" data-note><span class="vet">⚠</span> DSLD — Dr. Jon clearance on file before use</td>
+          </tr>
+          <tr style="--swatch:#B8577A">
+            <td class="horse">Dahlia</td>
+            <td class="blank" data-label="Current level"></td>
+            <td class="blank" data-label="Slant"></td>
+            <td class="blank" data-label="Last session"></td>
+            <td class="blank" data-label="Notes"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tracker-note">💡 On the wall: laminate and use a grease pencil. On a screen: log the session on the Horse Health Log instead.</p>
+  </section>
+
+  <footer>
+    <div class="brandline">Keystone Barn — Raising Horses, Raising Each Other.</div>
+    Based on the Sure Foot Equine Stability Program® Workbook (Wendy Murdoch). Always check with Dr. Jon Engstrom before starting a horse with an active injury or condition.
+  </footer>
+
+</div>
+</body>
+</html>
