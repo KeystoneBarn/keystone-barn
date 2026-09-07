@@ -100,8 +100,8 @@ export const PRODUCTS = [
   { n: "Dex (Dexamethasone Tablets)", img: IMG["Dex (Dexamethasone Tablets)"], c: "Medication", v: "Does the Job", loc: "Med Shelf (Feed Room)", rx: true,
     d: "Oral tapered-course steroid for severe allergic and dermatologic flares.",
     dose: "Bug bite taper: Day 1–2 = 4 tabs, Day 3–4 = 3 tabs, and down. Heat stress: Day 1–2 = 4 tabs.",
-    note: "Laminitis risk in metabolic horses. Try antihistamines first. Reach for this when antihistamines aren't cutting it but it isn't an emergency needing IV onset.",
-    sx: ["Swelling From Bug Bites", "Tiny Bumps From Bug Bites", "Heat Stress", "Itchy"] },
+    note: "Laminitis risk in metabolic horses. Try antihistamines first. Reach for this when antihistamines aren't cutting it but it isn't an emergency needing IV onset. Cough protocol is the same 8-day taper: 4/4/3/3/2/2/1/1.",
+    sx: ["Swelling From Bug Bites", "Tiny Bumps From Bug Bites", "Heat Stress", "Itchy", "Cough", "Allergies"] },
   { n: "Dex (Dexamethasone Injectable)", c: "Medication", v: "Proven", loc: "Med Shelf (Feed Room)", img: img(310), rx: true,
     d: "Potent injectable corticosteroid, ~25× the anti-inflammatory potency of cortisol. Fastest onset for acute reactions.",
     dose: "IV only, per vet. Always follow with oral Cetirizine or Hydroxyzine for maintenance.",
@@ -213,7 +213,7 @@ export const PRODUCTS = [
     d: "Topical itch and skin therapy line (shampoo and spray). Topical antihistamine plus steroid plus oatmeal.",
     dose: "Apply per label alongside systemic Cetirizine or Hydroxyzine.",
     note: "Dr. Erin recommends this plus oral antihistamines before reaching for systemic steroids.", sx: ["Itchy"] },
-  { n: "EquiShield IBH Spray", c: "Skin / Coat", loc: "Grooming Bay",
+  { n: "EquiShield IBH (Insect Bite Hypersensitivity) Spray", c: "Skin / Coat", loc: "Grooming Bay",
     d: "Medicated spray for insect bite hypersensitivity. Chlorhexidine, pramoxine, citronella, hydrocortisone.",
     dose: "Brush horse first. Spray affected or insect-prone areas. Avoid eyes. $62.04.", sx: ["Itchy"] },
   { n: "EquiShield IR (Itch Relief) Spray", img: IMG["EquiShield IR (Itch Relief) Spray"], c: "Skin / Coat", v: "Proven", loc: "Grooming Bay",
@@ -409,6 +409,16 @@ export const PRODUCTS = [
   { n: "Probios Equine One Oral Gel", img: IMG["Probios Equine One Oral Gel"], c: "Supplement", v: "Does the Job",
     d: "Single-dose probiotic gel. Good after antibiotics, a stress move, or a gut upset.",
     sx: ["Chronic Diarrhea", "Colic"] },
+  { n: "ProElite Hoof", img: IMG["ProElite Hoof"], c: "Supplement", v: "Testing", loc: "Supplement Shelf (Feed Room)", exp: true,
+    d: "Hoof, skin, and coat supplement. Biotin 15 mg, zinc 200 mg, copper 70 mg, methionine 2,500 mg, and lysine 1,400 mg per scoop. Peppermint pellet, 1 scoop = 20 g.",
+    dose: "Under 1200 lbs: 1 scoop AM, 1 scoop PM. Over 1200 lbs: 2 scoops AM, 1 scoop PM.",
+    note: "Started on Qu Sept 2026 during DSLD / lameness management, at the over-1200 lb rate. Hoof growth is slow — judge this one in months, not weeks.",
+    sx: ["Sore Hooves", "Coat"], url: "https://www.chewy.com/proelite-hoof-healthy-hoof-skin-coat/dp/888718" },
+  { n: "ProElite Joint Supplement", img: IMG["ProElite Joint Supplement"], c: "Supplement", v: "Testing", loc: "Supplement Shelf (Feed Room)", exp: true,
+    d: "Oral joint and cartilage support. TruEquine postbiotic 12,000 mg, glucosamine 7,500 mg, MSM 5,200 mg, chondroitin 1,250 mg, and vitamin C 1,000 mg per 2 scoops. 1 scoop = 20 g.",
+    dose: "2 scoops daily for a 1,000 lb horse. May run 4 scoops daily for the first 30 days as a loading dose.",
+    note: "Shelved once as underwhelming, back in use Sept 2026 for Qu on the 4-scoop loading dose (2 AM, 2 PM) — steps down to 2 scoops in early October. Gentler non-injectable option alongside Adequan and Legend.",
+    sx: ["Joint Swelling", "Sore Muscles Joints"], url: "https://www.chewy.com/proelite-joint-cartilage-health/dp/888686" },
 
   // ---- Feed
   { n: "Nutrena Empower Topline Balance", img: IMG["Nutrena Empower Topline Balance"], c: "Feed", v: "Barn Favorite",
@@ -445,8 +455,6 @@ export const PRODUCTS = [
   // ---- Retired
   { n: "InsulinWise", c: "Supplement", v: "Underwhelming", retired: true,
     d: "Nutritional blend meant to promote a more normal insulin response.", sx: ["Insulin Resistance"] },
-  { n: "Proleve Joint Supplement", c: "Supplement", v: "Underwhelming", retired: true,
-    d: "Oral joint support: glucosamine, chondroitin, Epicor postbiotic.", sx: ["Joint Swelling", "Sore Muscles Joints"] },
   { n: "Smart Metabo-Lean Pellets", c: "Supplement", v: "Underwhelming", retired: true,
     d: "Weight-loss nutritional support for metabolic horses. Never a substitute for Thyro-L.", sx: ["Insulin Resistance"] },
   { n: "Smart Pituitary Senior", c: "Supplement", v: "Underwhelming", retired: true,
@@ -479,7 +487,7 @@ export const SYMPTOMS = [
   { n: "Itchy",
     blurb: "Rubbing, tail chewing, hives, bald patches. Peak season is spring through fall.",
     ladder: [
-      { tier: 1, items: ["Cetirizine Hydrochloride 10mg", "Hydroxyzine Hydrochloride 50mg", "EquiShield IBH Spray", "EquiShield IR (Itch Relief) Spray"] },
+      { tier: 1, items: ["Cetirizine Hydrochloride 10mg", "Hydroxyzine Hydrochloride 50mg", "EquiShield IBH (Insect Bite Hypersensitivity) Spray", "EquiShield IR (Itch Relief) Spray"] },
       { tier: 2, items: ["EQyss Micro-Tek Equine Spray", "Coat Defense", "EQyss Micro-Tek Equine Shampoo", "EquiShield IR (Itch Relief) Shampoo"] },
       { tier: 3, items: ["Dex (Dexamethasone Tablets)", "Dex (Dexamethasone Injectable)", "Vetalog Parenteral (Triamcinolone Acetonide)"] },
     ],
@@ -521,6 +529,21 @@ export const SYMPTOMS = [
     ],
     rule: "Cushing's horses are immune-suppressed. Gut and skin support matters more for them, not less." },
   { n: "Choke", blurb: "Feed and saliva back out the nose, repeated stretching and coughing. Pull all feed and call." },
+  { n: "Cough", blurb: "Coughing at the start of work, after dust, or at rest. A cough at rest is the one that matters.",
+    ladder: [
+      { tier: 1, items: ["Cetirizine Hydrochloride 10mg", "Hydroxyzine Hydrochloride 50mg"] },
+      { tier: 2, items: ["Dex (Dexamethasone Tablets)"] },
+      { tier: 3, items: ["Dex (Dexamethasone Injectable)"] },
+    ],
+    rule: "Fix the air before the horse: wet the hay, open the barn up, get them out of the dust. A cough that only shows up in the first few minutes of work is different from one at rest. Dex is the 8-day taper (4/4/3/3/2/2/1/1), not a maintenance drug.",
+    vet: "Call if there is a fever, coloured nasal discharge, or a cough at rest that will not settle. That is a workup, not an antihistamine." },
+  { n: "Allergies", blurb: "Seasonal flares: hives, itching, puffy eyes, coughing. Usually pollen, dust, or bugs, and usually the same weeks every year.",
+    ladder: [
+      { tier: 1, items: ["Cetirizine Hydrochloride 10mg", "Hydroxyzine Hydrochloride 50mg", "EquiShield IBH (Insect Bite Hypersensitivity) Spray", "EquiShield IR (Itch Relief) Spray"] },
+      { tier: 2, items: ["EQyss Micro-Tek Equine Spray", "Coat Defense"] },
+      { tier: 3, items: ["Dex (Dexamethasone Tablets)", "Dex (Dexamethasone Injectable)", "Vetalog Parenteral (Triamcinolone Acetonide)"] },
+    ],
+    rule: "Same principle as Itchy: get ahead of it. Start antihistamines at the first sign rather than once they are miserable, and keep systemic steroids as the last rung — Dr. Erin's standing preference for the herd." },
   { n: "Colic", blurb: "Pawing, rolling, looking at the flank, off feed, no gut sounds.",
     vet: "CALL THE VET. Banamine can mask signs, so call before or as you give it. Walk the horse, pull all feed and hay, note the last manure and water." },
   { n: "Heat Stress", blurb: "Heavy sustained breathing, no sweat or drenched, wobbly, temp over 103°F.",
@@ -552,6 +575,8 @@ const LABEL = {
   "Itchy": "Itchy / Rubbing",
   "Sore Hooves": "Sore or Footy Hooves",
   "Colic": "Colic",
+  "Cough": "Cough / Respiratory",
+  "Allergies": "Seasonal Allergies",
 };
 export const sxLabel = (n) => LABEL[n] || n;
 
@@ -624,6 +649,8 @@ export const SX_EMOJI = {
   "Mane/Tail": "💇",
   "Respiratory Allergies": "🌬️",
   "Choke": "⚠️",
+  "Cough": "😮‍💨",
+  "Allergies": "🤧",
 };
 
 export const CAT_EMOJI = {

@@ -1,5 +1,8 @@
-import { useState, useMemo } from "react";
-import { BUCKETS, BUCKET_PRODUCTS, PM_SUMMARY, WEIGHTS, HAY, HAY_RATE } from "./bucketData";
+import { useState } from "react";
+import {
+  BUCKETS, BUCKET_PRODUCTS, PM_SUMMARY, WEIGHTS, HAY, HAY_RATE,
+  FEED_MILL, HAY_WEEKLY_TOTAL, HAY_BALES, COURSES, DAYS_PER_WEEK,
+} from "./bucketData";
 import { HORSE_COLOR } from "./data";
 
 const TYPE_LABEL = { feed: "Feed", supplement: "Supplement", med: "Medication" };
@@ -127,45 +130,83 @@ function PmSummary() {
   );
 }
 
-function WeeklyTotals({ buckets }) {
-  const totals = useMemo(() => {
-    const map = {};
-    buckets.forEach((b) => {
-      [...b.am, ...b.pm, ...b.oralMeds].forEach((item) => {
-        if (!map[item.product]) map[item.product] = { product: item.product, daily: 0, unit: "" };
-        const m = item.amount.match(/([\d.]+)\s*(\w+)/);
-        if (m) {
-          map[item.product].daily += parseFloat(m[1]);
-          map[item.product].unit = m[2];
-        }
-      });
-    });
-    return Object.values(map).sort((a, b) => b.daily - a.daily);
-  }, [buckets]);
-
-  const totalHayDay = buckets.reduce((s, b) => s + hayFor(b.horse).lbs, 0);
-  const totalHayWeek = Math.round(totalHayDay * 7);
-
+// Herd-wide weekly totals for the feed-mill run. Everything here is computed in
+// bucketData.js (daily × 7), so the day and week columns can never desync.
+function FeedMill() {
+  const hayDay = Math.round(HAY_WEEKLY_TOTAL / DAYS_PER_WEEK);
   return (
     <div className="bk-totals">
-      <h3 className="sec-h">Weekly Herd Totals</h3>
+      <h3 className="sec-h">Feed mill — weekly shopping list</h3>
+      <p className="prose" style={{ margin: "0 0 12px", fontSize: 13.5 }}>
+        Herd totals, every horse's daily bucket × 7. The <b>week</b> column is what to
+        order; the <b>day</b> column is what gets scooped. Finite med courses are listed
+        after — kept out of the weekly math on purpose.
+      </p>
+
       <div className="bk-total-hay">
-        <span className="bk-total-label">🌾 Hay</span>
-        <span className="bk-total-val">{Math.round(totalHayDay)} lbs/day</span>
-        <span className="bk-total-week">{totalHayWeek} lbs/week</span>
+        <span className="bk-total-label">
+          🌾 Hay <span className="bk-mill-sub">2% BW · every horse · free-choice</span>
+        </span>
+        <span className="bk-total-val">{hayDay} lbs/day</span>
+        <span className="bk-total-week">{HAY_WEEKLY_TOTAL} lbs/week</span>
       </div>
+
+      <div className="bk-total-grid" style={{ marginBottom: 10 }}>
+        {HAY_BALES.map((b) => (
+          <div className="bk-total-row" key={b.id}>
+            <span className="bk-total-label">
+              {b.label}
+              <span className="bk-mill-sub">
+                {b.lbs} lb{b.note ? ` · ${b.note}` : ""} · one lasts ~{b.daysPerBale} d
+              </span>
+            </span>
+            <span className="bk-total-val">{b.perWeek}/week</span>
+            <span className="bk-total-week">order {b.perWeekRounded}</span>
+          </div>
+        ))}
+      </div>
+
       <div className="bk-total-grid">
-        {totals.map((t) => {
-          const p = BUCKET_PRODUCTS[t.product];
-          return (
-            <div className="bk-total-row" key={t.product}>
-              <span className="bk-total-label">{p?.full || t.product}</span>
-              <span className="bk-total-val">{Math.round(t.daily * 10) / 10} {t.unit}/day</span>
-              <span className="bk-total-week">{Math.round(t.daily * 7 * 10) / 10} {t.unit}/week</span>
-            </div>
-          );
-        })}
+        {FEED_MILL.map((r) => (
+          <div className="bk-total-row" key={r.product + r.unit}>
+            <span className="bk-total-label">
+              {r.full}
+              <span className="bk-mill-sub">
+                {TYPE_LABEL[r.type] || r.type} · {r.horses.length} horse{r.horses.length === 1 ? "" : "s"}
+              </span>
+            </span>
+            <span className="bk-total-val">{r.daily} {r.unit}/day</span>
+            <span className="bk-total-week">{r.weekly} {r.unit}/week</span>
+          </div>
+        ))}
       </div>
+
+      {COURSES.length > 0 && (
+        <>
+          <h3 className="sec-h" style={{ marginTop: 22 }}>Active med courses</h3>
+          <p className="prose" style={{ margin: "0 0 10px", fontSize: 13.5 }}>
+            Finite or tapering — not multiplied out to a weekly number.
+          </p>
+          <div className="bk-total-grid">
+            {COURSES.map((c, i) => (
+              <div className="bk-total-row" key={c.horse + c.product + i}>
+                <span className="bk-total-label">
+                  {c.horse} — {BUCKET_PRODUCTS[c.product]?.full || c.product}
+                  <span className="bk-mill-sub">
+                    {c.note}
+                    {c.start ? ` · ${c.start}${c.end ? ` → ${c.end}` : " → ongoing"}` : ""}
+                  </span>
+                </span>
+                <span className="bk-total-val">
+                  {c.courseTotal
+                    ? `${c.courseTotal.qty} ${c.courseTotal.unit} / ${c.courseTotal.days} d`
+                    : c.amount}
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -183,7 +224,9 @@ export default function Buckets() {
         </h2>
         <p className="prose" style={{ margin: "8px 0 0" }}>
           What goes in each horse's bucket. AM and PM are split out; oral meds (purple) go in the
-          AM bucket. Hay is 2% of body weight for most horses, 1.5% for the metabolic ones.
+          AM bucket. Hay is free-choice at 2% of body weight for every horse — the metabolic
+          badge is clinical context only, it never changes the hay. Herd totals for the mill
+          run are at the bottom.
         </p>
       </div>
 
@@ -194,7 +237,7 @@ export default function Buckets() {
         {selected === null && <PmSummary />}
       </div>
 
-      <WeeklyTotals buckets={BUCKETS} />
+      <FeedMill />
     </div>
   );
 }

@@ -1,151 +1,234 @@
-// 4-Week Pole Work Program: full daily content from the experiment attachment
+// experimentsData.js — Keystone Barn Resources
+// 4-Week Pole Work Program (consolidated 9/6/2026)
+// Replaces the prior version. Supersedes both the Aug PDF and the Mon/Wed/Fri
+// HTML variant: day numbering is now Day 1–12, sequential, no weekday labels.
+//
+// Exports: WEEKS, HORSE_NOTES, CHEAT_SHEET, NUTRITION, TIMELINE, COMING_NEXT, PROGRESS
+// TIMELINE and COMING_NEXT are NEW — rendered by Experiments.jsx (the changelog calls
+// this "App.jsx" but the Experiments tab has its own component). PROGRESS is carried
+// forward from the prior version; SIDE_EXPERIMENTS was dropped in this update.
+//
+// Fjords = Avelin, Mickey, Ulyssa, Tammy, Linka, Stendahl (six).
+// Stendahl IS a Norwegian Fjord — see his Horse Profile in the wiki.
+
+// COMING_NEXT is NEW — a placeholder card for experiments that are planned but not
+// built yet. Render as a muted/dashed card at the BOTTOM of the Experiments tab with a
+// "Coming Next" badge. Not clickable, no detail view — it's a teaser only.
+export const COMING_NEXT = [
+  {
+    badge: "Coming Next",
+    title: "Sure Foot Stability Pads",
+    blurb:
+      "Proprioception and balance work on the Sure Foot pads. Progressive pad order, one hoof at a time, tracking time-to-settle and release signs.",
+    status: "In design — protocol and horse groups not finalized",
+    guide: "surefoot.html",
+  },
+];
+
+export const TIMELINE = [
+  { when: "Week 1–2",   what: "Better posture, swinging back, less rushing, improved foot awareness" },
+  { when: "Week 3–4",   what: "Visible back lift, better hind engagement, improved transitions" },
+  { when: "Month 2–3",  what: "Noticeable muscle along topline and hindquarters" },
+  { when: "Month 4–6",  what: "Substantial remodeling with consistency + nutrition" },
+];
+
+const ALL = ["Avelin", "Mickey", "Ulyssa", "Stendahl", "Tammy", "Linka", "Dahlia", "Hugo", "Qu"];
+const QU_FLAT = ["Avelin", "Mickey", "Ulyssa", "Stendahl", "Tammy", "Linka", "Dahlia", "Hugo", "Qu (flat only)"];
 
 export const WEEKS = [
   {
-    num: 1, title: "Activation & Proprioception",
-    goal: "Introduce pole awareness, single-leg stability, and back lift at walk.",
-    rule: "All sessions in-hand. Ridden work is optional rest day only.",
-    color: "#2563eb",
+    num: 1,
+    title: "Foundation",
+    rule: "In-Hand Only. Introduce pole awareness, rhythm, and proprioception.",
     days: [
-      { day: "Day 1 (Mon)", session: "Single Flat Pole + Raised Obstacle",
-        exercises: [
-          { label: "Warmup", text: "5 min free walk in arena" },
-          { label: "Exercise", text: "1 flat pole on ground. Walk over 5-6 times each direction." },
-          { label: "Progression", text: "1 raised obstacle (knee/hock height). Walk over 3-4 times each direction." },
-          { label: "Cooldown", text: "3 min free walk" },
-        ],
-        flags: { Qu: "flat poles only, no raised work", Stendahl: "check sheath before handling hind end" },
+      {
+        day: 1,
+        name: "Single Flat Pole + Raised Obstacle",
+        mode: "In-Hand",
+        detail:
+          "Warmup: 5 min free walk. One flat pole on the ground — walk over 5–6 times each direction. Then one raised obstacle (knee/hock height) — walk over 3–4 times each direction. Cooldown: 3 min free walk.",
+        note: "All 9 horses do this in-hand. Sport horses included.",
+        horses: ALL,
       },
-      { day: "Day 3 (Wed)", session: "Simple Maze",
-        exercises: [
-          { label: "Warmup", text: "5 min free walk" },
-          { label: "Exercise", text: "3-4 poles in a serpentine maze (walk through, no stepping over). Lateral flexion and core control. 3 reps each direction." },
-          { label: "Cooldown", text: "3 min free walk" },
-        ],
-        flags: { Stendahl: "check sheath before handling hind end" },
+      {
+        day: 2,
+        name: "4 Flat Walk Poles, Gentle Curve",
+        mode: "In-Hand",
+        detail:
+          "Same spacing (~0.75 m), poles set on a slight arc to begin proprioception work. Walk through from both directions. 3–4 reps each way.",
+        note: "",
+        horses: ALL,
       },
-      { day: "Day 5 (Fri)", session: "Flat Pole Line at Walk (Optional Ridden)",
-        exercises: [
-          { label: "Warmup", text: "5 min free walk under saddle" },
-          { label: "Exercise", text: "3-4 flat poles in a straight line at walk. Focus on rhythm, not speed. 4-5 passes each direction." },
-          { label: "Cooldown", text: "5 min free walk" },
-        ],
-        flags: {},
+      {
+        day: 3,
+        name: "4 Flat Walk Poles + Halt-and-Stand",
+        mode: "In-Hand",
+        detail:
+          "Add one handler-cued halt mid-line through the poles. Reinforces rhythm and confidence before trot work begins. 3–4 reps each direction.",
+        note: "",
+        horses: ALL,
       },
     ],
   },
   {
-    num: 2, title: "Building the Topline",
-    goal: "Introduce rhythm, steady repetition, and gentle bending.",
-    rule: "",
-    color: "#16a34a",
+    num: 2,
+    title: "Build",
+    rule: "In-Hand + Ridden Walk. Introduce trot poles in-hand. Green Fjords stay in-hand.",
     days: [
-      { day: "Day 8 (Mon)", session: "Flat Pole Line at Walk",
-        exercises: [
-          { label: "Exercise", text: "In-hand: 5-6 flat poles in a straight line at walk. 4-5 passes each direction." },
-        ],
-        flags: { Stendahl: "check sheath before handling hind end" },
+      {
+        day: 4,
+        name: "5 In-Hand Walk Poles + First Ridden Walk Poles",
+        mode: "In-Hand / Ridden",
+        detail:
+          "Ridden for anyone steady in-hand from Week 1; green Fjords continue in-hand. First in-hand trot pole trial: 2 poles, ~1.2–1.3 m apart (Fjords ~1.1–1.2 m). Build trot pole count by one if confident.",
+        note: "",
+        horses: ALL,
       },
-      { day: "Day 10 (Wed)", session: "The Fan",
-        exercises: [
-          { label: "Exercise", text: "In-hand: 4-6 poles in a slight fan shape. Walk through the center to encourage bending and even muscle use. 4 reps each direction." },
-        ],
-        flags: { Stendahl: "check sheath before handling hind end" },
+      {
+        day: 5,
+        name: "Ridden Walk Poles (5) + In-Hand Trot Poles (3)",
+        mode: "In-Hand / Ridden",
+        detail:
+          "Build trot pole count by one. Ridden walk over 5 flat poles in a line. In-hand trot over 3 poles.",
+        note: "Stendahl: confirm sheath cleaning before any in-hand work near his hind end.",
+        horses: ALL,
       },
-      { day: "Day 12 (Fri)", session: "Trot Poles Straight Line (Ridden)",
-        exercises: [
-          { label: "Exercise", text: "Ridden: 3-4 trot poles in a straight line, ~1.2-1.3m apart. 4-5 passes each direction. Straightness and rhythm only. No height." },
-        ],
-        flags: { Qu: "keep trot poles flat, low intensity" },
+      {
+        day: 6,
+        name: "Ridden Walk-to-Trot Pole Line",
+        mode: "Ridden",
+        detail:
+          "Walk poles that lead into trot poles (4 total) on the same line. The transition happens over the poles — walk rhythm shifts to trot rhythm. In-hand-only horses: build to 4 trot poles. Straightness and rhythm only.",
+        note: "",
+        horses: ALL,
       },
     ],
   },
   {
-    num: 3, title: "Power & Engagement",
-    goal: "Increase joint flexion, add bending, and introduce transitions.",
-    rule: "",
-    color: "#ca8a04",
+    num: 3,
+    title: "Add Complexity",
+    rule: "Raised poles & circle work. Qu never gets raised — flat work only, every session.",
     days: [
-      { day: "Day 15 (Mon)", session: "Raised Trot Poles",
-        exercises: [
-          { label: "Exercise", text: "Ridden or In-hand: 3-4 trot poles, raise ONE end of each pole to 4-6 inches (alternate sides). 4-5 passes each direction." },
-        ],
-        flags: { Qu: "skip raised poles. Do flat trot poles only." },
+      {
+        day: 7,
+        name: "4 Ridden Trot Poles + 1 Raised Pole",
+        mode: "Ridden",
+        detail:
+          "4–6 in block under one end, approved horses only. Alternate sides (left, right, left, right). 4–5 passes each direction.",
+        note:
+          "Qu: skip raised poles, flat trot poles only. Re-evaluate anyone who knocked poles repeatedly in Weeks 1–2 before adding raised.",
+        horses: QU_FLAT,
       },
-      { day: "Day 17 (Wed)", session: "Circle of Poles",
-        exercises: [
-          { label: "Exercise", text: "Ridden: 4 poles in a 20m circle. Trot the circle. 3-4 laps each direction. Encourage bending and even engagement." },
-        ],
-        flags: {},
+      {
+        day: 8,
+        name: "Circle of Poles: Walk, Then Trot",
+        mode: "Ridden",
+        detail:
+          "20 m circle, 4 poles at cardinal points, ridden. Trot the circle. 3–4 laps each direction. Encourage bending through the ribs and even engagement from both hind legs.",
+        note: "Qu: do this flat — full benefit, no raised element.",
+        horses: ALL,
       },
-      { day: "Day 19 (Fri)", session: "Transitions Over Poles",
-        exercises: [
-          { label: "Exercise", text: "Ridden: 3-4 flat trot poles. Walk-trot-walk transitions over the poles. 4-5 reps each direction. Push from behind." },
-        ],
-        flags: {},
+      {
+        day: 9,
+        name: "Raised Line + Circle Combined",
+        mode: "Ridden",
+        detail:
+          "Rider's choice of order based on how the horse warms up that day. Combine the raised trot pole line with the circle of poles. 3–4 sets each direction. Focus on balance and self-carriage.",
+        note: "Qu: flat poles only. Fjords: subtract ~10 cm from distances.",
+        horses: QU_FLAT,
       },
     ],
   },
   {
-    num: 4, title: "Integration & Challenge",
-    goal: "Combine patterns, test balance, and correct asymmetries.",
-    rule: "",
-    color: "#9333ea",
+    num: 4,
+    title: "Integration & Reassessment",
+    rule: "Fan, spiral, and a full combination session with final check-in.",
     days: [
-      { day: "Day 22 (Mon)", session: "Fan + Raised Line Combo",
-        exercises: [
-          { label: "Exercise", text: "Ridden: Trot the fan (4-6 poles), then walk through a raised pole line (3-4 poles). 3-4 sets each direction." },
-        ],
-        flags: { Qu: "skip raised line. Do flat fan + flat line only." },
+      {
+        day: 10,
+        name: "Fan Exercise: Walk, Then Trot",
+        mode: "Ridden",
+        detail:
+          "4–6 poles radiating from a single point like a fan. Walk through the center. If the horse is confident and balanced, progress to trot. 4–5 passes each direction. Encourages bending and even muscle use on both sides.",
+        note: "",
+        horses: ALL,
       },
-      { day: "Day 24 (Wed)", session: "Spiral In & Out Over Poles",
-        exercises: [
-          { label: "Exercise", text: "Ridden: 4 poles on a 20m circle. Spiral in to 15m over the poles, then spiral out. 3-4 reps each direction. Reveals asymmetries." },
-        ],
-        flags: {},
+      {
+        day: 11,
+        name: "Raised Warm-Up + Spiral Exercise",
+        mode: "Ridden",
+        detail:
+          "20 m circle spiraling to 15 m and back out. Trot the circle, then spiral in to 15 m and back out to 20 m. 3–4 reps each direction. Encourage the inside hind to step deeper under the body on the smaller circle. Raised pole in the straight-line warm-up first, approved horses only.",
+        note: "Fjords: subtract ~10 cm from pole distances on the circle. Qu: flat poles only.",
+        horses: QU_FLAT,
       },
-      { day: "Day 26 (Fri)", session: "Complex Pattern",
-        exercises: [
-          { label: "Exercise", text: "Ridden: Walk a serpentine over 3-4 poles, then immediately trot a straight line of 4-6 poles. 3-4 sets each direction. Focus on balance and self-carriage." },
-        ],
-        flags: {},
+      {
+        day: 12,
+        name: "Full Combination + Final Notes",
+        mode: "Assessment",
+        detail:
+          "Rider's choice of order: warm up, then string together 2–3 exercises from the program (e.g. flat trot poles → circle of poles → transitions over poles). This is your assessment day — note what has improved and what still needs work. Closing observations: stride symmetry, willingness over raised poles, visual topline check.",
+        note: "",
+        horses: ALL,
       },
     ],
   },
 ];
 
 export const HORSE_NOTES = [
-  { horse: "Qu", note: "Hind end maintenance history (LH fetlock). NEVER do raised poles. Flat walk/trot only." },
-  { horse: "Stendahl", note: "Needs sheath cleaning before in-hand work near his hind end." },
-  { horse: "Avelin", note: "Fjord stride: subtract 10cm." },
-  { horse: "Mickey", note: "Fjord stride: subtract 10cm." },
-  { horse: "Ulyssa", note: "Fjord stride: subtract 10cm." },
-  { horse: "Tammy", note: "Fjord stride: subtract 10cm." },
-  { horse: "Linka", note: "Fjord stride: subtract 10cm." },
-  { horse: "Dahlia", note: "Sport horse stride. May progress faster but do NOT skip Week 1 in-hand." },
-  { horse: "Hugo", note: "Sport horse stride. May progress faster but do NOT skip Week 1 in-hand." },
+  {
+    horse: "Qu",
+    tag: "flag",
+    note:
+      "Never do raised poles — flat walk/trot only, every session. Still gets huge benefit from flat pole activation. Hind end maintenance history (LH fetlock, flexion). Currently DSLD + stall confinement: clear with Dr. Jon before any session.",
+  },
+  {
+    horse: "Fjords",
+    who: "Avelin, Mickey, Ulyssa, Tammy, Linka, Stendahl",
+    tag: "fjord",
+    note:
+      "Short-strided. Subtract ~10 cm from standard distances (trot poles ~1.1–1.2 m). Stay in-hand longer if green.",
+  },
+  {
+    horse: "Stendahl",
+    tag: "fjord",
+    note:
+      "Fjord, so he takes the ~10 cm distance reduction with the rest of them. Also needs sheath cleaning — confirm before any in-hand work where a handler is near his hind end.",
+  },
+  {
+    horse: "Dahlia & Hugo",
+    tag: "sport",
+    note:
+      "Sport horse stride — may progress faster through the weeks, but do not skip Week 1 in-hand work.",
+  },
 ];
 
 export const CHEAT_SHEET = {
   distances: [
-    { label: "Walk poles", value: "~0.75m (2.5 ft) apart" },
-    { label: "Trot poles", value: "~1.2-1.3m (4 ft) apart" },
-    { label: "Raised height", value: "4-6 in block under one end" },
-    { label: "Circle of poles", value: "20m circle, 4 poles at cardinal points" },
-    { label: "Fjord adjustment", value: "Subtract ~10cm from all distances" },
+    ["Walk poles", "~0.75 m (2.5 ft) apart"],
+    ["Trot poles", "~1.2–1.3 m (4 ft) apart"],
+    ["Trot poles, Fjords", "~1.1–1.2 m apart"],
+    ["Raised height", "4–6 in (10–15 cm) block under one end"],
+    ["Circle of poles", "20 m circle, 4 poles at cardinal points"],
+    ["Spiral", "20 m circle spiraling to 15 m and back out"],
+    ["Fan", "4–6 poles radiating from a point, ridden through center"],
+    ["Fjord adjustment", "Subtract ~10 cm from all standard distances"],
   ],
   terms: [
-    { label: "In-hand", value: "Handler leads from the ground" },
-    { label: "Topline", value: "Muscles along the spine: back, loin, croup" },
-    { label: "Proprioception", value: "Body awareness (where feet are in space)" },
-    { label: "Engagement", value: "Hind legs stepping further under the body" },
-    { label: "Fan", value: "Poles radiating from a point" },
+    ["In-hand", "Handler leads from the ground, no rider weight"],
+    ["Ridden", "Worked under saddle"],
+    ["Topline", "Muscles along the spine: back, loin, croup"],
+    ["Engagement", "Hind legs stepping further under the body"],
+    ["Proprioception", "Body awareness — where the feet are in space"],
   ],
 };
 
-export const NUTRITION = "Aim for 0.8-1.0 g crude protein per kg bodyweight daily. Lysine is the limiting amino acid. If hay tests low, a quality ration balancer goes a long way.";
+export const NUTRITION =
+  "Aim for 0.8–1.0 g crude protein per kg bodyweight daily. Lysine is the limiting amino acid for muscle building. If hay tests low, a quality ration balancer goes a long way — muscle is built in the stall, not just the arena.";
 
-// Where the pole work program stands. Updated 2026-08-31.
+// Where the pole work program stands. Carried forward from the prior version and
+// kept in the Day 1–12 sequential numbering: weeks run days 1–3 / 4–6 / 7–9 / 10–12.
+// `day` in weekLog is the day-within-week (1–3). Update as sessions get done.
 export const PROGRESS = {
   startDate: "2026-08-17",
   currentWeek: 3,
@@ -175,47 +258,3 @@ export const PROGRESS = {
     ] },
   ],
 };
-
-// Smaller trials running alongside the pole program. From the Experiments list.
-export const SIDE_EXPERIMENTS = [
-  {
-    title: "Mega-Tek daily on Dahlia's mane & tail",
-    horse: "Dahlia", status: "active", started: "Aug 7", window: "30 days",
-    detail: "EQYSS Mega-Tek Rebuilder to mane, forelock, and tail roots basically daily. Testing whether those areas grow in thicker. ~24 days in.",
-  },
-  {
-    title: "Multi-product grooming protocol — Qu",
-    horse: "Qu", status: "active", started: "Aug 7",
-    detail: "Equiderma coat spray on the coat, EquinElite Shine & Shield on forelock/mane/tail ends, EQYSS Mega-Tek on roots and feathers.",
-  },
-  {
-    title: "Multi-product grooming protocol — Avelin",
-    horse: "Avelin", status: "active", started: "Aug 7",
-    detail: "Equiderma coat spray on the coat, EquinElite Shine & Shield on forelock/tail, EQYSS Mega-Tek on feathers.",
-  },
-  {
-    title: "Charlee's Fly Spray staying power — Avelin",
-    horse: "Avelin", status: "active", started: "Aug 25",
-    detail: "Does one application keep flies off the body for at least 75 minutes? 8/25: yes, held 75 minutes.",
-  },
-  {
-    title: "Feed increase — Qu",
-    horse: "Qu", status: "inconclusive", started: "Aug 4",
-    detail: "Whether more feed produces a measurable positive response for weight gain. No clear result yet.",
-  },
-  {
-    title: "Micro-Tek vs Coat Defense — Qu",
-    horse: "Qu", status: "inconclusive",
-    detail: "Split-body trial for sweat itch: Micro-Tek on one side, Coat Defense on the other.",
-  },
-  {
-    title: "Silvetrasol only for hooves",
-    horse: null, status: "concluded — worked",
-    detail: "Dropped every other hoof product and kept only Silvetrasol. It held up on its own.",
-  },
-  {
-    title: "Special Care + Alfalfa pellets for weight — Dahlia",
-    horse: "Dahlia", status: "concluded — worked",
-    detail: "Within 3 weeks her body composition improved.",
-  },
-];

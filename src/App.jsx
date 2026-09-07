@@ -30,6 +30,7 @@ import Paddocks from "./Paddocks";
 import Buckets from "./Buckets";
 import TackBoard from "./TackBoard";
 import Experiments from "./Experiments";
+import GuidePage from "./GuidePage";
 
 
 
@@ -38,8 +39,10 @@ const TABS = [
   { id: "buckets", label: "Feed Buckets", count: 9, icon: "🌾" },
   { id: "symptoms", label: "Symptoms", count: SYMPTOMS.length, icon: "🩺" },
   { id: "tack", label: "Tack Board", count: 9, icon: "🐴" },
-  { id: "experiments", label: "Experiments", count: 9, icon: "🧪" },
+  { id: "experiments", label: "Experiments", count: 1, icon: "🧪" },
   { id: "paddocks", label: "Paddocks", count: 9, icon: "📍" },
+  { id: "redlight", label: "Red Light", icon: "🔴" },
+  { id: "surefoot", label: "Sure Foot", icon: "🦶" },
 ];
 
 export default function App() {
@@ -85,7 +88,7 @@ export default function App() {
             >
               <span className="nav-chip-icon">{t.icon}</span>
               <span className="nav-chip-label">{t.label}</span>
-              <span className="nav-chip-count">{t.count}</span>
+              {t.count != null && <span className="nav-chip-count">{t.count}</span>}
             </button>
           ))}
         </div>
@@ -101,11 +104,15 @@ export default function App() {
         )}
         {tab === "buckets" && <Buckets />}
         {tab === "tack" && <TackBoard />}
-        {tab === "experiments" && <Experiments />}
+        {tab === "experiments" && (
+          <Experiments onGuide={(g) => setTab(g === "surefoot.html" ? "surefoot" : "redlight")} />
+        )}
         {tab === "symptoms" && (
           <Symptoms open={openSx} setOpen={setOpenSx} onProduct={jumpToProduct} />
         )}
         {tab === "paddocks" && <Paddocks />}
+        {tab === "redlight" && <GuidePage guide="redlight" />}
+        {tab === "surefoot" && <GuidePage guide="surefoot" />}
       </main>
 
       <footer className="foot">
