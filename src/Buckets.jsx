@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  BUCKETS, BUCKET_PRODUCTS, PM_SUMMARY, WEIGHTS, HAY, HAY_RATE,
-  FEED_MILL, HAY_WEEKLY_TOTAL, HAY_BALES, COURSES, DAYS_PER_WEEK,
+  STATIC_BUCKETS, BUCKET_PRODUCTS, WEIGHTS, HAY, HAY_RATE,
+  HAY_WEEKLY_TOTAL, HAY_BALES, COURSES, DAYS_PER_WEEK,
+  mergeLiveBuckets, computePmSummary, computeFeedMill,
 } from "./bucketData";
+import { useFeedBuckets } from "./useFeedBuckets";
 import { HORSE_COLOR } from "./data";
 
 const TYPE_LABEL = { feed: "Feed", supplement: "Supplement", med: "Medication" };
@@ -98,20 +100,20 @@ function BucketCard({ bucket }) {
   );
 }
 
-function PmSummary() {
-  if (PM_SUMMARY.length === 0) return null;
+function PmSummary({ pmSummary }) {
+  if (pmSummary.length === 0) return null;
   return (
     <div className="bk-card bk-pm-card">
       <header className="bk-head">
         <span className="bk-swatch" style={{ background: "#46535c" }} />
         <h3 className="bk-name">PM round</h3>
-        <span className="bk-count">{PM_SUMMARY.length} horses</span>
+        <span className="bk-count">{pmSummary.length} horses</span>
       </header>
       <p className="prose" style={{ margin: "0 0 10px", fontSize: 13 }}>
         Everyone else is AM only. These horses get a second bucket in the evening:
       </p>
       <ul className="bk-items">
-        {PM_SUMMARY.map((row) =>
+        {pmSummary.map((row) =>
           row.items.map((item) => {
             const p = BUCKET_PRODUCTS[item.product];
             return (
@@ -132,7 +134,7 @@ function PmSummary() {
 
 // Herd-wide weekly totals for the feed-mill run. Everything here is computed in
 // bucketData.js (daily × 7), so the day and week columns can never desync.
-function FeedMill() {
+function FeedMill({ feedMill }) {
   const hayDay = Math.round(HAY_WEEKLY_TOTAL / DAYS_PER_WEEK);
   return (
     <div className="bk-totals">
@@ -167,7 +169,7 @@ function FeedMill() {
       </div>
 
       <div className="bk-total-grid">
-        {FEED_MILL.map((r) => (
+        {feedMill.map((r) => (
           <div className="bk-total-row" key={r.product + r.unit}>
             <span className="bk-total-label">
               {r.full}
@@ -213,8 +215,14 @@ function FeedMill() {
 
 export default function Buckets() {
   const [selected, setSelected] = useState(null);
-  const horses = BUCKETS.map((b) => b.horse);
-  const visible = selected ? BUCKETS.filter((b) => b.horse === selected) : BUCKETS;
+  const { byHorse, live } = useFeedBuckets();
+
+  const buckets = useMemo(() => mergeLiveBuckets(STATIC_BUCKETS, byHorse, live), [byHorse, live]);
+  const pmSummary = useMemo(() => computePmSummary(buckets), [buckets]);
+  const feedMill = useMemo(() => computeFeedMill(buckets), [buckets]);
+
+  const horses = buckets.map((b) => b.horse);
+  const visible = selected ? buckets.filter((b) => b.horse === selected) : buckets;
 
   return (
     <div className="bk-wrap">
@@ -227,6 +235,7 @@ export default function Buckets() {
           AM bucket. Hay is free-choice at 2% of body weight for every horse — the metabolic
           badge is clinical context only, it never changes the hay. Herd totals for the mill
           run are at the bottom.
+          {!live && " AM/PM amounts shown are the last known snapshot, not live."}
         </p>
       </div>
 
@@ -234,10 +243,10 @@ export default function Buckets() {
 
       <div className="bk-grid">
         {visible.map((b) => <BucketCard key={b.horse} bucket={b} />)}
-        {selected === null && <PmSummary />}
+        {selected === null && <PmSummary pmSummary={pmSummary} />}
       </div>
 
-      <FeedMill />
+      <FeedMill feedMill={feedMill} />
     </div>
   );
 }

@@ -10,6 +10,7 @@ export const BUCKET_PRODUCTS = {
   "TopLine": { full: "Empower Topline Balance", img: IMG["Nutrena Empower Topline Balance"], type: "feed" },
   "ProElite Sweat": { full: "ProElite Sweat (Electrolytes)", img: IMG["ProElite Sweat (Electrolytes)"], type: "supplement" },
   "Digestive Blend": { full: "Empower Digestive Balance", img: IMG["Nutrena Empower Digestive Balance"], type: "feed" },
+  "Digestive Balance": { full: "Nutrena Empower Digestive Balance", img: IMG["Nutrena Empower Digestive Balance"], type: "feed" },
   "SimpliFly": { full: "SimpliFly Feed-Thru Fly Control", img: IMG["SimpliFly Feed-Thru Fly Control"], type: "supplement" },
   "Vitamin E Elevate": { full: "Platinum Performance Vitamin E", img: IMG["Platinum Performance Vitamin E Powder"], type: "supplement" },
   "Special Care": { full: "SafeChoice Special Care", img: IMG["Nutrena SafeChoice Special Care"], type: "feed" },
@@ -28,7 +29,9 @@ export const BUCKET_PRODUCTS = {
 };
 
 // Feed records grouped by horse, split AM / PM. oralMeds are mixed into the AM bucket.
-export const BUCKETS = [
+// This is the offline fallback snapshot — see mergeLiveBuckets() below for how live
+// ClickUp data (am/pm only) gets merged over it.
+export const STATIC_BUCKETS = [
   {
     horse: "Hugo",
     am: [
@@ -88,11 +91,11 @@ export const BUCKETS = [
       { product: "Timothy Pellets", amount: "1 lb", qty: 1, unit: "lbs" },
       { product: "ProElite Sweat", amount: "1 scoop", qty: 1, unit: "scoops" },
       { product: "SimpliFly", amount: "1 scoop", qty: 1, unit: "scoops" },
-      { product: "Digestive Blend", amount: "0.75 lb", qty: 0.75, unit: "lbs" },
+      { product: "Digestive Balance", amount: "0.75 lb", qty: 0.75, unit: "lbs" },
     ],
     pm: [
       { product: "Special Care", amount: "2 lbs", qty: 2, unit: "lbs" },
-      { product: "Digestive Blend", amount: "0.75 lb", qty: 0.75, unit: "lbs" },
+      { product: "Digestive Balance", amount: "0.75 lb", qty: 0.75, unit: "lbs" },
     ],
     oralMeds: [
       { product: "Prascend (oral)", amount: "2 tablets", qty: 2, unit: "tablets", note: "Cushings" },
@@ -165,10 +168,30 @@ export const BUCKETS = [
   },
 ];
 
+// Merge live ClickUp am/pm data (from /api/feeding) over the static fallback.
+// oralMeds (medication courses/tapers) has no equivalent structure in ClickUp
+// and is never replaced — only am/pm come from the live feed, and only for a
+// horse ClickUp actually returned entries for (an empty result for one horse
+// falls back to its static snapshot rather than showing an empty bucket).
+export function mergeLiveBuckets(staticBuckets, byHorse, live) {
+  if (!live) return staticBuckets;
+  return staticBuckets.map((b) => {
+    const l = byHorse[b.horse];
+    if (!l) return b;
+    return {
+      ...b,
+      am: l.am.length ? l.am : b.am,
+      pm: l.pm.length ? l.pm : b.pm,
+    };
+  });
+}
+
 // PM-only summary — horses that get a second (evening) feeding, for the barn's PM round.
-export const PM_SUMMARY = BUCKETS
-  .filter((b) => b.pm.length > 0)
-  .map((b) => ({ horse: b.horse, items: b.pm }));
+export function computePmSummary(buckets) {
+  return buckets
+    .filter((b) => b.pm.length > 0)
+    .map((b) => ({ horse: b.horse, items: b.pm }));
+}
 
 // Current weights — weighed 2026-08-31.
 export const WEIGHTS = {
@@ -217,52 +240,58 @@ export const dailyLines = (bucket) => [
   ...bucket.oralMeds.filter((i) => !i.course).map((i) => ({ ...i, when: "Oral med" })),
 ];
 
-// Per-horse, per-product daily and weekly amounts.
+// Per-horse, per-product daily and weekly amounts. Takes `buckets` (static or
+// live-merged) so a live dose change flows straight through to the totals.
 // [{ horse, product, unit, daily, weekly }]
-export const WEEKLY = BUCKETS.flatMap((b) => {
-  const totals = {};
-  dailyLines(b).forEach((i) => {
-    if (i.qty == null || !i.unit) return;
-    const key = `${i.product}|${i.unit}`;
-    totals[key] = (totals[key] || 0) + i.qty;
+export function computeWeekly(buckets) {
+  return buckets.flatMap((b) => {
+    const totals = {};
+    dailyLines(b).forEach((i) => {
+      if (i.qty == null || !i.unit) return;
+      const key = `${i.product}|${i.unit}`;
+      totals[key] = (totals[key] || 0) + i.qty;
+    });
+    return Object.entries(totals).map(([key, daily]) => {
+      const [product, unit] = key.split("|");
+      return {
+        horse: b.horse,
+        product,
+        unit,
+        daily: +daily.toFixed(2),
+        weekly: +(daily * DAYS_PER_WEEK).toFixed(2),
+      };
+    });
   });
-  return Object.entries(totals).map(([key, daily]) => {
-    const [product, unit] = key.split("|");
-    return {
-      horse: b.horse,
-      product,
-      unit,
-      daily: +daily.toFixed(2),
-      weekly: +(daily * DAYS_PER_WEEK).toFixed(2),
-    };
-  });
-});
+}
 
 // Herd-wide weekly totals per product — this is the feed mill shopping list.
 // [{ product, full, type, unit, daily, weekly }] sorted feed → supplement → med.
 const TYPE_ORDER = { feed: 0, supplement: 1, med: 2 };
-export const FEED_MILL = Object.values(
-  WEEKLY.reduce((acc, r) => {
-    const key = `${r.product}|${r.unit}`;
-    if (!acc[key]) {
-      acc[key] = {
-        product: r.product,
-        full: BUCKET_PRODUCTS[r.product]?.full || r.product,
-        type: BUCKET_PRODUCTS[r.product]?.type || "feed",
-        unit: r.unit,
-        daily: 0,
-        weekly: 0,
-        horses: [],
-      };
-    }
-    acc[key].daily += r.daily;
-    acc[key].weekly += r.weekly;
-    acc[key].horses.push(r.horse);
-    return acc;
-  }, {})
-)
-  .map((r) => ({ ...r, daily: +r.daily.toFixed(2), weekly: +r.weekly.toFixed(2) }))
-  .sort((a, b) => (TYPE_ORDER[a.type] - TYPE_ORDER[b.type]) || a.product.localeCompare(b.product));
+export function computeFeedMill(buckets) {
+  const weekly = computeWeekly(buckets);
+  return Object.values(
+    weekly.reduce((acc, r) => {
+      const key = `${r.product}|${r.unit}`;
+      if (!acc[key]) {
+        acc[key] = {
+          product: r.product,
+          full: BUCKET_PRODUCTS[r.product]?.full || r.product,
+          type: BUCKET_PRODUCTS[r.product]?.type || "feed",
+          unit: r.unit,
+          daily: 0,
+          weekly: 0,
+          horses: [],
+        };
+      }
+      acc[key].daily += r.daily;
+      acc[key].weekly += r.weekly;
+      acc[key].horses.push(r.horse);
+      return acc;
+    }, {})
+  )
+    .map((r) => ({ ...r, daily: +r.daily.toFixed(2), weekly: +r.weekly.toFixed(2) }))
+    .sort((a, b) => (TYPE_ORDER[a.type] - TYPE_ORDER[b.type]) || a.product.localeCompare(b.product));
+}
 
 // Hay, per horse: daily lbs at 2% of bodyweight, and the weekly bale math.
 // Hay is FREE-CHOICE — these are planning figures for how much to have on hand, never a
@@ -301,8 +330,9 @@ export const HAY_BALES = BALE_SIZES.map((b) => ({
 }));
 
 // Active finite courses, surfaced separately so they never get multiplied by 7.
-// Hugo's Dex taper reports its true course total instead.
-export const COURSES = BUCKETS.flatMap((b) =>
+// Hugo's Dex taper reports its true course total instead. oralMeds is always
+// static (never live), so this only ever reads STATIC_BUCKETS.
+export const COURSES = STATIC_BUCKETS.flatMap((b) =>
   b.oralMeds
     .filter((i) => i.course)
     .map((i) => ({

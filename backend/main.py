@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 import clickup_live
+import feed_live
 
 app = FastAPI(title="Horse Locations")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -25,6 +26,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 @app.on_event("startup")
 def _start_clickup_feed():
     clickup_live.start()
+    feed_live.start()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "zones.db")
 
@@ -55,8 +57,6 @@ HORSES = ["Mickey", "Avelin", "Dahlia", "Qu", "Stendahl", "Ulyssa", "Linka", "Ta
 # the symptom index are served live from ClickUp (clickup_live.py), and the
 # frontend carries its own copy as the offline fallback. The JSON files stay in
 # the repo as the last migration snapshot.
-with open(os.path.join(os.path.dirname(__file__), "feeding_data.json")) as f:
-    FEEDING = json.load(f)
 
 
 @app.get("/api/products")
@@ -105,7 +105,15 @@ def get_live_report():
 
 @app.get("/api/feeding")
 def get_feeding():
-    return FEEDING
+    """Live AM/PM feed line items per horse, from the Horse Health Log.
+
+    Scoped to 🌾Feed entries only — medication courses and tapers have no
+    equivalent structure in ClickUp and stay hand-maintained in the frontend
+    bundle. Returns live=False (and an empty by_horse) when there's no token
+    or ClickUp can't be reached; the frontend then falls back to its bundled
+    AM/PM amounts.
+    """
+    return feed_live.feed_payload()
 
 
 def get_db():
