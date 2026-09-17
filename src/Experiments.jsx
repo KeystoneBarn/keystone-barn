@@ -1,39 +1,37 @@
 import { useState } from "react";
 import {
-  WEEKS, HORSE_NOTES, CHEAT_SHEET, NUTRITION, TIMELINE, COMING_NEXT, PROGRESS,
+  PROGRAMS, HORSE_NOTES, CHEAT_SHEET, NUTRITION, TIMELINE, COMING_NEXT,
 } from "./experimentsData";
 
-// The consolidated program has no per-week color in the data anymore; keep the
-// visual banding here, indexed by week number.
 const WEEK_COLORS = ["#2563eb", "#16a34a", "#ca8a04", "#9333ea"];
 const weekColor = (num) => WEEK_COLORS[(num - 1) % WEEK_COLORS.length];
+const DAY_MS = 86400000;
 
-function ProgressStrip() {
-  const pct = Math.round((PROGRESS.sessionsCompleted / PROGRESS.totalSessions) * 100);
-  return (
-    <div className="exp-progress">
-      <div className="exp-progress-head">
-        <strong>Week {PROGRESS.currentWeek}, Day {PROGRESS.currentDay}</strong>
-        <span>{PROGRESS.sessionsCompleted} of {PROGRESS.totalSessions} sessions done</span>
-      </div>
-      <div className="exp-progress-bar"><span style={{ width: pct + "%" }} /></div>
-      <div className="exp-progress-log">
-        {PROGRESS.weekLog.map((w) => (
-          <div className="exp-plog-week" key={w.week}>
-            <span className="exp-plog-label">W{w.week}</span>
-            {w.days.map((d) => (
-              <span
-                key={d.day}
-                className="exp-plog-dot"
-                data-done={d.date && d.note !== "Upcoming" ? "1" : "0"}
-                title={`Day ${d.day}${d.date ? " — " + d.date : ""}: ${d.note}`}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+function parseLocalDate(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function programProgress(program) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = parseLocalDate(program.startDate);
+  const due = parseLocalDate(program.dueDate);
+  const totalDays = Math.round((due - start) / DAY_MS);
+
+  if (today < start) {
+    return { label: `Starts ${start.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`, currentWeek: 1 };
+  }
+  if (today > due) {
+    return { label: "Program complete", currentWeek: program.weeks.length };
+  }
+  const daysElapsed = Math.floor((today - start) / DAY_MS);
+  const currentWeek = Math.min(program.weeks.length, Math.floor(daysElapsed / 7) + 1);
+  return {
+    label: `Day ${daysElapsed + 1} of ${totalDays} · Week ${currentWeek}`,
+    currentWeek,
+    todayName: today.toLocaleDateString(undefined, { weekday: "long" }),
+  };
 }
 
 function Timeline() {
@@ -72,52 +70,83 @@ function ComingNext({ onGuide }) {
   );
 }
 
-function WeekCard({ week, expanded, onToggle }) {
+function WeekCard({ week, expanded, onToggle, todayName, isCurrentWeek }) {
   const color = weekColor(week.num);
   return (
     <div className="exp-week" style={{ "--wc": color }}>
       <button className="exp-week-head" onClick={onToggle}>
         <span className="exp-week-badge" style={{ background: color }}>Week {week.num}</span>
-        <span className="exp-week-title">{week.title}</span>
+        <span className="exp-week-title">{isCurrentWeek ? "Current week" : ""}</span>
         <span className={"sx-caret" + (expanded ? " open" : "")}>›</span>
       </button>
 
       {expanded && (
         <div className="exp-week-body">
-          {week.rule && <p className="exp-week-rule">{week.rule}</p>}
-
-          {week.days.map((d) => (
-            <div className="exp-day" key={d.day}>
-              <div className="exp-day-head">
-                <span className="exp-day-num">Day {d.day}</span>
-                <span className="exp-day-name">{d.name}</span>
-                {d.mode && <span className="exp-day-mode">{d.mode}</span>}
-              </div>
-              <div className="exp-day-body">
-                <p className="exp-day-detail">{d.detail}</p>
-                {d.note && (
-                  <div className="exp-flags">
-                    <div className="exp-flag">{d.note}</div>
+          {week.days.map((d) => {
+            const isToday = isCurrentWeek && todayName === d.weekday;
+            return (
+              <div className="exp-day" key={d.weekday} style={isToday ? { borderColor: color, borderWidth: 2 } : undefined}>
+                <div className="exp-day-head">
+                  <span className="exp-day-num">{d.weekday}{isToday ? " · Today" : ""}</span>
+                  {!d.rest && d.mode && <span className="exp-day-mode">{d.mode}</span>}
+                </div>
+                {d.rest ? (
+                  <div className="exp-day-body">
+                    <p className="exp-day-detail" style={{ fontStyle: "italic", color: "var(--ink-3)" }}>Rest day</p>
                   </div>
-                )}
-                {d.horses?.length > 0 && (
-                  <div className="exp-day-horses">
-                    {d.horses.map((h) => (
-                      <span className="exp-horse-chip" key={h}>{h}</span>
-                    ))}
+                ) : (
+                  <div className="exp-day-body">
+                    <p className="exp-day-detail"><strong>{d.name}.</strong> {d.detail}</p>
                   </div>
                 )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
 
+function ProgramCard({ program }) {
+  const progress = programProgress(program);
+  const [openWeek, setOpenWeek] = useState(progress.currentWeek);
+
+  return (
+    <div className="exp-card" style={{ marginBottom: 16 }}>
+      <div className="exp-head">
+        <span className="exp-icon">{program.icon}</span>
+        <div className="exp-title-wrap">
+          <h3 className="exp-title">{program.title}</h3>
+          <p className="exp-goal">{program.hypothesis}</p>
+        </div>
+      </div>
+      <div className="exp-meta">
+        <span className="exp-tag">{progress.label}</span>
+        <span className="exp-tag">{program.source}</span>
+      </div>
+      <div className="exp-horses">
+        {program.horses.map((h) => (
+          <span className="exp-horse-chip" key={h}>{h}</span>
+        ))}
+      </div>
+      <div className="exp-weeks" style={{ padding: "0 14px 14px" }}>
+        {program.weeks.map((w) => (
+          <WeekCard
+            key={w.num}
+            week={w}
+            expanded={openWeek === w.num}
+            onToggle={() => setOpenWeek(openWeek === w.num ? null : w.num)}
+            todayName={progress.todayName}
+            isCurrentWeek={progress.currentWeek === w.num}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Experiments({ onGuide }) {
-  const [openWeek, setOpenWeek] = useState(PROGRESS.currentWeek);
   const [showCheat, setShowCheat] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
 
@@ -125,15 +154,13 @@ export default function Experiments({ onGuide }) {
     <div className="bk-wrap">
       <div className="bk-intro">
         <h2 style={{ margin: 0, fontSize: 22, letterSpacing: "-0.02em", fontWeight: 700 }}>
-          🧪 4-Week Pole Work Program
+          🧪 Active Training Programs
         </h2>
         <p className="prose" style={{ margin: "6px 0 0" }}>
-          Hind end strength and topline development. 12 sessions across 4 weeks, progressive
-          in-hand and ridden poles. Day numbering is sequential, Day 1–12.
+          Two GPW (Ground Pole Workouts) 4-week strength plans, run concurrently per horse,
+          started 9/13/2026. The prior 12-week pole program closed the same day.
         </p>
       </div>
-
-      <ProgressStrip />
 
       <Timeline />
 
@@ -184,16 +211,9 @@ export default function Experiments({ onGuide }) {
         </div>
       )}
 
-      <div className="exp-weeks">
-        {WEEKS.map((w) => (
-          <WeekCard
-            key={w.num}
-            week={w}
-            expanded={openWeek === w.num}
-            onToggle={() => setOpenWeek(openWeek === w.num ? null : w.num)}
-          />
-        ))}
-      </div>
+      {PROGRAMS.map((p) => (
+        <ProgramCard key={p.id} program={p} />
+      ))}
 
       <ComingNext onGuide={onGuide} />
     </div>
