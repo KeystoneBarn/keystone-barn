@@ -53,11 +53,13 @@
       {"item":"Special Care","canonical":"Special Care","amount":1,"unit":"lb"},
       {"item":"Prascend","canonical":"Prascend","amount":2,"unit":"tablet"},
       {"item":"ProElite Sweat","canonical":"ProElite Sweat","amount":1,"unit":"scoop"},
-      {"item":"SimpliFly","canonical":"SimpliFly","amount":1,"unit":"scoop"}
+      {"item":"SimpliFly","canonical":"SimpliFly","amount":1,"unit":"scoop"},
+      {"item":"Digestive Balance","canonical":"Digestive Balance","amount":0.75,"unit":"lb"}
     ],
     "pm": [
       {"item":"Special Care","canonical":"Special Care","amount":1,"unit":"lb"},
-      {"item":"Timothy Pellets","canonical":"Timothy Pellets","amount":1,"unit":"lb"}
+      {"item":"Timothy Pellets","canonical":"Timothy Pellets","amount":1,"unit":"lb"},
+      {"item":"Digestive Balance","canonical":"Digestive Balance","amount":0.75,"unit":"lb"}
     ],
     "hay_daily_lb": 19.5
   },
