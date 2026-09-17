@@ -18,6 +18,7 @@ from pydantic import BaseModel
 
 import clickup_live
 import feed_live
+import experiments_live
 
 app = FastAPI(title="Horse Locations")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -27,6 +28,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 def _start_clickup_feed():
     clickup_live.start()
     feed_live.start()
+    experiments_live.start()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "zones.db")
 
@@ -114,6 +116,20 @@ def get_feeding():
     AM/PM amounts.
     """
     return feed_live.feed_payload()
+
+
+@app.get("/api/experiments")
+def get_experiments():
+    """Live active-program shell from the Experiments list.
+
+    Scoped to which programs are active, which horses are in each, and
+    their hypothesis/dates — Hypothesis, Target Symptom, Animal and the
+    task's own start/due dates map cleanly onto structured fields. The
+    day-by-day exercise grid has no equivalent structure in ClickUp (it's
+    a GPW-generated PDF attachment) and stays hand-transcribed in the
+    frontend bundle, matched to a live program by its Target Symptom text.
+    """
+    return experiments_live.experiments_payload()
 
 
 def get_db():

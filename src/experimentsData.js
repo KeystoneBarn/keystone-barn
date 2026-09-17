@@ -10,7 +10,7 @@
 // 2026.09.13. Update this file directly if GPW revises either plan; ClickUp
 // only holds the PDF, not structured per-day data.
 //
-// Exports: PROGRAMS, HORSE_NOTES, CHEAT_SHEET, NUTRITION, TIMELINE, COMING_NEXT
+// Exports: STATIC_PROGRAMS, mergeLivePrograms, HORSE_NOTES, CHEAT_SHEET, NUTRITION, TIMELINE, COMING_NEXT
 
 // COMING_NEXT — a placeholder card for experiments that are planned but not
 // built yet. Render as a muted/dashed card at the BOTTOM of the Experiments tab
@@ -114,7 +114,11 @@ const HIND_END_WEEKS = [
   ] },
 ];
 
-export const PROGRAMS = [
+// Offline fallback — used when /api/experiments has no live data. See
+// mergeLivePrograms() below for how a live program's shell (horses,
+// hypothesis, dates) gets matched to one of these week grids by Target
+// Symptom text.
+export const STATIC_PROGRAMS = [
   {
     id: "topline",
     icon: "🧘",
@@ -142,6 +146,55 @@ export const PROGRAMS = [
     weeks: HIND_END_WEEKS,
   },
 ];
+
+// Target Symptom text (lowercased) -> the hand-transcribed week grid for it.
+// A live program whose Target Symptom isn't in here still shows (hypothesis,
+// horses, dates) — it just has no day-by-day detail, with a link back to
+// ClickUp instead. GPW plans change infrequently, so this only needs an
+// update the day a plan is actually swapped, not on every ClickUp edit.
+const WEEKS_BY_SYMPTOM = {
+  "topline strength": { weeks: TOPLINE_WEEKS, icon: "🧘", source: "GPW 4-Week Workout Plan | Topline" },
+  "hind end strength": { weeks: HIND_END_WEEKS, icon: "🦵", source: "GPW 4-Week Workout Plan | Hind End" },
+};
+
+function titleCase(s) {
+  return s.replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
+}
+
+function toLocalDateString(d) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+// ClickUp's own start/due dates on the task, if set; today otherwise (should
+// not normally happen — every active program task has both set).
+function epochToLocalDate(ms) {
+  return toLocalDateString(ms ? new Date(Number(ms)) : new Date());
+}
+
+// Merge live program shells (from /api/experiments) over the static fallback.
+// No live data at all -> full static fallback, same "never worse than
+// yesterday" philosophy as products/feed buckets.
+export function mergeLivePrograms(staticPrograms, livePrograms, live) {
+  if (!live || !livePrograms.length) return staticPrograms;
+  return livePrograms.map((p) => {
+    const key = p.target_symptom.trim().toLowerCase();
+    const known = WEEKS_BY_SYMPTOM[key];
+    return {
+      id: key.replace(/\s+/g, "-"),
+      icon: known?.icon || "🧪",
+      title: titleCase(p.target_symptom),
+      source: known?.source || null,
+      url: p.url || null,
+      horses: p.horses,
+      hypothesis: p.hypothesis,
+      targetSymptom: p.target_symptom,
+      startDate: epochToLocalDate(p.start_date),
+      dueDate: epochToLocalDate(p.due_date),
+      weeks: known?.weeks || [],
+    };
+  });
+}
 
 // Trimmed to horses actually in an active program. Fjords (Linka, Mickey,
 // Tammy here) run short-strided and get a standing distance adjustment;

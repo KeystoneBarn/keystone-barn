@@ -1,7 +1,9 @@
 import { useState } from "react";
 import {
-  PROGRAMS, HORSE_NOTES, CHEAT_SHEET, NUTRITION, TIMELINE, COMING_NEXT,
+  STATIC_PROGRAMS, HORSE_NOTES, CHEAT_SHEET, NUTRITION, TIMELINE, COMING_NEXT,
+  mergeLivePrograms,
 } from "./experimentsData";
+import { useExperiments } from "./useExperiments";
 
 const WEEK_COLORS = ["#2563eb", "#16a34a", "#ca8a04", "#9333ea"];
 const weekColor = (num) => WEEK_COLORS[(num - 1) % WEEK_COLORS.length];
@@ -123,25 +125,36 @@ function ProgramCard({ program }) {
       </div>
       <div className="exp-meta">
         <span className="exp-tag">{progress.label}</span>
-        <span className="exp-tag">{program.source}</span>
+        {program.source && <span className="exp-tag">{program.source}</span>}
       </div>
       <div className="exp-horses">
         {program.horses.map((h) => (
           <span className="exp-horse-chip" key={h}>{h}</span>
         ))}
       </div>
-      <div className="exp-weeks" style={{ padding: "0 14px 14px" }}>
-        {program.weeks.map((w) => (
-          <WeekCard
-            key={w.num}
-            week={w}
-            expanded={openWeek === w.num}
-            onToggle={() => setOpenWeek(openWeek === w.num ? null : w.num)}
-            todayName={progress.todayName}
-            isCurrentWeek={progress.currentWeek === w.num}
-          />
-        ))}
-      </div>
+      {program.weeks.length > 0 ? (
+        <div className="exp-weeks" style={{ padding: "0 14px 14px" }}>
+          {program.weeks.map((w) => (
+            <WeekCard
+              key={w.num}
+              week={w}
+              expanded={openWeek === w.num}
+              onToggle={() => setOpenWeek(openWeek === w.num ? null : w.num)}
+              todayName={progress.todayName}
+              isCurrentWeek={progress.currentWeek === w.num}
+            />
+          ))}
+        </div>
+      ) : (
+        <div style={{ padding: "0 14px 14px" }}>
+          <p className="prose" style={{ margin: 0, fontSize: 13.5, fontStyle: "italic", color: "var(--ink-3)" }}>
+            Day-by-day plan not yet added for this program.
+            {program.url && (
+              <> <a href={program.url} target="_blank" rel="noreferrer">View in ClickUp →</a></>
+            )}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -149,6 +162,8 @@ function ProgramCard({ program }) {
 export default function Experiments({ onGuide }) {
   const [showCheat, setShowCheat] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const { programs: livePrograms, live } = useExperiments();
+  const programs = mergeLivePrograms(STATIC_PROGRAMS, livePrograms, live);
 
   return (
     <div className="bk-wrap">
@@ -157,8 +172,10 @@ export default function Experiments({ onGuide }) {
           🧪 Active Training Programs
         </h2>
         <p className="prose" style={{ margin: "6px 0 0" }}>
-          Two GPW (Ground Pole Workouts) 4-week strength plans, run concurrently per horse,
-          started 9/13/2026. The prior 12-week pole program closed the same day.
+          Which programs are active, their horses and dates come live from ClickUp's
+          Experiments list. Each program's day-by-day plan is transcribed from its GPW
+          workout PDF and updates only when the plan itself changes.
+          {!live && " (Showing the last known snapshot — live feed unavailable.)"}
         </p>
       </div>
 
@@ -211,7 +228,7 @@ export default function Experiments({ onGuide }) {
         </div>
       )}
 
-      {PROGRAMS.map((p) => (
+      {programs.map((p) => (
         <ProgramCard key={p.id} program={p} />
       ))}
 
