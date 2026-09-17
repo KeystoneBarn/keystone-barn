@@ -7,15 +7,24 @@ read and write, full stop.
 """
 import sqlite3
 import json
+import mimetypes
 import os
 from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+import clickup_live
+
 app = FastAPI(title="Horse Locations")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+
+@app.on_event("startup")
+def _start_clickup_feed():
+    clickup_live.start()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "zones.db")
 
@@ -42,22 +51,56 @@ DEFAULT_ZONES = [
 
 HORSES = ["Mickey", "Avelin", "Dahlia", "Qu", "Stendahl", "Ulyssa", "Linka", "Tammy", "Hugo"]
 
-with open(os.path.join(os.path.dirname(__file__), "products_data.json")) as f:
-    PRODUCTS = json.load(f)
-with open(os.path.join(os.path.dirname(__file__), "symptoms_data.json")) as f:
-    SYMPTOMS = json.load(f)
+# products_data.json / symptoms_data.json are no longer read here: products and
+# the symptom index are served live from ClickUp (clickup_live.py), and the
+# frontend carries its own copy as the offline fallback. The JSON files stay in
+# the repo as the last migration snapshot.
 with open(os.path.join(os.path.dirname(__file__), "feeding_data.json")) as f:
     FEEDING = json.load(f)
 
 
 @app.get("/api/products")
 def get_products():
-    return PRODUCTS
+    """Live from the ClickUp Products list.
+
+    Returns live=False (and an empty list) when there's no token or ClickUp
+    can't be reached; the frontend then falls back to its bundled data, so the
+    site degrades to "what it showed yesterday" rather than to a blank page.
+    """
+    return clickup_live.products_payload()
 
 
 @app.get("/api/symptoms")
 def get_symptoms():
-    return SYMPTOMS
+    """Symptom -> products, derived from each product's Indicated For labels.
+
+    The curated blurbs, vet red flags and treatment ladders live in the
+    frontend on purpose: they're barn knowledge, not a data table, and nothing
+    in ClickUp holds them.
+    """
+    return clickup_live.symptom_index()
+
+
+@app.get("/api/product-image/{task_id}")
+def get_product_image(task_id: str):
+    """Serve a ClickUp product photo from the local cache.
+
+    Never hotlinks ClickUp: attachment URLs are short-lived and can be moved
+    behind workspace auth, which would silently break every photo on the site.
+    """
+    if not task_id.isalnum():
+        raise HTTPException(status_code=400, detail="bad id")
+    path = clickup_live.cached_image_path(task_id)
+    if not path:
+        raise HTTPException(status_code=404, detail="no cached image")
+    media_type = mimetypes.guess_type(path)[0] or "image/jpeg"
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/api/live-report")
+def get_live_report():
+    """Data-quality view of the live feed: duplicates, blanks, missing photos."""
+    return clickup_live.report()
 
 
 @app.get("/api/feeding")

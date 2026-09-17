@@ -23,7 +23,8 @@ import { useMemo, useState, useCallback } from "react";
 import "./theme.css";
 import logoIcon from "./img/keystone-barn-logo-icon.png";
 import footerImg from "./img/keystone-barn-footer.png";
-import { PRODUCTS, SYMPTOMS } from "./data";
+import { SYMPTOMS } from "./data";
+import { useProducts } from "./useProducts";
 import Products from "./Products";
 import Symptoms from "./Symptoms";
 import Paddocks from "./Paddocks";
@@ -34,8 +35,8 @@ import GuidePage from "./GuidePage";
 
 
 
-const TABS = [
-  { id: "products", label: "Products", count: PRODUCTS.filter((p) => !p.retired).length, icon: "🧴" },
+const buildTabs = (productCount) => [
+  { id: "products", label: "Products", count: productCount, icon: "🧴" },
   { id: "buckets", label: "Feed Buckets", count: 9, icon: "🌾" },
   { id: "symptoms", label: "Symptoms", count: SYMPTOMS.length, icon: "🩺" },
   { id: "tack", label: "Tack Board", count: 9, icon: "🐴" },
@@ -50,6 +51,12 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("All");
   const [openSx, setOpenSx] = useState(null);
+  const { products } = useProducts();
+
+  const TABS = useMemo(
+    () => buildTabs(products.filter((p) => !p.retired).length),
+    [products],
+  );
 
   const jumpToSymptom = useCallback((name) => {
     setOpenSx(name);

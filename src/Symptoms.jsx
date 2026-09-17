@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback } from "react";
-import { SYMPTOMS, PRODUCTS, TIERS, CAT_COLOR, sxLabel, SX_EMOJI, VERDICT } from "./data";
+import { SYMPTOMS, TIERS, CAT_COLOR, sxLabel, SX_EMOJI, VERDICT } from "./data";
+import { useProducts } from "./useProducts";
 
 function Caret() {
   return (
@@ -10,9 +11,11 @@ function Caret() {
   );
 }
 
-const byName = Object.fromEntries(PRODUCTS.map((p) => [p.n, p]));
-
 function Ladder({ ladder, onProduct }) {
+  const { products } = useProducts();
+  // Ladder rungs name products by hand; a name that no longer matches a live
+  // product still renders, just without the shelf/category line under it.
+  const byName = useMemo(() => Object.fromEntries(products.map((p) => [p.n, p])), [products]);
   return (
     <div className="ladder">
       {ladder.map((r) => {
@@ -45,7 +48,8 @@ function Ladder({ ladder, onProduct }) {
 
 
 function ProductDetail({ name, onBack }) {
-  const p = PRODUCTS.find((pr) => pr.n === name);
+  const { products } = useProducts();
+  const p = products.find((pr) => pr.n === name);
   if (!p) return null;
   const m = VERDICT[p.v];
   return (
@@ -72,6 +76,7 @@ function ProductDetail({ name, onBack }) {
 export default function Symptoms({ open, setOpen, onProduct }) {
   const [detailProduct, setDetailProduct] = useState(null);
   const [q, setQ] = useState("");
+  const { products: PRODUCTS } = useProducts();
 
   const matches = useMemo(() => {
     const needle = q.trim().toLowerCase();

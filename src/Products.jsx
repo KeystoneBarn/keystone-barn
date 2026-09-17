@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { PRODUCTS, CATEGORIES, CAT_COLOR, VERDICT, sxLabel, CAT_EMOJI } from "./data";
+import { CATEGORIES, CAT_COLOR, VERDICT, sxLabel, CAT_EMOJI } from "./data";
+import { useProducts } from "./useProducts";
 
 function Magnifier() {
   return (
@@ -122,6 +123,7 @@ function Card({ p, open, onToggle, onSymptom }) {
 export default function Products({ query, setQuery, cat, setCat, onSymptom }) {
   const [openId, setOpenId] = useState(null);
   const [showRetired, setShowRetired] = useState(false);
+  const { products: PRODUCTS } = useProducts();
 
   const list = useMemo(() => {
     const q = norm(query.trim());
@@ -132,14 +134,22 @@ export default function Products({ query, setQuery, cat, setCat, onSymptom }) {
       const hay = [p.n, p.c, p.d, p.dose, p.loc, p.note, ...(p.sx || []), ...(p.sx || []).map(sxLabel)].filter(Boolean).join(" ");
       return norm(hay).includes(q);
     }).sort(byVerdict);
-  }, [query, cat, showRetired]);
+  }, [PRODUCTS, query, cat, showRetired]);
+
+  // Categories come from the curated order first, then anything new that
+  // showed up in ClickUp since — a category added there appears here on its
+  // own, which is the whole point of the live feed.
+  const cats = useMemo(() => {
+    const extra = [...new Set(PRODUCTS.map((p) => p.c))].filter((c) => c && !CATEGORIES.includes(c));
+    return [...CATEGORIES, ...extra.sort()];
+  }, [PRODUCTS]);
 
   const counts = useMemo(() => {
     const src = PRODUCTS.filter((p) => showRetired || !p.retired);
     const m = { All: src.length };
-    for (const c of CATEGORIES) m[c] = src.filter((p) => p.c === c).length;
+    for (const c of cats) m[c] = src.filter((p) => p.c === c).length;
     return m;
-  }, [showRetired]);
+  }, [PRODUCTS, cats, showRetired]);
 
   return (
     <>
@@ -156,7 +166,7 @@ export default function Products({ query, setQuery, cat, setCat, onSymptom }) {
         </div>
 
         <div className="chips">
-          {["All", ...CATEGORIES].map((c) => (
+          {["All", ...cats].map((c) => (
             <button key={c} className="chip" data-on={cat === c ? "1" : "0"} onClick={() => { setCat(c); setOpenId(null); }}>
               {c !== "All" && <span className="chip-emoji">{CAT_EMOJI[c] || ""}</span>}
               {c} <span className="ct">{counts[c] ?? 0}</span>
