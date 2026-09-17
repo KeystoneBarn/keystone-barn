@@ -88,9 +88,11 @@ export const BUCKETS = [
       { product: "Timothy Pellets", amount: "1 lb", qty: 1, unit: "lbs" },
       { product: "ProElite Sweat", amount: "1 scoop", qty: 1, unit: "scoops" },
       { product: "SimpliFly", amount: "1 scoop", qty: 1, unit: "scoops" },
+      { product: "Digestive Blend", amount: "0.75 lb", qty: 0.75, unit: "lbs" },
     ],
     pm: [
       { product: "Special Care", amount: "2 lbs", qty: 2, unit: "lbs" },
+      { product: "Digestive Blend", amount: "0.75 lb", qty: 0.75, unit: "lbs" },
     ],
     oralMeds: [
       { product: "Prascend (oral)", amount: "2 tablets", qty: 2, unit: "tablets", note: "Cushings" },
