@@ -1,0 +1,21 @@
+name: Deploy to Render
+
+# Render's own GitHub App auto-deploy stopped firing on push (confirmed via
+# the GitHub API: this repo has zero webhooks, deployments, or check-runs
+# registered — the App connection itself isn't notifying Render at all).
+# Rather than depend on that connection, this calls Render's Deploy Hook
+# directly on every push to main, so a merge always deploys without a
+# manual "Deploy latest commit" click.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy
+        run: |
+          curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
