@@ -26,11 +26,12 @@ export const COMING_NEXT = [
   },
 ];
 
+// Scoped to the 4-week program window only — no continuation past week 4 is
+// confirmed, so this doesn't project months out the way the old open-ended
+// pole-work practice did.
 export const TIMELINE = [
   { when: "Week 1–2",   what: "Better posture, swinging back, less rushing, improved foot awareness" },
   { when: "Week 3–4",   what: "Visible back lift, better hind engagement, improved transitions" },
-  { when: "Month 2–3",  what: "Noticeable muscle along topline and hindquarters" },
-  { when: "Month 4–6",  what: "Substantial remodeling with consistency + nutrition" },
 ];
 
 // Each program's weeks run Monday–Sunday, matching the GPW PDF layout exactly.
