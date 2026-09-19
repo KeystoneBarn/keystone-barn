@@ -25,6 +25,10 @@ export const BUCKET_PRODUCTS = {
   "Thyro-L": { full: "Thyro-L (Levothyroxine)", img: IMG["Thyro-L (Levothyroxine Sodium)"], type: "med" },
   "ProElite Hoof": { full: "ProElite Hoof", img: IMG["ProElite Hoof"], type: "supplement" },
   "ProElite Joint": { full: "ProElite Joint Supplement", img: IMG["ProElite Joint Supplement"], type: "supplement" },
+  // ClickUp's own Product dropdown option is misspelled "ProElit Joint" (no
+  // trailing e) — alias it here so it still resolves. Worth fixing at the
+  // source in ClickUp; other tools matching on the exact name will hit this too.
+  "ProElit Joint": { full: "ProElite Joint Supplement", img: IMG["ProElite Joint Supplement"], type: "supplement" },
   "Bute": { full: "Bute Tablets (Phenylbutazone)", img: IMG["Bute Tablets (Phenylbutazone)"], type: "med" },
   "Equioxx": { full: "Equioxx (Firocoxib) Tablets", img: IMG["Equioxx (Firocoxib) Tablets"], type: "med" },
   "Reserpine": { full: "Reserpine", img: IMG["Reserpine"], type: "med" },
