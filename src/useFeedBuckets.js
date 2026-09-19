@@ -6,6 +6,11 @@
   equivalent structure in ClickUp and stay hand-maintained in bucketData.js.
   If the feed comes back empty (no token, ClickUp down, network flaky), every
   horse keeps its bundled am/pm amounts, same philosophy as useProducts().
+
+  activeTaskIds is every task id currently "in progress" in the whole Health
+  Log (not just Feed entries) — bucketData.js's mergeLiveBuckets() uses it to
+  drop a hand-maintained course the moment its ClickUp task is marked
+  complete, without needing the course's day-by-day detail to be live too.
 */
 import { useEffect, useState } from "react";
 
@@ -13,7 +18,7 @@ const API = (typeof import.meta !== "undefined" && import.meta.env && import.met
   ? "http://localhost:8000"
   : "";
 
-const FALLBACK = { byHorse: {}, live: false, fetchedAt: null };
+const FALLBACK = { byHorse: {}, activeTaskIds: null, live: false, fetchedAt: null };
 
 let inflight = null;
 let settled = null;
@@ -25,7 +30,12 @@ function load() {
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status))))
     .then((data) => {
       if (data && data.live && data.by_horse) {
-        settled = { byHorse: data.by_horse, live: true, fetchedAt: data.fetched_at };
+        settled = {
+          byHorse: data.by_horse,
+          activeTaskIds: new Set(data.active_task_ids || []),
+          live: true,
+          fetchedAt: data.fetched_at,
+        };
       } else {
         settled = FALLBACK;
       }

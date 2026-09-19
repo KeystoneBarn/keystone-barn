@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
 import {
   STATIC_BUCKETS, BUCKET_PRODUCTS, WEIGHTS, HAY, HAY_RATE,
-  HAY_WEEKLY_TOTAL, HAY_BALES, COURSES, DAYS_PER_WEEK,
-  mergeLiveBuckets, computePmSummary, computeFeedMill,
+  HAY_WEEKLY_TOTAL, HAY_BALES, DAYS_PER_WEEK,
+  mergeLiveBuckets, computePmSummary, computeFeedMill, computeCourses,
 } from "./bucketData";
 import { useFeedBuckets } from "./useFeedBuckets";
+import { useProducts } from "./useProducts";
 import { HORSE_COLOR } from "./data";
 
 const TYPE_LABEL = { feed: "Feed", supplement: "Supplement", med: "Medication" };
@@ -40,14 +41,15 @@ function HorseIndex({ horses, selected, onSelect }) {
   );
 }
 
-function ItemRow({ item }) {
+function ItemRow({ item, liveImgByName }) {
   const p = BUCKET_PRODUCTS[item.product];
+  const img = p?.img || liveImgByName[p?.full];
   const tc = TYPE_COLOR[p?.type] || "#46535c";
   return (
     <li className="bk-item" style={{ "--tc": tc }}>
-      {p?.img && (
+      {img && (
         <span className="bk-thumb">
-          <img src={p.img} alt="" loading="lazy" />
+          <img src={img} alt="" loading="lazy" />
         </span>
       )}
       <span className="bk-info">
@@ -61,19 +63,19 @@ function ItemRow({ item }) {
   );
 }
 
-function Meal({ label, items }) {
+function Meal({ label, items, liveImgByName }) {
   if (!items || items.length === 0) return null;
   return (
     <div className="bk-meal">
       <div className="field-label">{label}</div>
       <ul className="bk-items">
-        {items.map((item) => <ItemRow key={label + item.product} item={item} />)}
+        {items.map((item) => <ItemRow key={label + item.product} item={item} liveImgByName={liveImgByName} />)}
       </ul>
     </div>
   );
 }
 
-function BucketCard({ bucket }) {
+function BucketCard({ bucket, liveImgByName }) {
   const color = HORSE_COLOR[bucket.horse] || "#46535c";
   const hay = hayFor(bucket.horse);
   const count = bucket.am.length + bucket.pm.length + bucket.oralMeds.length;
@@ -93,9 +95,9 @@ function BucketCard({ bucket }) {
           </span>
         </span>
       </div>
-      <Meal label="AM bucket" items={bucket.am} />
-      {bucket.oralMeds.length > 0 && <Meal label="Oral meds (in AM bucket)" items={bucket.oralMeds} />}
-      <Meal label="PM bucket" items={bucket.pm} />
+      <Meal label="AM bucket" items={bucket.am} liveImgByName={liveImgByName} />
+      {bucket.oralMeds.length > 0 && <Meal label="Oral meds (in AM bucket)" items={bucket.oralMeds} liveImgByName={liveImgByName} />}
+      <Meal label="PM bucket" items={bucket.pm} liveImgByName={liveImgByName} />
     </article>
   );
 }
@@ -134,7 +136,7 @@ function PmSummary({ pmSummary }) {
 
 // Herd-wide weekly totals for the feed-mill run. Everything here is computed in
 // bucketData.js (daily × 7), so the day and week columns can never desync.
-function FeedMill({ feedMill }) {
+function FeedMill({ feedMill, courses }) {
   const hayDay = Math.round(HAY_WEEKLY_TOTAL / DAYS_PER_WEEK);
   return (
     <div className="bk-totals">
@@ -183,14 +185,15 @@ function FeedMill({ feedMill }) {
         ))}
       </div>
 
-      {COURSES.length > 0 && (
+      {courses.length > 0 && (
         <>
           <h3 className="sec-h" style={{ marginTop: 22 }}>Active med courses</h3>
           <p className="prose" style={{ margin: "0 0 10px", fontSize: 13.5 }}>
-            Finite or tapering — not multiplied out to a weekly number.
+            Finite or tapering — not multiplied out to a weekly number. Drops off this
+            list automatically once its ClickUp task is marked complete.
           </p>
           <div className="bk-total-grid">
-            {COURSES.map((c, i) => (
+            {courses.map((c, i) => (
               <div className="bk-total-row" key={c.horse + c.product + i}>
                 <span className="bk-total-label">
                   {c.horse} — {BUCKET_PRODUCTS[c.product]?.full || c.product}
@@ -215,11 +218,22 @@ function FeedMill({ feedMill }) {
 
 export default function Buckets() {
   const [selected, setSelected] = useState(null);
-  const { byHorse, live } = useFeedBuckets();
+  const { byHorse, live, activeTaskIds } = useFeedBuckets();
+  const { products: liveProducts } = useProducts();
 
-  const buckets = useMemo(() => mergeLiveBuckets(STATIC_BUCKETS, byHorse, live), [byHorse, live]);
+  const buckets = useMemo(
+    () => mergeLiveBuckets(STATIC_BUCKETS, byHorse, live, activeTaskIds),
+    [byHorse, live, activeTaskIds]
+  );
   const pmSummary = useMemo(() => computePmSummary(buckets), [buckets]);
   const feedMill = useMemo(() => computeFeedMill(buckets), [buckets]);
+  const courses = useMemo(() => computeCourses(buckets), [buckets]);
+  // Photos for products the Feed Buckets bundle has no static image for, borrowed
+  // from the Product Cabinet's live ClickUp photos by matching display name.
+  const liveImgByName = useMemo(
+    () => Object.fromEntries(liveProducts.filter((p) => p.img).map((p) => [p.n, p.img])),
+    [liveProducts]
+  );
 
   const horses = buckets.map((b) => b.horse);
   const visible = selected ? buckets.filter((b) => b.horse === selected) : buckets;
@@ -242,11 +256,11 @@ export default function Buckets() {
       <HorseIndex horses={horses} selected={selected} onSelect={setSelected} />
 
       <div className="bk-grid">
-        {visible.map((b) => <BucketCard key={b.horse} bucket={b} />)}
+        {visible.map((b) => <BucketCard key={b.horse} bucket={b} liveImgByName={liveImgByName} />)}
         {selected === null && <PmSummary pmSummary={pmSummary} />}
       </div>
 
-      <FeedMill feedMill={feedMill} />
+      <FeedMill feedMill={feedMill} courses={courses} />
     </div>
   );
 }

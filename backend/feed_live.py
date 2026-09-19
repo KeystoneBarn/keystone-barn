@@ -17,6 +17,13 @@ equivalent structure in ClickUp: no start/end dates or taper schedule on
 the task, just a flat Value/Unit. Those stay hand-maintained in
 bucketData.js's `oralMeds`, exactly as before — this module only ever
 supplies `am`/`pm`.
+
+One thing IS live for courses, though: whether they're still running.
+`active_task_ids` carries every task id that matched the "in progress"
+filter this cycle, across the whole Health Log, not just 🌾Feed entries —
+so a course tagged with its ClickUp task id in bucketData.js can be
+dropped by the frontend the moment that task is marked complete, with no
+code change needed.
 """
 import logging
 import os
@@ -110,6 +117,7 @@ class _FeedCache:
     def __init__(self):
         self.lock = threading.Lock()
         self.by_horse = {}
+        self.active_task_ids = set()
         self.fetched_at = 0.0
         self.error = None
         self.refreshing = False
@@ -125,6 +133,7 @@ class _FeedCache:
                 "age_seconds": round(time.time() - self.fetched_at, 1) if self.fetched_at else None,
                 "error": self.error,
                 "by_horse": {h: {"am": list(v["am"]), "pm": list(v["pm"])} for h, v in self.by_horse.items()},
+                "active_task_ids": sorted(self.active_task_ids),
             }
 
     def refresh(self):
@@ -155,11 +164,17 @@ class _FeedCache:
             for h in by_horse.values():
                 h["am"].sort(key=lambda i: i["product"])
                 h["pm"].sort(key=lambda i: i["product"])
+            # Every task here already matched the "in progress" filter server-side,
+            # regardless of note type — this is how a finite med course (Bute,
+            # Reserpine, a taper) gets to auto-disappear the moment its ClickUp
+            # task is marked complete, without a corresponding code change.
+            active_task_ids = {t["id"] for t in tasks}
             with self.lock:
                 self.by_horse = by_horse
+                self.active_task_ids = active_task_ids
                 self.fetched_at = time.time()
                 self.error = None
-            log.info("feed refresh ok: %d horses", len(by_horse))
+            log.info("feed refresh ok: %d horses, %d active tasks", len(by_horse), len(active_task_ids))
         except Exception as exc:
             log.warning("feed refresh failed: %s", exc)
             with self.lock:
@@ -194,4 +209,5 @@ def feed_payload():
         "fetched_at": snap["fetched_at"],
         "age_seconds": snap["age_seconds"],
         "by_horse": snap["by_horse"],
+        "active_task_ids": snap["active_task_ids"],
     }

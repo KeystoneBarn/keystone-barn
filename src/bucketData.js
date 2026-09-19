@@ -6,11 +6,16 @@ import { IMG } from "./images";
 // oral med courses, and structured qty/unit on every line so weekly totals are computed
 // rather than eyeballed. See WEEKLY / FEED_MILL at the bottom of this file.
 
+// An entry with no `img` here isn't necessarily photo-less on the site: Buckets.jsx
+// falls back to the live Product Cabinet's photo (matched by this `full` name) when
+// one exists there. Bute and Banamine already have live photos this way; Reserpine,
+// Equisul-SDT and Platinum Performance GI don't have a photo on either side yet.
 export const BUCKET_PRODUCTS = {
   "TopLine": { full: "Empower Topline Balance", img: IMG["Nutrena Empower Topline Balance"], type: "feed" },
   "ProElite Sweat": { full: "ProElite Sweat (Electrolytes)", img: IMG["ProElite Sweat (Electrolytes)"], type: "supplement" },
   "Digestive Blend": { full: "Empower Digestive Balance", img: IMG["Nutrena Empower Digestive Balance"], type: "feed" },
   "Digestive Balance": { full: "Nutrena Empower Digestive Balance", img: IMG["Nutrena Empower Digestive Balance"], type: "feed" },
+  "Platinum Performance GI": { full: "Platinum Performance GI", type: "supplement" },
   "SimpliFly": { full: "SimpliFly Feed-Thru Fly Control", img: IMG["SimpliFly Feed-Thru Fly Control"], type: "supplement" },
   "Vitamin E Elevate": { full: "Platinum Performance Vitamin E", img: IMG["Platinum Performance Vitamin E Powder"], type: "supplement" },
   "Special Care": { full: "SafeChoice Special Care", img: IMG["Nutrena SafeChoice Special Care"], type: "feed" },
@@ -36,18 +41,16 @@ export const STATIC_BUCKETS = [
     horse: "Hugo",
     am: [
       { product: "TopLine", amount: "2.5 lbs", qty: 2.5, unit: "lbs" },
-      { product: "Digestive Blend", amount: "1 lb", qty: 1, unit: "lbs" },
+      { product: "Digestive Balance", amount: "1 lb", qty: 1, unit: "lbs" },
       { product: "ProElite Sweat", amount: "1 scoop", qty: 1, unit: "scoops" },
       { product: "SimpliFly", amount: "1 scoop", qty: 1, unit: "scoops" },
     ],
     pm: [
-      { product: "Digestive Blend", amount: "1 lb", qty: 1, unit: "lbs" },
+      { product: "Digestive Balance", amount: "1 lb", qty: 1, unit: "lbs" },
     ],
-    oralMeds: [
-      { product: "Dex (oral)", amount: "tapering", qty: null, unit: "tablets", note: "Worsening cough. 8-day taper: 4/4/3/3/2/2/1/1 tablets, 20 tablets total.",
-        course: { start: "2026-09-05", end: "2026-09-12" },
-        taper: [4, 4, 3, 3, 2, 2, 1, 1] },
-    ],
+    // Dex (oral) taper for the worsening cough ended 2026-09-12 (ClickUp: "Hugo: Dex
+    // (oral) series" marked complete) — removed 2026-09-19, no active oral meds.
+    oralMeds: [],
   },
   {
     horse: "Qu",
@@ -65,10 +68,10 @@ export const STATIC_BUCKETS = [
       { product: "ProElite Hoof", amount: "1 scoop", qty: 1, unit: "scoops" },
       { product: "ProElite Joint", amount: "2 scoops", qty: 2, unit: "scoops" },
     ],
+    // Bute (task 86e32nfq1) and Equioxx (86e33dfgp) both marked complete in
+    // ClickUp — removed 2026-09-19, no longer active.
     oralMeds: [
-      { product: "Bute", amount: "2 grams", qty: 2, unit: "grams", note: "Pain cycle, per Dr. Jon", course: { start: "2026-09-01", end: "2026-09-07" } },
-      { product: "Equioxx", amount: "1 tablet", qty: 1, unit: "tablets", note: "Replaces Bute when the Bute course ends", course: { start: "2026-09-08", end: null } },
-      { product: "Reserpine", amount: "30-day course", qty: null, unit: null, note: "Stall confinement / DSLD", course: { start: "2026-09-01", end: "2026-10-01" } },
+      { product: "Reserpine", amount: "30-day course", qty: null, unit: null, note: "Stall confinement / DSLD", course: { start: "2026-09-01", end: "2026-10-01" }, taskId: "86e32ng90" },
     ],
   },
   {
@@ -109,11 +112,11 @@ export const STATIC_BUCKETS = [
       { product: "SimpliFly", amount: "1 scoop", qty: 1, unit: "scoops" },
     ],
     pm: [],
+    // Banamine (task 86e351gqn) and Equisul-SDT (86e351gqm) both marked
+    // complete in ClickUp — removed 2026-09-19, no longer active.
     oralMeds: [
       { product: "Thyro-L", amount: "2 scoops", qty: 2, unit: "scoops", note: "Cushings / IR" },
       { product: "Prascend (oral)", amount: "1 tablet", qty: 1, unit: "tablets", note: "Cushings" },
-      { product: "Banamine (oral)", amount: "per vet", qty: null, unit: null, note: "Short course after the Sep 5 choke", course: { start: "2026-09-05", end: "2026-09-07" } },
-      { product: "Equisul-SDT", amount: "per vet", qty: null, unit: null, note: "7-day course after the Sep 5 choke", course: { start: "2026-09-06", end: "2026-09-11" } },
     ],
   },
   {
@@ -169,19 +172,30 @@ export const STATIC_BUCKETS = [
 ];
 
 // Merge live ClickUp am/pm data (from /api/feeding) over the static fallback.
-// oralMeds (medication courses/tapers) has no equivalent structure in ClickUp
-// and is never replaced — only am/pm come from the live feed, and only for a
-// horse ClickUp actually returned entries for (an empty result for one horse
-// falls back to its static snapshot rather than showing an empty bucket).
-export function mergeLiveBuckets(staticBuckets, byHorse, live) {
+// oralMeds' day-by-day detail (medication courses/tapers) has no equivalent
+// structure in ClickUp and is never replaced — only am/pm come from the live
+// feed, and only for a horse ClickUp actually returned entries for (an empty
+// result for one horse falls back to its static snapshot rather than showing
+// an empty bucket).
+//
+// A course DOES get one live signal: if it carries a `taskId` and that task
+// is no longer in activeTaskIds (its ClickUp task was marked complete), it's
+// dropped — the barn shouldn't have to remember to also tell us. A course
+// with no `taskId`, or when live data is unavailable (activeTaskIds is
+// null), is left alone rather than guessed at.
+export function mergeLiveBuckets(staticBuckets, byHorse, live, activeTaskIds) {
   if (!live) return staticBuckets;
   return staticBuckets.map((b) => {
     const l = byHorse[b.horse];
-    if (!l) return b;
+    const oralMeds = activeTaskIds
+      ? b.oralMeds.filter((i) => !i.taskId || activeTaskIds.has(i.taskId))
+      : b.oralMeds;
+    if (!l) return oralMeds === b.oralMeds ? b : { ...b, oralMeds };
     return {
       ...b,
       am: l.am.length ? l.am : b.am,
       pm: l.pm.length ? l.pm : b.pm,
+      oralMeds,
     };
   });
 }
@@ -330,21 +344,24 @@ export const HAY_BALES = BALE_SIZES.map((b) => ({
 }));
 
 // Active finite courses, surfaced separately so they never get multiplied by 7.
-// Hugo's Dex taper reports its true course total instead. oralMeds is always
-// static (never live), so this only ever reads STATIC_BUCKETS.
-export const COURSES = STATIC_BUCKETS.flatMap((b) =>
-  b.oralMeds
-    .filter((i) => i.course)
-    .map((i) => ({
-      horse: b.horse,
-      product: i.product,
-      amount: i.amount,
-      note: i.note || "",
-      start: i.course.start,
-      end: i.course.end,
-      courseTotal: i.taper
-        ? { qty: i.taper.reduce((a, n) => a + n, 0), unit: i.unit, days: i.taper.length }
-        : null,
-      taper: i.taper || null,
-    }))
-);
+// Hugo's Dex taper reports its true course total instead. Takes `buckets` (not
+// always STATIC_BUCKETS) so a course mergeLiveBuckets() already dropped for
+// being complete in ClickUp also disappears from this list.
+export function computeCourses(buckets) {
+  return buckets.flatMap((b) =>
+    b.oralMeds
+      .filter((i) => i.course)
+      .map((i) => ({
+        horse: b.horse,
+        product: i.product,
+        amount: i.amount,
+        note: i.note || "",
+        start: i.course.start,
+        end: i.course.end,
+        courseTotal: i.taper
+          ? { qty: i.taper.reduce((a, n) => a + n, 0), unit: i.unit, days: i.taper.length }
+          : null,
+        taper: i.taper || null,
+      }))
+  );
+}
