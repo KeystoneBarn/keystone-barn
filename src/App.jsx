@@ -25,7 +25,9 @@ import logoIcon from "./img/keystone-barn-logo-icon.png";
 import footerImg from "./img/keystone-barn-footer.png";
 import { SYMPTOMS } from "./data";
 import { useProducts } from "./useProducts";
+import Board from "./Board";
 import Products from "./Products";
+import Horses from "./Horses";
 import Symptoms from "./Symptoms";
 import Paddocks from "./Paddocks";
 import Buckets from "./Buckets";
@@ -36,7 +38,9 @@ import GuidePage from "./GuidePage";
 
 
 const buildTabs = (productCount) => [
+  { id: "board", label: "Board", icon: "📌" },
   { id: "products", label: "Products", count: productCount, icon: "🧴" },
+  { id: "horses", label: "Horses", count: 9, icon: "🐎" },
   { id: "buckets", label: "Feed Buckets", count: 9, icon: "🌾" },
   { id: "symptoms", label: "Symptoms", count: SYMPTOMS.length, icon: "🩺" },
   { id: "tack", label: "Tack Board", count: 9, icon: "🐴" },
@@ -47,7 +51,7 @@ const buildTabs = (productCount) => [
 ];
 
 export default function App() {
-  const [tab, setTab] = useState("products");
+  const [tab, setTab] = useState("board");
   const [query, setQuery] = useState("");
   const [cats, setCats] = useState([]);
   const [sxSel, setSxSel] = useState([]);
@@ -104,6 +108,7 @@ export default function App() {
       </nav>
 
       <main className="wrap">
+        {tab === "board" && <Board />}
         {tab === "products" && (
           <Products
             query={query} setQuery={setQuery}
@@ -112,6 +117,7 @@ export default function App() {
             onSymptom={jumpToSymptom}
           />
         )}
+        {tab === "horses" && <Horses />}
         {tab === "buckets" && <Buckets />}
         {tab === "tack" && <TackBoard />}
         {tab === "experiments" && (

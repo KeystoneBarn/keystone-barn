@@ -15,10 +15,13 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Optional
 
 import clickup_live
 import feed_live
 import experiments_live
+import board_live
+import horses_live
 
 app = FastAPI(title="Horse Locations")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -29,6 +32,8 @@ def _start_clickup_feed():
     clickup_live.start()
     feed_live.start()
     experiments_live.start()
+    board_live.start()
+    horses_live.start()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "zones.db")
 
@@ -152,6 +157,18 @@ def init_db():
         )
     """)
     conn.execute("CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)")
+    # Barn Board team notes. Removing a note sets deleted_at rather than
+    # dropping the row, so an accidental tap can be recovered by hand.
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS board_notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text TEXT NOT NULL,
+            author TEXT,
+            horse TEXT,
+            created TEXT NOT NULL,
+            deleted_at TEXT
+        )
+    """)
     count = conn.execute("SELECT COUNT(*) c FROM zones").fetchone()["c"]
     if count == 0:
         for z in DEFAULT_ZONES:
@@ -324,6 +341,68 @@ def reposition_zone(zone_id: str, body: PositionBody):
     conn.commit()
     conn.close()
     touch_updated()
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------- barn board
+@app.get("/api/board")
+def get_board():
+    """Coming Up + Watch List, live from the ClickUp Horse Health Log."""
+    return board_live.board_payload()
+
+
+@app.get("/api/horses")
+def get_horses():
+    """Per-horse profile, weight history and latest endocrine labs from the Health Log."""
+    return horses_live.horses_payload()
+
+
+class NoteBody(BaseModel):
+    text: str
+    author: Optional[str] = None
+    horse: Optional[str] = None
+
+
+def note_row_to_dict(row):
+    return {"id": row["id"], "text": row["text"], "author": row["author"], "horse": row["horse"], "created": row["created"]}
+
+
+@app.get("/api/board/notes")
+def get_notes():
+    conn = get_db()
+    rows = conn.execute("SELECT * FROM board_notes WHERE deleted_at IS NULL ORDER BY id DESC LIMIT 50").fetchall()
+    conn.close()
+    return {"notes": [note_row_to_dict(r) for r in rows]}
+
+
+@app.post("/api/board/notes")
+def add_note(body: NoteBody):
+    text = body.text.strip()[:500]
+    if not text:
+        raise HTTPException(400, "Empty note")
+    author = (body.author or "").strip()[:40] or None
+    horse = body.horse if body.horse in HORSES else None
+    now = datetime.now(timezone.utc).isoformat()
+    conn = get_db()
+    cur = conn.execute(
+        "INSERT INTO board_notes (text, author, horse, created) VALUES (?, ?, ?, ?)",
+        (text, author, horse, now),
+    )
+    row = conn.execute("SELECT * FROM board_notes WHERE id=?", (cur.lastrowid,)).fetchone()
+    conn.commit()
+    conn.close()
+    return note_row_to_dict(row)
+
+
+@app.delete("/api/board/notes/{note_id}")
+def remove_note(note_id: int):
+    conn = get_db()
+    conn.execute(
+        "UPDATE board_notes SET deleted_at=? WHERE id=? AND deleted_at IS NULL",
+        (datetime.now(timezone.utc).isoformat(), note_id),
+    )
+    conn.commit()
+    conn.close()
     return {"ok": True}
 
 

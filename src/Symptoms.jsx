@@ -1,6 +1,36 @@
 import { useMemo, useState, useCallback } from "react";
 import { SYMPTOMS, TIERS, CAT_COLOR, sxLabel, SX_EMOJI, VERDICT } from "./data";
 import { useProducts } from "./useProducts";
+import PROTOCOLS from "./protocols/protocols.json";
+import colicImg from "./img/protocols/protocol-colic.jpg";
+import chokeImg from "./img/protocols/protocol-choke.jpg";
+import itchImg from "./img/protocols/protocol-itch.jpg";
+import coughImg from "./img/protocols/protocol-cough.jpg";
+
+// Barn Protocols (ClickUp doc) shown at the top of these symptoms: the
+// infographic, then the written protocol, then the usual ladder + products.
+// Text lives in src/protocols/barn-protocols.md — see scripts/build_protocols.py.
+const PROTOCOL_FOR = {
+  Colic: { id: "colic", img: colicImg },
+  Choke: { id: "choke", img: chokeImg },
+  Itchy: { id: "itch", img: itchImg },
+  Cough: { id: "cough", img: coughImg },
+};
+
+function Protocol({ sx }) {
+  const p = PROTOCOL_FOR[sx];
+  const doc = p && PROTOCOLS[p.id];
+  if (!doc) return null;
+  return (
+    <div className="protocol">
+      <a className="protocol-img" href={p.img} target="_blank" rel="noreferrer" title="Open full size">
+        <img src={p.img} alt={doc.title + " infographic"} loading="lazy" />
+      </a>
+      <div className="protocol-label">Barn protocol · {doc.title.replace(/^\S+\s/, "")}</div>
+      <div className="protocol-body" dangerouslySetInnerHTML={{ __html: doc.html }} />
+    </div>
+  );
+}
 
 function Caret() {
   return (
@@ -127,7 +157,9 @@ export default function Symptoms({ open, setOpen, onProduct }) {
                         </div>
                       )}
 
-                      {s.blurb && <p className="prose" style={{ margin: 0 }}>{s.blurb}</p>}
+                      <Protocol sx={s.n} />
+
+                      {s.blurb && !PROTOCOL_FOR[s.n] && <p className="prose" style={{ margin: 0 }}>{s.blurb}</p>}
 
                       {s.ladder && <Ladder ladder={s.ladder} onProduct={setDetailProduct} />}
 

@@ -619,7 +619,10 @@ export const PADDOCK_META = {
 };
 
 export const CONTACTS = [
-  { role: "Primary vet", name: "Dr. Jon Engstrom", detail: "Stillwater Equine Vet Clinic", phone: "651-775-7623" },
+  { role: "Primary vet", name: "Dr. Jon Engstrom", detail: "Cell", phone: "651-775-7623" },
+  { role: "Vet office", name: "Stillwater Equine Vet Clinic", detail: "Dr. Jon's clinic", phone: "651-770-6167" },
+  { role: "Backup vet", name: "Forest Lake Vet · Dr. Rudd", detail: "", phone: "651-464-2752" },
+  { role: "Emergency hospital", name: "BluePearl Emergency", detail: "After hours / referral", phone: "763-878-8494" },
   { role: "Consults", name: "Dr. Erin Wilson", detail: "Metabolic, skin, and gut protocols", phone: "317-509-8308" },
   { role: "Farrier", name: "Krystyna & Maria Eischens", detail: "June 2026 onward", phone: "763-482-6069" },
   { role: "Chiro / bodywork", name: "Dr. Hal Brown", detail: "", phone: "651-247-1769" },
