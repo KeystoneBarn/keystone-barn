@@ -158,7 +158,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-2);
   white-space: nowrap; transition: all 0.16s;
 }
-.chip[data-on="1"] { background: var(--ink); border-color: var(--ink); color: #f1f3ec; }
+.chip[data-on="1"] { background: var(--galv); border-color: var(--galv); color: var(--limewash); }
 .chip .bar { display: inline-block; width: 7px; height: 7px; border-radius: 2px; margin-right: 7px; vertical-align: 1px; }
 
 .meta-line {
@@ -434,7 +434,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .foot p { margin: 0 auto; max-width: 620px; font-size: 13px; color: #e5e0d1; line-height: 1.6; padding: 0 18px; }
 
 .chip .ct { opacity: 1; color: #586065; margin-left: 4px; font-size: 12px; }
-.chip[data-on="1"] .ct { color: #cfd7d2; }
+.chip[data-on="1"] .ct { color: #e4e1cf; }
 
 @media (min-width: 920px) {
   .chips { flex-wrap: wrap; overflow: visible; row-gap: 8px; }
@@ -891,3 +891,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* --------------------------------------------------- embedded field guides */
 .guide-embed { display: block; margin: 4px 0 40px; }
+
+/* ---------------------------------------------------------------- product filter rows */
+.chip-row-label {
+  padding: 16px 0 0; font-family: "Archivo Narrow", sans-serif; font-weight: 700;
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);
+}
+.chips.chips-row { padding-top: 7px; }
+.linkish {
+  border: 0; background: none; padding: 0; font: inherit; color: var(--galv);
+  text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+}

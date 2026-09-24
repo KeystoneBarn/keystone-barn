@@ -49,7 +49,8 @@ const buildTabs = (productCount) => [
 export default function App() {
   const [tab, setTab] = useState("products");
   const [query, setQuery] = useState("");
-  const [cat, setCat] = useState("All");
+  const [cats, setCats] = useState([]);
+  const [sxSel, setSxSel] = useState([]);
   const [openSx, setOpenSx] = useState(null);
   const { products } = useProducts();
 
@@ -66,7 +67,8 @@ export default function App() {
 
   const jumpToProduct = useCallback((name) => {
     setQuery(name);
-    setCat("All");
+    setCats([]);
+    setSxSel([]);
     setTab("products");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
@@ -105,7 +107,8 @@ export default function App() {
         {tab === "products" && (
           <Products
             query={query} setQuery={setQuery}
-            cat={cat} setCat={setCat}
+            cats={cats} setCats={setCats}
+            sxSel={sxSel} setSxSel={setSxSel}
             onSymptom={jumpToSymptom}
           />
         )}

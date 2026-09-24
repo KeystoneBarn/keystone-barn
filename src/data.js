@@ -667,3 +667,60 @@ export const CAT_EMOJI = {
   "Feed": "🌾",
   "Dewormer": "🪱",
 };
+
+// ------------------------------------------------- product filter: symptom groups
+// The Products page filters on 14 plain-language groups instead of the 26
+// granular ClickUp "Indicated For" labels. Products keep their raw labels in
+// `sx` (the Symptoms tab and the card links still use them); the page maps them
+// through SX_GROUP_OF at render time, so a label tagged in ClickUp lands in its
+// group without a site change. Labels with no entry here (Cushings, Insulin
+// Resistance, EPM — disease management; Coat, Mane/Tail, Worms — covered by
+// Category) get no filter button.
+export const SX_GROUPS = [
+  "Cut / Wound", "Joint Swelling", "Non-Joint Swelling", "Sore Muscles & Joints",
+  "Cough / Respiratory", "Choke", "Colic", "Diarrhea", "Skin Funk",
+  "Itching / Allergies", "Hoof Issues", "Bug Irritation", "Eye Issues", "Heat Stress",
+];
+
+export const SX_GROUP_EMOJI = {
+  "Cut / Wound": "🩹",
+  "Joint Swelling": "🦴",
+  "Non-Joint Swelling": "🫧",
+  "Sore Muscles & Joints": "💪",
+  "Cough / Respiratory": "🫁",
+  "Choke": "🚨",
+  "Colic": "🚨",
+  "Diarrhea": "💩",
+  "Skin Funk": "🧫",
+  "Itching / Allergies": "😖",
+  "Hoof Issues": "🐴",
+  "Bug Irritation": "🪲",
+  "Eye Issues": "👁️",
+  "Heat Stress": "🌡️",
+};
+
+export const SX_GROUP_OF = {
+  "Minor cut or scrape": "Cut / Wound",
+  "Joint Swelling": "Joint Swelling",
+  "Swelling From Kick": "Non-Joint Swelling",
+  "Sore Muscles Joints": "Sore Muscles & Joints",
+  "Sore Hooves": "Hoof Issues",
+  "Hoof Abscess": "Hoof Issues",
+  "Thrush": "Hoof Issues",
+  "Cough": "Cough / Respiratory",
+  "Respiratory Allergies": "Cough / Respiratory",
+  "Choke": "Choke",
+  "Colic": "Colic",
+  "Chronic Diarrhea": "Diarrhea",
+  "Rain Rot / Skin Infectin": "Skin Funk", // ClickUp's spelling
+  "Rain Rot / Skin Infection": "Skin Funk",
+  "Itchy": "Itching / Allergies",
+  "Allergies": "Itching / Allergies",
+  "Bugs": "Bug Irritation",
+  "Swelling From Bug Bites": "Bug Irritation",
+  "Tiny Bumps From Bug Bites": "Bug Irritation",
+  "Eye Injury / Infection": "Eye Issues",
+  "Heat Stress": "Heat Stress",
+};
+
+export const sxGroups = (p) => [...new Set((p.sx || []).map((s) => SX_GROUP_OF[s]).filter(Boolean))];
