@@ -24,7 +24,7 @@ const TRACKS = [
   {
     id: "zone-Track 1", name: "Track 1", label: [655, 648],
     d: [
-      "M 812 800 C 840 730, 800 655, 700 655 C 610 656, 540 700, 486 712",
+      "M 800 800 C 840 730, 800 655, 700 655 C 610 656, 540 700, 486 712",
       "M 505 875 C 560 885, 600 945, 646 1000",
     ],
   },
@@ -59,11 +59,27 @@ const PASTURES = [
   },
 ];
 
-const ARENA = "650,1000 800,792 915,852 870,960 775,1075";
-const ROUND_PEN = { cx: 822, cy: 848, r: 34 };
-const BARN = "860,955 930,915 930,1150 905,1165";   // west end of the barn, for bearings
+// The arena is a rectangle skewed like the barn: U runs along its west edge
+// (SW corner -> NW corner), V along its north edge. The barn's west wall is
+// parallel to the arena's west edge, just across from its east side.
+const ANG = -54.5 * (Math.PI / 180);
+const U = [Math.cos(ANG), Math.sin(ANG)];
+const V = [-U[1], U[0]];
+const at = (o, u, v) => [o[0] + u * U[0] + v * V[0], o[1] + u * U[1] + v * V[1]];
+const P = (arr) => arr.map((q) => q.map((n) => n.toFixed(1)).join(",")).join(" ");
+
+const A0 = [650, 1000];                 // arena SW corner
+const AL = 250, AW = 140;               // arena length (west edge) and width
+const ARENA = P([A0, at(A0, AL, 0), at(A0, AL, AW), at(A0, 0, AW)]);
+const arenaMid = at(A0, AL / 2, AW / 2);
+const penC = at(A0, AL - 44, 44);       // round pen, NW corner of the arena
+const ROUND_PEN = { cx: penC[0], cy: penC[1], r: 34 };
+const GATE = [at(A0, AL - 92, 18), at(A0, AL - 92, 70)];   // round pen <-> main arena
+const BARN_W = at(A0, 40, AW + 28);     // barn's west wall, parallel to the arena's
+const BARN = P([BARN_W, at(BARN_W, 115, 0), at(BARN_W, 115, 230), at(BARN_W, 0, 230)]);
+const barnLabel = at(BARN_W, 58, 55);
+const BARN_DEG = (Math.atan2(V[1], V[0]) * 180) / Math.PI;
 const WATERERS = [[652, 985], [492, 1300]];
-const GATE = [[805, 885], [856, 872]];              // round pen <-> main arena
 
 function Names({ horses, x, y, selected, onPick, step = 26 }) {
   return horses.map((h, i) => (
@@ -94,7 +110,8 @@ export default function TrackMap({ horsesAt, selected, onPick, onPlace, isTarget
         <circle {...ROUND_PEN} className={"tm-pen" + (isTarget("zone-Round Pen") ? " target" : "")}
           onClick={() => place("zone-Round Pen")} />
         <polygon points={BARN} className="tm-barn" />
-        <text x={900} y={1050} className="tm-barn-label" transform="rotate(-90 900 1050)">BARN</text>
+        <text x={barnLabel[0]} y={barnLabel[1]} className="tm-barn-label"
+          transform={`rotate(${BARN_DEG} ${barnLabel[0]} ${barnLabel[1]})`}>BARN</text>
 
         {/* lanes, then tracks on top */}
         {LANES.map((d) => <path key={d} d={d} className="tm-lane" />)}
@@ -107,7 +124,7 @@ export default function TrackMap({ horsesAt, selected, onPick, onPlace, isTarget
 
         {/* the one gate into the track system */}
         <line x1={GATE[0][0]} y1={GATE[0][1]} x2={GATE[1][0]} y2={GATE[1][1]} className="tm-gate" />
-        <text x={760} y={912} className="tm-note">gate to tracks</text>
+        <text x={GATE[1][0] - 8} y={GATE[1][1] + 22} className="tm-note">gate to tracks</text>
 
         {WATERERS.map(([x, y]) => (
           <g key={x + "," + y}>
@@ -132,9 +149,9 @@ export default function TrackMap({ horsesAt, selected, onPick, onPlace, isTarget
           </g>
         ))}
         <g onClick={() => place("zone-Outdoor Arena")}>
-          <text x={770} y={975} textAnchor="middle" className="tm-pasture-label">Outdoor</text>
-          <text x={770} y={995} textAnchor="middle" className="tm-pasture-sub">Arena</text>
-          <Names horses={horsesAt("zone-Outdoor Arena")} x={770} y={1022} selected={selected} onPick={onPick} step={22} />
+          <text x={arenaMid[0] - 10} y={arenaMid[1] + 30} textAnchor="middle" className="tm-pasture-label">Outdoor</text>
+          <text x={arenaMid[0] - 10} y={arenaMid[1] + 50} textAnchor="middle" className="tm-pasture-sub">Arena</text>
+          <Names horses={horsesAt("zone-Outdoor Arena")} x={arenaMid[0] - 18} y={arenaMid[1] + 76} selected={selected} onPick={onPick} step={22} />
         </g>
         <g onClick={() => place("zone-Round Pen")}>
           <text x={ROUND_PEN.cx} y={ROUND_PEN.cy - 4} textAnchor="middle" className="tm-pen-label">Round</text>
