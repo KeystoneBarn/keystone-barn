@@ -1,178 +1,143 @@
-# Keystone Barn — brief for the ClickUp Brain² frontend
+# Keystone Barn site — brief for ClickUp Brain
 
-Give this to the Brain² agent whenever it produces a new version of the
-Keystone Barn Resources app.
+Updated 2026-09-24. Give this to Brain whenever it (a) edits the ClickUp lists
+below, or (b) produces a new version of the Keystone Barn Resources app.
 
-## How it's deployed
-
-The React app you generate (`src/`, Vite build) is **not hosted by ClickUp**.
-It runs on one Render service where a small **FastAPI backend serves the
-built app and a JSON API from the same origin**:
-
-```
-https://keystone-barn.onrender.com
-  /                -> your built React app (dist/)
-  /assets/*        -> your bundled JS/CSS/images
-  /images/*        -> product photos (legacy, still served)
-  /api/*           -> backend JSON API (see below)
-```
-
-Because it's the same origin, the app can call the API with **plain
-relative URLs** (`fetch("/api/locations")`) — no base URL, no CORS, no
-API keys, no auth.
-
-## What must NOT change (integration will break otherwise)
-
-1. **Stay a Vite + React app** with the current structure:
-   `index.html` → `src/main.jsx` → `src/App.jsx`; images imported from
-   `src/img/` as ES modules; everything client-side.
-2. **No external network calls.** The only allowed `fetch` is same-origin
-   `/api/*`. No third-party APIs, analytics, fonts-from-JS, CDNs.
-3. **The Horse Locations / Paddocks tab must persist to the backend, not
-   `localStorage`.** See the contract below. This is the one hard rule —
-   the board is shared between staff phones, so browser storage is not
-   acceptable as the source of truth.
-
-## What CAN stay as-is
-
-- **Products, Symptoms, Feed Buckets, Tack Board, Experiments** data can
-  stay **baked into `src/data.js`** exactly as you do now. The backend has
-  equivalent endpoints (below) but the app is not required to use them.
-- Keep the `src/data.js` schema stable (see "Data schema" at the end) so
-  diffs stay readable.
+**The short version:** keystone-barn.onrender.com reads most of its content
+**live from ClickUp through the ClickUp API**, every 5–15 minutes. Editing a
+task in ClickUp *is* how the site gets updated — no code, no deploy. That only
+works while the lists keep the shapes described in Part 1. Rename a field,
+change a naming pattern, or move data into a different field, and that part
+of the site quietly goes blank or stale.
 
 ---
 
-## API reference
+## Part 1 — ClickUp conventions the site depends on
 
-### Horse Locations — the board the app MUST use
+The backend finds fields by their **field ID**, not their name, so renaming a
+field's label is safe. Deleting and re-creating a field (new ID) is not. Adding
+new dropdown options or labels is always safe — the site picks them up.
 
-**`GET /api/locations`**
-```json
-{ "assignments": { "Mickey": "pad-2", "Qu": "pad-1", ... } , "updated": "2026-08-27T23:56:45.158431+00:00" }
-```
-`assignments` is a flat map of **horse name → location id**. It is `null`
-(and `updated` is `null`) until the first write.
+### 🧴 Products (list 901715740303) → Products tab, symptom product lists
 
-**`PUT /api/locations`**  body:
-```json
-{ "assignments": { "Mickey": "zone-Round Pen", "Qu": "pad-1", ... } }
-```
-response: `{ "ok": true, "updated": "2026-08-27T23:56:45..." }`
-
-Rules for the component:
-- Location ids are defined by the app (currently `pad-1..pad-4` from
-  `PADDOCKS` and `zone-<Name>` from `ZONES`). The backend just stores the
-  blob, so any stable id scheme is fine — keep it consistent between
-  versions.
-- **On mount:** `GET /api/locations`. If `assignments` is non-null, use it
-  as the source of truth (overrides any built-in defaults). Then poll
-  every ~15s so one person's move shows up for everyone else.
-- **On every change (move / reset):** `PUT` the full new map.
-- Pause the poll while a move is mid-gesture and for ~8s after a local
-  save, so a poll never clobbers an in-progress edit.
-- `localStorage` may be kept as an offline cache, but the server is
-  authoritative.
-
-Reference implementation (this is what's in `src/Paddocks.jsx` today —
-regenerate around it, don't drop it):
-
-```jsx
-import { useState, useEffect, useRef } from "react";
-
-const API = import.meta.env.DEV ? "http://localhost:8000" : "";
-const LS_KEY = "kb-horse-locations";
-
-// inside the component:
-const selectedRef = useRef(null); selectedRef.current = selected;
-const lastSavedAt = useRef(0);
-
-useEffect(() => {
-  let alive = true;
-  const pull = async () => {
-    if (selectedRef.current) return;
-    if (Date.now() - lastSavedAt.current < 8000) return;
-    try {
-      const r = await fetch(API + "/api/locations");
-      if (!r.ok) return;
-      const data = await r.json();
-      if (alive && data && data.assignments) {
-        setAssignments(data.assignments);
-        try { localStorage.setItem(LS_KEY, JSON.stringify(data.assignments)); } catch (e) {}
-      }
-    } catch (e) {}
-  };
-  pull();
-  const t = setInterval(pull, 15000);
-  return () => { alive = false; clearInterval(t); };
-}, []);
-
-const save = (next) => {
-  setAssignments(next);
-  lastSavedAt.current = Date.now();
-  try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch (e) {}
-  fetch(API + "/api/locations", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ assignments: next }),
-  }).catch((e) => {});
-};
-```
-
-### Optional read-only endpoints (app may ignore these)
-
-| Endpoint | Returns |
+| Site shows | Comes from |
 |---|---|
-| `GET /api/products` | `[{ name, category, purpose, howto, animals[], storage, rating, notes, status, rx, image }]` |
-| `GET /api/symptoms` | `[{ name, products: [productName, ...] }]` |
-| `GET /api/feeding`  | `[{ horse, breed, height, paddock, station, age, weight, bucket_color_name, bucket_color, health_notes[], am[], pm[] }]` where `am`/`pm` items are `{ item, canonical, amount, unit }` |
+| Product name | Task name |
+| Category chip / filter | `Category` dropdown |
+| Verdict badge (Barn Favorite, Proven…) | `Verdict` dropdown |
+| "Where it lives" | `Storage` dropdown (`Out of Stock` = hidden shelf) |
+| "Indicated For" filter + "Reach for it when" | `Indicated For` labels (see mapping below) |
+| "What it's for" | **First paragraph** of the description |
+| Directions | `Directions` field, else the rest of the description |
+| Barn notes / red warning box | Everything under a `## Notes` heading in the description. Words like "call the vet", "do not", "never", "escalate" turn it into the red box |
+| Rx pill | Description contains "prescription required" / "Rx only" / "vet-administered only" |
+| Trial pill | `Experiment` checkbox |
+| Retired (hidden by default) | Any status other than `active` |
+| Photo | First image attachment |
 
-Note: this backend JSON uses a **different, verbose schema** than
-`src/data.js`. They are not kept in sync. Don't wire the app to these
-unless asked.
+Indicated For labels are grouped into 14 site buttons (`SX_GROUP_OF` in
+`src/data.js`): e.g. Thrush / Hoof Abscess / Sore Hooves → **Hoof Issues**;
+Itchy / Allergies → **Itching / Allergies**. A brand-new label is saved on
+the product, but it gets no Products button and no Symptoms-tab entry until
+Claude Code adds it to that map (ask when you create one).
+Cushings, Insulin Resistance, EPM, Coat, Mane/Tail and Worms intentionally
+have no button.
 
-### Legacy — do not use
+### 🐴 Horse Health Log (list 901715510360) → Board, Horses, Feed Buckets
 
-`GET /api/zones`, `POST /api/zones/move`, `POST /api/zones/remove`,
-`PATCH /api/zones/{id}/rename`, `PATCH /api/zones/{id}/position` — an older
-map-pin model for horse locations. Superseded by `/api/locations`. Still
-mounted but the app should not call them.
+Set the **`🐾 Animal dropdown`** on every task — it's how the site knows
+which horse a task belongs to (weights and labs also fall back to a name
+starting `Horse:` / `Horse weight:`). What each part of the site reads:
+
+| Site feature | Which tasks | What must be true |
+|---|---|---|
+| **Board → Coming Up** | Any open task with a **due date** in the next 4 weeks | Due date = the day it happens. One task per dose/visit (e.g. one "Tammy: IM Prascend" per date). Closing it removes it. Name as `Horse: what` |
+| **Board → Watch List** | Any open task with the **`Alert`** dropdown set (Mild/Moderate/Severe) | Clear Alert or close the task to drop it |
+| **Feed Buckets** AM/PM | Note Type `🌾Feed`, status **`in progress`** | `Product` dropdown + `Value` + `Unit` + `🪣 AM/PM` all set |
+| Med courses end on the site | Any `in progress` task whose ID is referenced in `src/bucketData.js` | Marking the task complete removes the course |
+| **Horses → profile** | One task per horse named exactly **`<Horse>: Profile`**, Note Type `📋Other` (status can be complete) | Description is a bullet list of `**Label:** value` lines — see below |
+| **Horses → weight chart** | Note Type `⚖️Weight` | `Value` = lb (or the number in the name, e.g. `Avelin weight: 990 lb`). **Due date = weigh-in date** |
+| **Horses → endocrine labs** | Note Type `🩸Labs`, one task per test, named `<Horse>: Insulin`, `<Horse>: ACTH (post-TRH)`, `<Horse>: ACTH (pre-TRH)`, `<Horse>: T4 (Thyroxine)`, `<Horse>: Leptin` | `Value` = the result; due date = draw date; description has `**Result:** 68.78 µIU/mL`, `**Reference range:** 10-40 µIU/mL`, and `⚠️ **HIGH**` / `**LOW**` when out of range (that flag turns the number red) |
+
+**Profile task format** (labels are read literally; add new ones freely, they
+come through as-is):
+
+```
+## Horse Profile
+*   **Barn Name:** Qu
+*   **Registered Name:** Qumano Van De Breemeersen
+*   **DOB:** 2016-05-13            ← YYYY-MM-DD; the site computes age from it
+*   **Sex:** Gelding
+*   **Breed:** Belgian Warmblood (BWP)
+*   **Color:** Dark Bay
+*   **Height:** 17.2h
+*   **Lives In:** Paddock 1        ← drives "Everyone home" on the Paddocks tab
+*   **Eats At:** Paddock           ← drives the Eats At map (Stall 1–4, N Porch, S Porch, or Paddock/Outside)
+*   **Conditions:** Low T4, DSLD   ← comma-separated tags on the card ("None" = no tags)
+*   **Hay:** Free choice, 2% BW
+*   **Note:** Lesson horse
+```
+
+Place names the maps understand: `Paddock 1`–`Paddock 4`, `Stall 1`–`Stall 4`,
+`N Porch`, `S Porch`, `Track 1`–`Track 3`, `Obstacle Pasture`, `Hill Pasture`,
+`Pond Pasture`, `Outdoor Arena`, `Round Pen`.
+
+### 🧬 Experiments (list 901715740404) → Experiments tab
+
+Status **`active`** = running. `Hypothesis`, `Target Symptom` and `🐾 Animal`
+fields plus the task's start/due dates are shown. Horses on the same protocol
+are separate tasks with **identical Target Symptom text** — that shared text
+is what groups them into one program card.
+
+### Not live (still edited in code)
+
+Symptom blurbs, try-first ladders and vet red flags (`SYMPTOMS` in
+`src/data.js`); the Barn Protocols text (`src/protocols/barn-protocols.md`,
+copied from the ClickUp doc "🚨 Barn Protocols" — tell Claude Code when the
+doc changes); Who to Call contacts; map layouts; Feed Buckets oral-med course
+detail (`src/bucketData.js`).
+
+### Written by the site itself (not ClickUp)
+
+The shared Paddocks board (who's where) and the Board's team sticky notes are
+saved by the site's own backend so staff can use them without a ClickUp
+account. Don't try to mirror them into ClickUp.
 
 ---
 
-## Data schema in `src/data.js` (keep stable)
+## Part 2 — if Brain produces app code
 
-```js
-export const PRODUCTS = [
-  { n: "Name", c: "Category", v: "Verdict"?, loc: "Shelf"?, img: img(NNN)?,
-    d: "description", dose: "dosing"?, note: "note"?, rx: true?,
-    sx: ["Symptom name", ...]? },
-  ...
-];
+The app is **Vite + React**, served with its API from one Render service at
+`https://keystone-barn.onrender.com`. Claude Code maintains it in the
+`KeystoneBarn/keystone-barn` repo; pushes to `main` deploy automatically.
 
-export const SYMPTOMS = [
-  // simple:
-  { n: "Name", blurb: "what it looks like", vet: "when to call the vet"? },
-  // laddered:
-  { n: "Name", blurb: "...", rule: "guidance",
-    ladder: [ { tier: 1, items: ["Product name", ...] }, ... ] },
-  ...
-];
+**Do not:**
 
-export const PADDOCKS = [ { id: 1, name: "Paddock 1", corner: "NW", horses: ["Qu"], note: ""? }, ... ];
-export const ZONES    = [ { name: "Track 1", type: "track" }, ... ];  // types: track|pasture|arena|stall|porch
-export const HORSE_COLOR = { Mickey: "#2E6E8E", ... };  // the 9 horse names live here
-```
+1. **Bake live data back into the bundle.** Products, feed buckets,
+   experiments, the Board, horse profiles/weights/labs all come from the API
+   below. `src/data.js` / `bucketData.js` keep an *offline fallback* copy only.
+2. **Call anything external.** The only allowed `fetch` is same-origin
+   `/api/*` (relative URLs). No third-party APIs, CDNs, analytics, or
+   ClickUp calls from the browser — the ClickUp token lives on the server.
+3. **Use `localStorage` as the source of truth** for the Paddocks board or
+   notes — they're shared between staff phones via the API.
+4. Touch `Dockerfile`, `backend/`, or `render.yaml`.
 
-Also exported and used by the UI: `CATEGORIES`, `CAT_COLOR`, `CAT_EMOJI`,
-`VERDICT`, `LOCATIONS`, `TIERS`, `SX_EMOJI`, `PADDOCK_META`, `CONTACTS`,
-`sxLabel()`.
+**Endpoints the app uses** (all JSON, same origin):
 
-## Deliverable
+| Endpoint | What |
+|---|---|
+| `GET /api/products` | `{ live, products: [{ id, n, c, v, loc, d, dose, note, warn, rx, exp, url, sx[], retired, img }] }` |
+| `GET /api/feeding` | `{ live, by_horse: { Horse: { am: [...], pm: [...] } }, active_task_ids[] }` |
+| `GET /api/experiments` | live experiment programs |
+| `GET /api/board` | `{ upcoming: [{ horse, title, due }], watch: [{ horse, title, alert }] }` |
+| `GET /api/horses` | `{ horses: { Horse: { profile: {Label: value}, weights: [{date, lb}], labs: [{test, value, unit, ref, flag, date}] } } }` |
+| `GET/PUT /api/locations` | shared Paddocks board: `{ assignments: { Horse: "pad-2" \| "zone-Stall 1" \| … } }` |
+| `GET/POST/DELETE /api/board/notes` | Board sticky notes |
 
-- The actual **`src/` folder as a zip** (all `.jsx`, `data.js`,
-  `theme.css`, and any new files in `src/img/`) — not a preview link.
-- A **one-paragraph changelog**: what changed, and explicitly whether the
-  **Paddocks / Horse Locations tab** was touched.
-- For data-only updates, **`src/data.js` alone** (or the raw product /
-  symptom data as JSON) is enough.
+Every live endpoint returns `live: false` (or empty) if ClickUp is
+unreachable; the app then shows its bundled fallback rather than a blank page.
+
+**Deliverable** if you do produce code: a zip of the changed `src/` files and
+a one-paragraph changelog. Claude Code merges it by hand, so describe intent
+("add a Hay column to the stall card") as much as code.
