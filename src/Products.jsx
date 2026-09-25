@@ -124,9 +124,13 @@ function Card({ p, open, onToggle, onSymptom }) {
   );
 }
 
-// One filter row. Empty selection = "All". Picks within a row are OR'd.
-function ChipRow({ label, options, selected, onChange, counts, emoji }) {
-  const toggle = (o) => onChange(selected.includes(o) ? selected.filter((x) => x !== o) : [...selected, o]);
+// One filter row. Empty selection = "All". Picks within a row are OR'd;
+// a `single` row allows one pick at a time (tap again to clear).
+function ChipRow({ label, options, selected, onChange, counts, emoji, single = false }) {
+  const toggle = (o) => {
+    if (selected.includes(o)) onChange(selected.filter((x) => x !== o));
+    else onChange(single ? [o] : [...selected, o]);
+  };
   return (
     <>
       <div className="chip-row-label">{label}</div>
@@ -221,6 +225,7 @@ export default function Products({ query, setQuery, cats: selCats, setCats, sxSe
 
         <ChipRow
           label="Indicated For"
+          single
           options={groups}
           selected={sxSel}
           onChange={(v) => { setSxSel(v); setOpenId(null); }}
