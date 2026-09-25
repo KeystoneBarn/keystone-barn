@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { CATEGORIES, CAT_COLOR, VERDICT, sxLabel, CAT_EMOJI, SX_GROUPS, SX_GROUP_EMOJI, sxGroups } from "./data";
+import { CATEGORIES, CAT_COLOR, VERDICT, CAT_EMOJI, SX_GROUPS, SX_GROUP_EMOJI, sxGroups } from "./data";
+import SymptomGuide from "./SymptomGuide";
 import { useProducts } from "./useProducts";
 
 function Magnifier() {
@@ -21,6 +22,8 @@ function Verdict({ v }) {
 }
 
 const norm = (s) => s.toLowerCase();
+const cardKey = (p) => p.n + p.c;
+const cardId = (p) => "prod-" + cardKey(p).replace(/[^a-z0-9]+/gi, "-");
 
 // Sort priority: best verdict first, unrated last, alpha within a tie.
 const VERDICT_RANK = {
@@ -35,8 +38,9 @@ const byVerdict = (a, b) => {
 
 function Card({ p, open, onToggle, onSymptom }) {
   const color = CAT_COLOR[p.c] || "#46535c";
+  const groups = sxGroups(p);
   return (
-    <article className="card" data-open={open ? "1" : "0"} style={{ "--catc": color }}>
+    <article className="card" id={cardId(p)} data-open={open ? "1" : "0"} style={{ "--catc": color }}>
       <button className="card-btn" onClick={onToggle} aria-expanded={open}>
         <span className="thumb">
           {p.img
@@ -86,12 +90,12 @@ function Card({ p, open, onToggle, onSymptom }) {
             </div>
           )}
 
-          {p.sx?.length > 0 && (
+          {groups.length > 0 && (
             <div className="field">
               <div className="field-label">Reach for it when</div>
               <div className="sx-row">
-                {p.sx.map((s) => (
-                  <button key={s} className="sx-link" onClick={() => onSymptom(s)}>{sxLabel(s)} →</button>
+                {groups.map((g) => (
+                  <button key={g} className="sx-link" onClick={() => onSymptom(g)}>{SX_GROUP_EMOJI[g]} {g} →</button>
                 ))}
               </div>
             </div>
@@ -141,7 +145,7 @@ function ChipRow({ label, options, selected, onChange, counts, emoji }) {
   );
 }
 
-export default function Products({ query, setQuery, cats: selCats, setCats, sxSel, setSxSel, onSymptom }) {
+export default function Products({ query, setQuery, cats: selCats, setCats, sxSel, setSxSel }) {
   const [openId, setOpenId] = useState(null);
   const [showRetired, setShowRetired] = useState(false);
   const { products: PRODUCTS } = useProducts();
@@ -185,6 +189,22 @@ export default function Products({ query, setQuery, cats: selCats, setCats, sxSe
 
   const filtered = selCats.length > 0 || sxSel.length > 0;
 
+  // A product named in a protocol ladder: open its card where it is, or, if
+  // the current filters hide it, search for it instead.
+  const openProduct = (name) => {
+    const p = PRODUCTS.find((x) => x.n === name);
+    if (!p) { setQuery(name); setCats([]); setSxSel([]); return; }
+    if (!list.includes(p)) { setQuery(p.n); setCats([]); setSxSel([]); }
+    setOpenId(cardKey(p));
+    setTimeout(() => document.getElementById(cardId(p))?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+  };
+
+  // "Reach for it when" on a card: switch the page to that symptom.
+  const showSymptom = (group) => {
+    setSxSel([group]); setCats([]); setQuery(""); setOpenId(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <>
       <div className="tools">
@@ -227,6 +247,8 @@ export default function Products({ query, setQuery, cats: selCats, setCats, sxSe
         </div>
       </div>
 
+      <SymptomGuide groups={sxSel} products={PRODUCTS.filter((p) => !p.retired)} onProduct={openProduct} />
+
       {list.length === 0 ? (
         <div className="empty">
           <div className="big">Nothing on the shelf for that</div>
@@ -242,7 +264,7 @@ export default function Products({ query, setQuery, cats: selCats, setCats, sxSe
               p={p}
               open={openId === p.n + p.c}
               onToggle={() => setOpenId(openId === p.n + p.c ? null : p.n + p.c)}
-              onSymptom={onSymptom}
+              onSymptom={showSymptom}
             />
           ))}
         </div>

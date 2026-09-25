@@ -107,7 +107,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
   max-width: 1080px; margin: 0 auto;
 }
-@media (min-width: 720px) { .nav-chips { grid-template-columns: repeat(10, 1fr); } }
+@media (min-width: 720px) { .nav-chips { grid-template-columns: repeat(9, 1fr); } }
 /* Phones: ten tabs in two compact rows so the sticky bar doesn't eat the screen. */
 @media (max-width: 719px) {
   .nav { padding: 6px 8px; }
@@ -1178,3 +1178,33 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tm-pen-label { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 13px; text-transform: uppercase; fill: #5a4a3a; pointer-events: none; }
 .pm-svg.readonly .pm-hname { cursor: default; }
 .tm-pen-name { font-size: 18px; }
+
+/* ---------------------------------------------------------------- symptom guide (Products page) */
+.sg-wrap { margin: 18px 0 8px; display: grid; gap: 16px; }
+.sg {
+  background: var(--panel); border: 1px solid var(--rule); border-left: 5px solid var(--iodine);
+  border-radius: 4px; padding: 16px 18px 18px; box-shadow: var(--shadow);
+}
+.sg-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.sg-emoji { font-size: 22px; }
+.sg-title { margin: 0; font-family: "Playfair Display", Georgia, serif; font-weight: 800; font-size: 26px; color: #2d2a26; }
+.sg-sev {
+  margin-left: auto; padding: 3px 10px; border-radius: 3px; color: #fff;
+  font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.sg-sev.emergency { background: var(--danger); }
+.sg-sev.urgent { background: #b86a12; }
+.sg-sev.progressive { background: var(--alfalfa); }
+.sg-summary { margin: 4px 0 12px; font-size: 16px; line-height: 1.55; font-style: italic; color: var(--ink-2); }
+.sg .protocol-img { margin: 4px auto 14px; }
+.sg-rung-item { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.sg-rung-note { font-size: 14px; line-height: 1.45; color: var(--ink-2); }
+.sg-warn { margin: 14px 0; padding: 4px 14px 8px; border-left: 4px solid var(--danger); background: #fbeeee; border-radius: 0 4px 4px 0; }
+.sg-warn h2 { color: var(--danger) !important; border-bottom-color: #efd3d3 !important; }
+.sg-details { margin-top: 14px; border-top: 1px solid var(--rule); padding-top: 10px; }
+.sg-details summary {
+  cursor: pointer; font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 14px;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--galv-dk);
+}
+.sg-sub { margin: 14px 0 6px; font-family: "Archivo Narrow", sans-serif; font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--galv-dk); }
+.sg-legacy + .sg-legacy { border-top: 1px solid var(--rule-2); margin-top: 8px; }

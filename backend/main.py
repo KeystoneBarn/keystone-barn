@@ -22,6 +22,7 @@ import feed_live
 import experiments_live
 import board_live
 import horses_live
+import protocols_live
 
 app = FastAPI(title="Horse Locations")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -34,6 +35,7 @@ def _start_clickup_feed():
     experiments_live.start()
     board_live.start()
     horses_live.start()
+    protocols_live.start()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "zones.db")
 
@@ -349,6 +351,24 @@ def reposition_zone(zone_id: str, body: PositionBody):
 def get_board():
     """Coming Up + Watch List, live from the ClickUp Horse Health Log."""
     return board_live.board_payload()
+
+
+@app.get("/api/protocols")
+def get_protocols():
+    """Symptom protocols from the ClickUp 🚨 Protocols list, keyed by symptom group."""
+    return protocols_live.protocols_payload()
+
+
+@app.get("/api/protocol-image/{task_id}")
+def get_protocol_image(task_id: str):
+    """A protocol task's attached infographic, from the local cache (never hotlinked)."""
+    if not task_id.isalnum():
+        raise HTTPException(status_code=400, detail="bad id")
+    path = protocols_live.image_path(task_id)
+    if not path:
+        raise HTTPException(status_code=404, detail="no cached image")
+    media_type = mimetypes.guess_type(path)[0] or "image/jpeg"
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
 
 
 @app.get("/api/horses")

@@ -18,7 +18,7 @@ The backend finds fields by their **field ID**, not their name, so renaming a
 field's label is safe. Deleting and re-creating a field (new ID) is not. Adding
 new dropdown options or labels is always safe — the site picks them up.
 
-### 🧴 Products (list 901715740303) → Products tab, symptom product lists
+### 🧴 Products (list 901715740303) → Products tab
 
 | Site shows | Comes from |
 |---|---|
@@ -38,7 +38,7 @@ new dropdown options or labels is always safe — the site picks them up.
 Indicated For labels are grouped into 14 site buttons (`SX_GROUP_OF` in
 `src/data.js`): e.g. Thrush / Hoof Abscess / Sore Hooves → **Hoof Issues**;
 Itchy / Allergies → **Itching / Allergies**. A brand-new label is saved on
-the product, but it gets no Products button and no Symptoms-tab entry until
+the product, but it gets no Products button until
 Claude Code adds it to that map (ask when you create one).
 Cushings, Insulin Resistance, EPM, Coat, Mane/Tail and Worms intentionally
 have no button.
@@ -82,6 +82,24 @@ Place names the maps understand: `Paddock 1`–`Paddock 4`, `Stall 1`–`Stall 4
 `N Porch`, `S Porch`, `Track 1`–`Track 3`, `Obstacle Pasture`, `Hill Pasture`,
 `Pond Pasture`, `Outdoor Arena`, `Round Pen`.
 
+### 🚨 Protocols (list 901717326306) → Products page, when a symptom button is tapped
+
+One task per symptom group, shown above that group's products (this replaced
+the old Symptoms tab). Checked every ~10 minutes.
+
+| Site shows | Comes from |
+|---|---|
+| Which button it belongs to | `Symptom Group` dropdown (same 14 groups as the Indicated For buttons) |
+| Red/amber/green badge | `Severity` dropdown: Emergency / Urgent / Progressive |
+| "When to call the vet" red box | `Vet Threshold` text field |
+| Infographic | The task's **first image attachment** (replace the image to change it; the old bundled graphic is used if there's none) |
+| Italic lead line | `## Summary` section |
+| Try first → Step 2 → Last resort ladder | `## Try First`, `## Step 2`, `## Last Resort` sections. Each bullet starts with the product name **exactly as spelled in 🧴 Products**, then a colon, e.g. `Cetirizine Hydrochloride 10mg: 10 tablets twice daily…` — that makes it a tappable product. Bullets that don't start with a product name (e.g. `Environmental management: …`) show as plain text |
+| Everything else | Any other `## Heading` section, in order: bullets, numbered steps or paragraphs. A heading starting `Do NOT` is drawn as a red box; one containing `History` is collapsed |
+
+Only `**bold**` and `_italic_` formatting is kept. Groups with no task yet
+show the site's older built-in notes for those symptoms.
+
 ### 🧬 Experiments (list 901715740404) → Experiments tab
 
 Status **`active`** = running. `Hypothesis`, `Target Symptom` and `🐾 Animal`
@@ -91,10 +109,10 @@ is what groups them into one program card.
 
 ### Not live (still edited in code)
 
-Symptom blurbs, try-first ladders and vet red flags (`SYMPTOMS` in
-`src/data.js`); the Barn Protocols text (`src/protocols/barn-protocols.md`,
-copied from the ClickUp doc "🚨 Barn Protocols" — tell Claude Code when the
-doc changes); Who to Call contacts; map layouts; Feed Buckets oral-med course
+The older built-in symptom notes (`SYMPTOMS` in `src/data.js`), used only
+for symptom groups that don't have a 🚨 Protocols task yet; the bundled copy
+of the "🚨 Barn Protocols" doc (`src/protocols/`), used only if the Protocols
+list can't be reached; Who to Call contacts; map layouts; Feed Buckets oral-med course
 detail (`src/bucketData.js`).
 
 ### Written by the site itself (not ClickUp)
@@ -113,7 +131,7 @@ The app is **Vite + React**, served with its API from one Render service at
 
 **Do not:**
 
-1. **Bake live data back into the bundle.** Products, feed buckets,
+1. **Bake live data back into the bundle.** Products, feed buckets, protocols,
    experiments, the Board, horse profiles/weights/labs all come from the API
    below. `src/data.js` / `bucketData.js` keep an *offline fallback* copy only.
 2. **Call anything external.** The only allowed `fetch` is same-origin
@@ -130,6 +148,7 @@ The app is **Vite + React**, served with its API from one Render service at
 | `GET /api/products` | `{ live, products: [{ id, n, c, v, loc, d, dose, note, warn, rx, exp, url, sx[], retired, img }] }` |
 | `GET /api/feeding` | `{ live, by_horse: { Horse: { am: [...], pm: [...] } }, active_task_ids[] }` |
 | `GET /api/experiments` | live experiment programs |
+| `GET /api/protocols` | `{ live, protocols: { "Colic": { severity, vet, summary, img, ladder: [{tier, label, items[]}], sections: [{title, blocks}] } } }` |
 | `GET /api/board` | `{ upcoming: [{ horse, title, due }], watch: [{ horse, title, alert }] }` |
 | `GET /api/horses` | `{ horses: { Horse: { profile: {Label: value}, weights: [{date, lb}], labs: [{test, value, unit, ref, flag, date}] } } }` |
 | `GET/PUT /api/locations` | shared Paddocks board: `{ assignments: { Horse: "pad-2" \| "zone-Stall 1" \| … } }` |

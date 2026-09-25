@@ -19,16 +19,14 @@
   SIGNATURE  The escalation ladder: literal color-banded rungs you climb, with the
            step number stamped on the rail. Ambient: hay chaff drifting in the sign.
 */
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState } from "react";
 import "./theme.css";
 import logoIcon from "./img/keystone-barn-logo-icon.png";
 import footerImg from "./img/keystone-barn-footer.png";
-import { SYMPTOMS } from "./data";
 import { useProducts } from "./useProducts";
 import Board from "./Board";
 import Products from "./Products";
 import Horses from "./Horses";
-import Symptoms from "./Symptoms";
 import Paddocks from "./Paddocks";
 import Buckets from "./Buckets";
 import TackBoard from "./TackBoard";
@@ -42,7 +40,6 @@ const buildTabs = (productCount) => [
   { id: "products", label: "Products", count: productCount, icon: "🧴" },
   { id: "horses", label: "Horses", count: 9, icon: "🐎" },
   { id: "buckets", label: "Feed Buckets", count: 9, icon: "🌾" },
-  { id: "symptoms", label: "Symptoms", count: SYMPTOMS.length, icon: "🩺" },
   { id: "tack", label: "Tack Board", count: 9, icon: "🐴" },
   { id: "experiments", label: "Experiments", count: 1, icon: "🧪" },
   { id: "paddocks", label: "Paddocks", count: 9, icon: "📍" },
@@ -55,7 +52,6 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [cats, setCats] = useState([]);
   const [sxSel, setSxSel] = useState([]);
-  const [openSx, setOpenSx] = useState(null);
   const { products } = useProducts();
 
   const TABS = useMemo(
@@ -63,19 +59,6 @@ export default function App() {
     [products],
   );
 
-  const jumpToSymptom = useCallback((name) => {
-    setOpenSx(name);
-    setTab("symptoms");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
-  const jumpToProduct = useCallback((name) => {
-    setQuery(name);
-    setCats([]);
-    setSxSel([]);
-    setTab("products");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
 
 
   return (
@@ -114,7 +97,6 @@ export default function App() {
             query={query} setQuery={setQuery}
             cats={cats} setCats={setCats}
             sxSel={sxSel} setSxSel={setSxSel}
-            onSymptom={jumpToSymptom}
           />
         )}
         {tab === "horses" && <Horses />}
@@ -122,9 +104,6 @@ export default function App() {
         {tab === "tack" && <TackBoard />}
         {tab === "experiments" && (
           <Experiments onGuide={(g) => setTab(g === "surefoot.html" ? "surefoot" : "redlight")} />
-        )}
-        {tab === "symptoms" && (
-          <Symptoms open={openSx} setOpen={setOpenSx} onProduct={jumpToProduct} />
         )}
         {tab === "paddocks" && <Paddocks />}
         {tab === "redlight" && <GuidePage guide="redlight" />}
