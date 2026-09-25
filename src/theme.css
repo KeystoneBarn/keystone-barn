@@ -1131,3 +1131,50 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .hx-card { box-shadow: none; }
   body { background: #fff; }
 }
+
+/* ---------------------------------------------------------------- paddock map */
+/* SVG units here are the sketch's (~680 wide), so type sizes are about 2x px. */
+.pm-wrap { margin: 16px 0 18px; }
+.pm-svg { display: block; width: 100%; max-width: 480px; height: auto; margin: 0 auto; }
+.pm-pad { cursor: default; }
+.pm-pad.target, .pm-stall.target, .pm-porch.target { fill: #f3e7b8; cursor: pointer; }
+.pm-outline { fill: none; stroke: #6b5a3e; stroke-width: 4; stroke-linejoin: round; pointer-events: none; }
+.pm-fence { stroke: #6b5a3e; stroke-width: 3; stroke-dasharray: 12 9; pointer-events: none; }
+.pm-barn { fill: #c9a878; stroke: #5a2618; stroke-width: 5; stroke-linejoin: round; pointer-events: none; }
+.pm-stall { fill: #f7f1e4; stroke: #5a2618; stroke-width: 3; }
+.pm-porch { fill: #eadcbd; stroke: #7a5a2e; stroke-width: 3; stroke-dasharray: 6 4; }
+.pm-door { stroke: #fbf7ec; stroke-width: 7; stroke-linecap: butt; pointer-events: none; }
+.pm-barn-label { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 30px; letter-spacing: 0.16em; fill: #5a2618; text-anchor: middle; pointer-events: none; }
+.pm-aisle-label { font-family: "Source Sans 3", sans-serif; font-style: italic; font-size: 22px; fill: #5a2618; text-anchor: middle; pointer-events: none; }
+.pm-small-label { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; fill: #5a4a3a; text-anchor: middle; pointer-events: none; }
+.pm-pad-name { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 26px; letter-spacing: 0.06em; text-transform: uppercase; fill: #3d4224; }
+.pm-pad-corner { font-family: "Archivo Narrow", sans-serif; font-size: 18px; letter-spacing: 0.12em; fill: #6b6a55; }
+.pm-hname { font-family: "Source Sans 3", sans-serif; font-weight: 700; font-size: 25px; fill: #2d2a26; cursor: pointer; }
+.pm-hname.sm { font-size: 16px; }
+.pm-hname.on { text-decoration: underline; text-decoration-thickness: 3px; }
+.pm-compass path { fill: #3d4224; }
+.pm-compass text { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 22px; fill: #3d4224; text-anchor: middle; }
+.pm-cap { margin: 8px auto 0; max-width: 560px; font-size: 13px; color: var(--ink-2); text-align: center; }
+.pm-room-label { font-family: "Archivo Narrow", sans-serif; font-weight: 600; font-size: 15px; fill: #5a2618; text-anchor: middle; pointer-events: none; }
+
+/* ---------------------------------------------------------------- track map */
+.tm-svg { max-width: 560px; }
+.tm-pasture { fill: #d6e2c2; stroke: #8fa37a; stroke-width: 2; }
+.tm-pasture.target, .tm-arena.target, .tm-pen.target { fill: #f3e7b8; cursor: pointer; }
+.tm-arena { fill: #ecdcbd; stroke: #7a5a2e; stroke-width: 3; }
+.tm-pen { fill: #e3cfa6; stroke: #7a5a2e; stroke-width: 3; }
+.tm-barn { fill: #b9472f; stroke: #5a2618; stroke-width: 3; pointer-events: none; }
+.tm-barn-label { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 16px; letter-spacing: 0.14em; fill: #fbf7ec; text-anchor: middle; pointer-events: none; }
+.tm-track { fill: none; stroke: #7fae5a; stroke-width: 22; stroke-linecap: round; stroke-linejoin: round; opacity: 0.85; pointer-events: none; }
+.tm-track.target { stroke: #d9b63c; }
+.tm-hit { fill: none; stroke: transparent; stroke-width: 40; stroke-linecap: round; cursor: pointer; }
+.tm-lane { fill: none; stroke: #d8c25a; stroke-width: 16; stroke-linecap: round; opacity: 0.9; pointer-events: none; }
+.tm-gate { stroke: #5a2618; stroke-width: 7; stroke-linecap: round; stroke-dasharray: 4 5; pointer-events: none; }
+.tm-water { fill: #3b82c4; stroke: #fff; stroke-width: 3; pointer-events: none; }
+.tm-note { font-family: "Archivo Narrow", sans-serif; font-style: italic; font-size: 15px; fill: #3d4a55; pointer-events: none; }
+.tm-track-label { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 22px; letter-spacing: 0.08em; text-transform: uppercase; fill: #2f4d1f; cursor: pointer; }
+.tm-pasture-label { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 20px; letter-spacing: 0.06em; text-transform: uppercase; fill: #3d4224; }
+.tm-pasture-sub { font-family: "Archivo Narrow", sans-serif; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; fill: #6b6a55; }
+.tm-pen-label { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 13px; text-transform: uppercase; fill: #5a4a3a; pointer-events: none; }
+.pm-svg.readonly .pm-hname { cursor: default; }
+.tm-pen-name { font-size: 18px; }

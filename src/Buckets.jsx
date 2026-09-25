@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   STATIC_BUCKETS, BUCKET_PRODUCTS, WEIGHTS, HAY, HAY_RATE,
   HAY_WEEKLY_TOTAL, HAY_BALES, DAYS_PER_WEEK,
@@ -6,7 +6,43 @@ import {
 } from "./bucketData";
 import { useFeedBuckets } from "./useFeedBuckets";
 import { useProducts } from "./useProducts";
-import { HORSE_COLOR } from "./data";
+import { HORSE_COLOR, locationIdFor } from "./data";
+import PaddockMap from "./PaddockMap";
+
+const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
+  ? "http://localhost:8000"
+  : "";
+
+// Where each horse is fed, from the Eats At line on its ClickUp profile. A
+// named spot (Stall 3, N Porch) is drawn there; "Paddock" / "Outside" means
+// the horse eats in the paddock it lives in (its Lives In line).
+function EatsMap() {
+  const [where, setWhere] = useState(null);
+  useEffect(() => {
+    fetch(API + "/api/horses")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d?.horses) return;
+        const out = {};
+        for (const [h, v] of Object.entries(d.horses)) {
+          const p = v.profile || {};
+          const id = locationIdFor(p["Eats At"]) || locationIdFor(p["Lives In"]);
+          if (id && h in HORSE_COLOR) out[h] = id;
+        }
+        if (Object.keys(out).length) setWhere(out);
+      })
+      .catch(() => {});
+  }, []);
+  if (!where) return null;
+  const horsesAt = (id) => Object.keys(where).filter((h) => where[h] === id).sort();
+  return (
+    <PaddockMap
+      readOnly
+      horsesAt={horsesAt}
+      caption="Where each horse eats, from the Eats At line on their ClickUp profile. Horses listed in a paddock eat out in that paddock."
+    />
+  );
+}
 
 const TYPE_LABEL = { feed: "Feed", supplement: "Supplement", med: "Medication" };
 const TYPE_COLOR = { feed: "#3F6B45", supplement: "#5A6822", med: "#5b3e7a" };
@@ -252,6 +288,8 @@ export default function Buckets() {
           {!live && " AM/PM amounts shown are the last known snapshot, not live."}
         </p>
       </div>
+
+      <EatsMap />
 
       <HorseIndex horses={horses} selected={selected} onSelect={setSelected} />
 

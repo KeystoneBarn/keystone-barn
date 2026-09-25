@@ -610,6 +610,20 @@ export const ZONES = [
   { name: "Porch S", type: "porch" },
 ];
 
+// "Paddock 4" / "Stall 1" / "N Porch" (the Lives In line on each ClickUp
+// profile, or Eats At) -> a location id on this board. Unrecognised text returns null.
+export function locationIdFor(text) {
+  const t = (text || "").trim().toLowerCase();
+  let m;
+  // most specific first: "Stall 4 (Paddock 3)" is Stall 4
+  if ((m = /stall\s*(\d)/.exec(t))) return "zone-Stall " + m[1];
+  if (/(^|\b)(n|north)\s*porch|porch\s*(n|north)\b/.test(t)) return "zone-Porch N";
+  if (/(^|\b)(s|south)\s*porch|porch\s*(s|south)\b/.test(t)) return "zone-Porch S";
+  if ((m = /paddock\s*(\d)/.exec(t))) return "pad-" + m[1];
+  const z = ZONES.find((zz) => zz.name.toLowerCase() === t);
+  return z ? "zone-" + z.name : null;
+}
+
 export const PADDOCK_META = {
   effective: "Effective Feb 1, 2026",
   extras: [

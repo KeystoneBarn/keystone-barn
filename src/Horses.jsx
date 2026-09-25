@@ -175,10 +175,16 @@ function StallCard({ name, data, bucket, locations, board }) {
       <div className="hx-body">
         <div className="hx-facts">
           <div>
-            <div className="hx-k">Turnout</div>
+            <div className="hx-k">Right now</div>
             <div className="hx-v">{locationLabel(locId) || "—"}</div>
             {mates.length > 0 && <div className="hx-s">with {mates.join(", ")}</div>}
           </div>
+          {prof["Lives In"] && (
+            <div>
+              <div className="hx-k">Lives in</div>
+              <div className="hx-v">{prof["Lives In"]}</div>
+            </div>
+          )}
           {prof["Eats At"] && (
             <div>
               <div className="hx-k">Eats at</div>

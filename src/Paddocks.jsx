@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { PADDOCKS, PADDOCK_META, HORSE_COLOR, CONTACTS, ZONES } from "./data";
+import { PADDOCKS, PADDOCK_META, HORSE_COLOR, CONTACTS, ZONES, locationIdFor } from "./data";
+import PaddockMap from "./PaddockMap";
+import TrackMap from "./TrackMap";
 
 // In dev (vite), hit localhost:8000. In production, same-origin (empty string).
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV) ? "http://localhost:8000" : "";
@@ -10,6 +12,7 @@ const ALL_LOCATIONS = [
   ...ZONES.map((z) => ({ id: "zone-" + z.name, name: z.name, type: z.type })),
 ];
 
+// Fallback homes if the ClickUp profiles can't be read.
 const INITIAL_ASSIGNMENTS = {};
 PADDOCKS.forEach((p) => {
   p.horses.forEach((h) => { INITIAL_ASSIGNMENTS[h] = "pad-" + p.id; });
@@ -70,8 +73,28 @@ export default function Paddocks() {
     setSelected(null);
   };
 
+  // "Everyone home" resets the board to the Lives In line on each horse's
+  // ClickUp profile, falling back to the built-in paddock list.
+  const [homes, setHomes] = useState(null);
+  useEffect(() => {
+    fetch(API + "/api/horses")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d?.horses) return;
+        const next = { ...INITIAL_ASSIGNMENTS };
+        let found = 0;
+        for (const [h, v] of Object.entries(d.horses)) {
+          const id = locationIdFor(v.profile?.["Lives In"]);
+          if (id && h in HORSE_COLOR) { next[h] = id; found += 1; }
+        }
+        if (found) setHomes(next);
+      })
+      .catch(() => {});
+  }, []);
+
   const reset = () => {
-    save(INITIAL_ASSIGNMENTS);
+    if (!window.confirm("Send every horse back to where they live?")) return;
+    save(homes || INITIAL_ASSIGNMENTS);
     setSelected(null);
   };
 
@@ -94,6 +117,22 @@ export default function Paddocks() {
           <button className="move-cancel" onClick={() => setSelected(null)}>×</button>
         </div>
       )}
+
+      <PaddockMap
+        horsesAt={horsesAt}
+        selected={selected}
+        onPick={(h) => setSelected(selected === h ? null : h)}
+        onPlace={(locId) => moveHorse(selected, locId)}
+        isTarget={(locId) => !!selected && assignments[selected] !== locId}
+      />
+
+      <TrackMap
+        horsesAt={horsesAt}
+        selected={selected}
+        onPick={(h) => setSelected(selected === h ? null : h)}
+        onPlace={(locId) => moveHorse(selected, locId)}
+        isTarget={(locId) => !!selected && assignments[selected] !== locId}
+      />
 
       <div className="loc-grid">
         {ALL_LOCATIONS.map((loc) => {
@@ -130,7 +169,7 @@ export default function Paddocks() {
         })}
       </div>
 
-      <button className="reset-btn" onClick={reset}>Reset to defaults</button>
+      <button className="reset-btn" onClick={reset}>Everyone home</button>
 
       <div className="notes">
         {PADDOCK_META.extras.map((t, i) => (
