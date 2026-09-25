@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CATEGORIES, CAT_COLOR, VERDICT, CAT_EMOJI, SX_GROUPS, SX_GROUP_EMOJI, sxGroups } from "./data";
+import { CATEGORIES, CAT_COLOR, VERDICT, CAT_EMOJI, SX_GROUPS, SX_GROUP_EMOJI, sxGroups, sxLabel } from "./data";
 import SymptomGuide from "./SymptomGuide";
 import { useProducts } from "./useProducts";
 
@@ -234,6 +234,7 @@ export default function Products({ query, setQuery, cats: selCats, setCats, sxSe
         />
         <ChipRow
           label="Product Type"
+          single
           options={cats}
           selected={selCats}
           onChange={(v) => { setCats(v); setOpenId(null); }}
