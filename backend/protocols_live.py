@@ -137,20 +137,33 @@ def parse_sections(markdown):
         if cur is None:
             cur = {"title": "", "blocks": []}
             sections.append(cur)
-        if not line.strip():
-            continue
+        if not line.strip() or re.match(r"^\s*(\d+[.)]|[*\-+])\s*$", line):
+            continue                          # blank, or a bare "1." / "*" placeholder
         m, kind = BULLET.match(line), "ul"
         if not m:
             m, kind = NUMBER.match(line), "ol"
         text = (m.group(1) if m else line).strip()
         if not m:
             kind = "p"
+        if text.strip("*-_ .…") == "":        # placeholder bullet, e.g. a bare "*"
+            continue
         blocks = cur["blocks"]
         if blocks and blocks[-1]["type"] == kind and kind != "p":
             blocks[-1]["items"].append(text)
         else:
             blocks.append({"type": kind, "items": [text]})
     return [s for s in sections if s["title"] or s["blocks"]]
+
+
+def is_draft(p):
+    """A protocol with no real content yet — skipped so the site keeps showing
+    its older built-in notes for that symptom instead of an empty card.
+    Brain's placeholders say "(Draft: ...)" in the Summary."""
+    if re.match(r"^\(?\s*draft\b", p["summary"] or "", re.I):
+        return True
+    items = sum(len(b["items"]) for s in p["sections"] for b in s["blocks"])
+    items += sum(len(r["items"]) for r in p["ladder"])
+    return items == 0 and not p["vet"]
 
 
 def _to_protocol(task):
@@ -166,7 +179,8 @@ def _to_protocol(task):
             ladder.append({"tier": LADDER[key], "label": s["title"], "items": items})
         else:
             body.append(s)
-    ladder.sort(key=lambda r: r["tier"])
+    ladder = sorted((r for r in ladder if r["items"]), key=lambda r: r["tier"])
+    body = [s for s in body if s["blocks"]]
     return {
         "id": task.get("id"),
         "name": (task.get("name") or "").strip(),
@@ -221,6 +235,8 @@ class _ProtocolsCache:
             by_group = {}
             for t in tasks:
                 p = _to_protocol(t)
+                if is_draft(p):
+                    continue
                 if p["group"]:
                     p["img"] = _image_url(session, t, index)
                     by_group[p["group"]] = p
