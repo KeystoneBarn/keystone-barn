@@ -22,7 +22,7 @@ import { HORSE_COLOR } from "./data";
 
 // Layout and orientation follow the sketch; proportions are tidied so the
 // stalls are big enough to read a name in.
-const VIEW = { x: 0, y: 0, w: 600, h: 700 };
+const VIEW = { x: 0, y: 0, w: 600, h: 680 };
 
 const pts = (arr) => arr.map((p) => p.join(",")).join(" ");
 
@@ -36,7 +36,7 @@ const BUMP = { x1: SX + INNER_W, x2: 585, y1: 262, y2: 398 };   // grooming, was
 const AISLE = { y1: 318, y2: 342 };         // gap between S2 and S3, main barn -> bump-out
 
 const NORTH = [[WEST, 10], [410, 10], [EAST, 100], [EAST, TOP], [WEST, TOP]];
-const SOUTH = [[WEST, BOT], [EAST, BOT], [EAST, 640], [WEST, 690]];
+const SOUTH = [[WEST, BOT], [EAST, BOT], [EAST, 670], [WEST, 670]];   // square corners
 const BARN = [
   [WEST, TOP], [EAST, TOP], [EAST, BUMP.y1], [BUMP.x2, BUMP.y1], [BUMP.x2, BUMP.y2],
   [EAST, BUMP.y2], [EAST, BOT], [WEST, BOT],
@@ -46,8 +46,8 @@ const BARN = [
 const PADDOCKS = {
   "pad-1": [[WEST, 10], [FENCE_X, 10], [FENCE_X, TOP], [WEST, TOP]],
   "pad-2": [[FENCE_X, 10], [410, 10], [EAST, 100], [EAST, TOP], [FENCE_X, TOP]],
-  "pad-4": [[WEST, BOT], [FENCE_X, BOT], [FENCE_X, 665], [WEST, 690]],
-  "pad-3": [[FENCE_X, BOT], [EAST, BOT], [EAST, 640], [FENCE_X, 665]],
+  "pad-4": [[WEST, BOT], [FENCE_X, BOT], [FENCE_X, 670], [WEST, 670]],
+  "pad-3": [[FENCE_X, BOT], [EAST, BOT], [EAST, 670], [FENCE_X, 670]],
 };
 const PADDOCK_FILL = { "pad-1": "#dfe6cf", "pad-2": "#e7ead3", "pad-3": "#dfe6cf", "pad-4": "#e7ead3" };
 const PADDOCK_LABEL = {
@@ -114,7 +114,7 @@ export default function PaddockMap({
         <polygon points={pts(NORTH)} className="pm-outline" />
         <polygon points={pts(SOUTH)} className="pm-outline" />
         <line x1={FENCE_X} y1={14} x2={FENCE_X} y2={TOP - 4} className="pm-fence" />
-        <line x1={FENCE_X} y1={BOT + 4} x2={FENCE_X} y2={661} className="pm-fence" />
+        <line x1={FENCE_X} y1={BOT + 4} x2={FENCE_X} y2={666} className="pm-fence" />
 
         {/* barn */}
         <polygon points={pts(BARN)} className="pm-barn" />
