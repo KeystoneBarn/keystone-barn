@@ -10,7 +10,8 @@
   Coming Up / Watch List are read-only here; they change in ClickUp.
 */
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CONTACTS, HORSE_COLOR } from "./data";
+import { HORSE_COLOR } from "./data";
+import { telHref, useContacts } from "./useContacts";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
   ? "http://localhost:8000"
@@ -151,6 +152,7 @@ export default function Board() {
   const notes = notesData?.notes || [];
   const upcoming = board?.upcoming || [];
   const watch = board?.watch || [];
+  const { contacts } = useContacts();
 
   const days = useMemo(() => {
     const today = dayKey(Date.now());
@@ -228,13 +230,22 @@ export default function Board() {
           <div className="bb-paper bb-call" style={{ "--paper": "#d4ebf7", "--tilt": "-0.8deg" }}>
             <Pin color="#2f7d3a" />
             <div className="bb-head">☎️ Who to Call</div>
-            {CONTACTS.map((c) => (
-              <a key={c.phone} className="bb-contact" href={`tel:${c.phone.replace(/\D/g, "")}`}>
-                <span className="bb-role">{c.role}</span>
-                <span className="bb-cname">{c.name}</span>
-                <span className="bb-phone">{c.phone}</span>
-              </a>
-            ))}
+            {contacts.map((c) => {
+              const who = c.person ? `${c.person}, ${c.name}` : c.name;
+              return c.phone ? (
+                <a key={c.role + c.name} className="bb-contact" href={telHref(c.phone)}>
+                  <span className="bb-role">{c.role}</span>
+                  <span className="bb-cname">{who}</span>
+                  <span className="bb-phone">{c.phone}</span>
+                </a>
+              ) : (
+                <div key={c.role + c.name} className="bb-contact">
+                  <span className="bb-role">{c.role}</span>
+                  <span className="bb-cname">{who}</span>
+                  <span className="bb-phone">{c.detail || "No number on file"}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

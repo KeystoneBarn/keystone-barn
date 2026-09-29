@@ -24,6 +24,11 @@ import "./theme.css";
 import logoIcon from "./img/keystone-barn-logo-icon.png";
 import footerImg from "./img/keystone-barn-footer.png";
 import { useProducts } from "./useProducts";
+import { useFeedBuckets } from "./useFeedBuckets";
+import { useTack } from "./useTack";
+import { useExperiments } from "./useExperiments";
+import { STATIC_BUCKETS } from "./bucketData";
+import { STATIC_PROGRAMS, mergeLivePrograms } from "./experimentsData";
 import Board from "./Board";
 import Products from "./Products";
 import Horses from "./Horses";
@@ -35,14 +40,16 @@ import GuidePage from "./GuidePage";
 
 
 
-const buildTabs = (productCount) => [
+// Tab badges are counted from the same live data each tab shows, so they
+// can't drift from what's on the tab.
+const buildTabs = ({ products, herd, tack, experiments }) => [
   { id: "board", label: "Board", icon: "📌" },
-  { id: "products", label: "Products", count: productCount, icon: "🧴" },
-  { id: "horses", label: "Horses", count: 9, icon: "🐎" },
-  { id: "buckets", label: "Feed Buckets", count: 9, icon: "🌾" },
-  { id: "tack", label: "Tack Board", count: 9, icon: "🐴" },
-  { id: "experiments", label: "Experiments", count: 1, icon: "🧪" },
-  { id: "paddocks", label: "Paddocks", count: 9, icon: "📍" },
+  { id: "products", label: "Products", count: products, icon: "🧴" },
+  { id: "horses", label: "Horses", count: herd, icon: "🐎" },
+  { id: "buckets", label: "Feed Buckets", count: herd, icon: "🌾" },
+  { id: "tack", label: "Tack Board", count: tack, icon: "🐴" },
+  { id: "experiments", label: "Experiments", count: experiments, icon: "🧪" },
+  { id: "paddocks", label: "Paddocks", count: herd, icon: "📍" },
   { id: "redlight", label: "Red Light", icon: "🔴" },
   { id: "surefoot", label: "Sure Foot", icon: "🦶" },
 ];
@@ -53,10 +60,19 @@ export default function App() {
   const [cats, setCats] = useState([]);
   const [sxSel, setSxSel] = useState([]);
   const { products } = useProducts();
+  const { byHorse, live: feedLive } = useFeedBuckets();
+  const { horses: tack } = useTack();
+  const { programs: livePrograms, live: expLive } = useExperiments();
 
   const TABS = useMemo(
-    () => buildTabs(products.filter((p) => !p.retired).length),
-    [products],
+    () => buildTabs({
+      products: products.filter((p) => !p.retired).length,
+      // Every horse on the place has at least one active feed entry.
+      herd: feedLive ? Object.keys(byHorse).length : STATIC_BUCKETS.length,
+      tack: tack.length,
+      experiments: mergeLivePrograms(STATIC_PROGRAMS, livePrograms, expLive).length,
+    }),
+    [products, byHorse, feedLive, tack, livePrograms, expLive],
   );
 
 

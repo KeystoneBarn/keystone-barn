@@ -25,10 +25,6 @@ export const BUCKET_PRODUCTS = {
   "Thyro-L": { full: "Thyro-L (Levothyroxine)", img: IMG["Thyro-L (Levothyroxine Sodium)"], type: "med" },
   "ProElite Hoof": { full: "ProElite Hoof", img: IMG["ProElite Hoof"], type: "supplement" },
   "ProElite Joint": { full: "ProElite Joint Supplement", img: IMG["ProElite Joint Supplement"], type: "supplement" },
-  // ClickUp's own Product dropdown option is misspelled "ProElit Joint" (no
-  // trailing e) — alias it here so it still resolves. Worth fixing at the
-  // source in ClickUp; other tools matching on the exact name will hit this too.
-  "ProElit Joint": { full: "ProElite Joint Supplement", img: IMG["ProElite Joint Supplement"], type: "supplement" },
   "Bute": { full: "Bute Tablets (Phenylbutazone)", img: IMG["Bute Tablets (Phenylbutazone)"], type: "med" },
   "Equioxx": { full: "Equioxx (Firocoxib) Tablets", img: IMG["Equioxx (Firocoxib) Tablets"], type: "med" },
   "Reserpine": { full: "Reserpine", img: IMG["Reserpine"], type: "med" },
@@ -175,25 +171,41 @@ export const STATIC_BUCKETS = [
   },
 ];
 
-// Merge live ClickUp am/pm data (from /api/feeding) over the static fallback.
-// oralMeds' day-by-day detail (medication courses/tapers) has no equivalent
-// structure in ClickUp and is never replaced — only am/pm come from the live
-// feed, and only for a horse ClickUp actually returned entries for (an empty
-// result for one horse falls back to its static snapshot rather than showing
-// an empty bucket).
+// Merge live ClickUp data (from /api/feeding) over the static fallback.
+// am/pm come from 🌾Feed entries, and only for a horse ClickUp actually
+// returned entries for (an empty result for one horse falls back to its
+// static snapshot rather than showing an empty bucket).
 //
-// A course DOES get one live signal: if it carries a `taskId` and that task
-// is no longer in activeTaskIds (its ClickUp task was marked complete), it's
-// dropped — the barn shouldn't have to remember to also tell us. A course
-// with no `taskId`, or when live data is unavailable (activeTaskIds is
-// null), is left alone rather than guessed at.
+// oralMeds come from "in progress" 💊Treatment entries with 🪣 AM/PM set.
+// When the live payload carries `meds` for a horse, that list replaces the
+// static one outright (an empty list is real: the course ended). The static
+// `note` for the same product is kept, since ClickUp has no short-note field.
+// Older payloads without `meds` fall back to the static list, dropping any
+// course whose `taskId` is no longer in activeTaskIds.
+function liveMed(m, staticMeds) {
+  const prior = staticMeds.find((i) => i.product === m.product);
+  return {
+    product: m.product,
+    amount: m.amount || prior?.amount || "",
+    qty: m.qty,
+    unit: m.unit,
+    note: prior?.note || null,
+    when: m.when,
+    course: m.course,
+    taskId: m.task_id,
+    dosesGiven: m.doses_given,
+    lastDose: m.last_dose,
+  };
+}
+
 export function mergeLiveBuckets(staticBuckets, byHorse, live, activeTaskIds) {
   if (!live) return staticBuckets;
   return staticBuckets.map((b) => {
     const l = byHorse[b.horse];
-    const oralMeds = activeTaskIds
+    let oralMeds = activeTaskIds
       ? b.oralMeds.filter((i) => !i.taskId || activeTaskIds.has(i.taskId))
       : b.oralMeds;
+    if (l && Array.isArray(l.meds)) oralMeds = l.meds.map((m) => liveMed(m, b.oralMeds));
     if (!l) return oralMeds === b.oralMeds ? b : { ...b, oralMeds };
     return {
       ...b,
@@ -211,7 +223,9 @@ export function computePmSummary(buckets) {
     .map((b) => ({ horse: b.horse, items: b.pm }));
 }
 
-// Current weights — weighed 2026-08-31.
+// FALLBACK weights (2026-08-31 weigh-in). Live hay math uses each horse's most
+// recent ⚖️Weight entry from /api/horses (see useWeights.js); these are only used
+// for a horse with no live weigh-in, or when ClickUp can't be reached.
 export const WEIGHTS = {
   Stendahl: 915,
   Dahlia: 1055,
@@ -311,25 +325,22 @@ export function computeFeedMill(buckets) {
     .sort((a, b) => (TYPE_ORDER[a.type] - TYPE_ORDER[b.type]) || a.product.localeCompare(b.product));
 }
 
-// Hay, per horse: daily lbs at 2% of bodyweight, and the weekly bale math.
+// Hay, per horse: daily lbs at 2% of bodyweight, from the latest weigh-in.
 // Hay is FREE-CHOICE — these are planning figures for how much to have on hand, never a
-// ration to measure out or restrict.
-export const HAY_WEEKLY = Object.keys(WEIGHTS).map((horse) => {
+// ration to measure out or restrict. `weights` is { horse: lb }, live where available.
+export function hayFor(horse, weights = WEIGHTS) {
+  const weight = weights[horse] ?? WEIGHTS[horse] ?? 0;
   const pct = HAY[horse]?.pct ?? HAY_RATE;
-  const daily = WEIGHTS[horse] * pct;
+  const daily = weight * pct;
   return {
     horse,
-    weight: WEIGHTS[horse],
+    weight,
     pct,
     metabolic: !!HAY[horse]?.metabolic,
     daily: +daily.toFixed(1),
     weekly: +(daily * DAYS_PER_WEEK).toFixed(1),
   };
-});
-
-export const HAY_WEEKLY_TOTAL = +HAY_WEEKLY
-  .reduce((sum, h) => sum + h.weekly, 0)
-  .toFixed(1);
+}
 
 // Bale formats we actually buy. Weights are nominal — large 4-strand bales vary by cutting,
 // so treat the large-bale count as a planning figure and round up when ordering.
@@ -338,14 +349,20 @@ export const BALE_SIZES = [
   { id: "large", label: "Large 4-strand", lbs: 700, note: "~700 lb, varies by cutting" },
 ];
 
-// How many bales of each format the herd goes through per week.
-// [{ id, label, lbs, note, perWeek, perWeekRounded, daysPerBale }]
-export const HAY_BALES = BALE_SIZES.map((b) => ({
-  ...b,
-  perWeek: +(HAY_WEEKLY_TOTAL / b.lbs).toFixed(2),
-  perWeekRounded: Math.ceil(HAY_WEEKLY_TOTAL / b.lbs),
-  daysPerBale: +(b.lbs / (HAY_WEEKLY_TOTAL / DAYS_PER_WEEK)).toFixed(1),
-}));
+// Herd hay totals and how many bales of each format that is per week.
+// -> { perHorse: [hayFor…], weeklyTotal, bales: [{ id, label, lbs, note, perWeek, perWeekRounded, daysPerBale }] }
+export function computeHay(weights = WEIGHTS) {
+  const horses = [...new Set([...Object.keys(WEIGHTS), ...Object.keys(weights)])];
+  const perHorse = horses.map((h) => hayFor(h, weights));
+  const weeklyTotal = +perHorse.reduce((sum, h) => sum + h.weekly, 0).toFixed(1);
+  const bales = BALE_SIZES.map((b) => ({
+    ...b,
+    perWeek: +(weeklyTotal / b.lbs).toFixed(2),
+    perWeekRounded: Math.ceil(weeklyTotal / b.lbs),
+    daysPerBale: +(b.lbs / (weeklyTotal / DAYS_PER_WEEK)).toFixed(1),
+  }));
+  return { perHorse, weeklyTotal, bales };
+}
 
 // Active finite courses, surfaced separately so they never get multiplied by 7.
 // Hugo's Dex taper reports its true course total instead. Takes `buckets` (not
@@ -366,6 +383,8 @@ export function computeCourses(buckets) {
           ? { qty: i.taper.reduce((a, n) => a + n, 0), unit: i.unit, days: i.taper.length }
           : null,
         taper: i.taper || null,
+        dosesGiven: i.dosesGiven || null,
+        lastDose: i.lastDose || null,
       }))
   );
 }

@@ -9,24 +9,20 @@ Product Cabinet. This module makes the ClickUp "🐴 Horse Health Log"
 list (901715510360), filtered to 🌾Feed entries with status "in progress",
 the live source for each horse's daily AM/PM bucket.
 
-Scoped deliberately to feed/supplement line items only — a horse's Value +
-Unit + Product + AM/PM fields map cleanly onto a bucket line. Medication
-courses and tapers (💊Treatment entries — Hugo's Dex taper, Qu's
-Bute-to-Equioxx handoff, Avelin's post-choke course, etc.) have no
-equivalent structure in ClickUp: no start/end dates or taper schedule on
-the task, just a flat Value/Unit. Those stay hand-maintained in
-bucketData.js's `oralMeds`, exactly as before — this module only ever
-supplies `am`/`pm`.
+Oral meds are live too (added 2026-09-28): any "in progress" 💊Treatment
+entry with the 🪣 AM/PM field set is a bucket med. That field is what already
+separates the oral meds (Prascend, Thyro-L, Reserpine…) from injection and
+shockwave series, which never carry AM/PM. A med whose task has a start or
+due date is a finite course; its logged doses (subtasks, which keep the log
+uncluttered) supply "doses given so far" and the most recent dose.
 
-One thing IS live for courses, though: whether they're still running.
-`active_task_ids` carries every task id that matched the "in progress"
-filter this cycle, across the whole Health Log, not just 🌾Feed entries —
-so a course tagged with its ClickUp task id in bucketData.js can be
-dropped by the frontend the moment that task is marked complete, with no
-code change needed.
+`active_task_ids` still carries every "in progress" task id across the whole
+Health Log, for anything in the bundle keyed by task id.
 """
+import json
 import logging
 import os
+from datetime import datetime, timedelta, timezone
 import threading
 import time
 
@@ -46,6 +42,13 @@ F_AMPM = "a6574975-8c56-4316-aba0-908b78f959b9"
 F_NOTE_TYPE = "c59fdd97-1dab-4492-a0b3-257d62442b36"
 
 FEED_NOTE_TYPE = "🌾Feed"
+MED_NOTE_TYPE = "💊Treatment"
+MED_NOTE_TYPE_ID = "ad3ed7d8-11d9-4290-8c03-1a440dd765de"
+# ClickUp all-day dates arrive as 04:00 barn time (09:00 UTC) from the app, but
+# as 04:00 UTC (midnight Eastern) from API-created records like the Dex doses.
+# Shifting by -4h puts both on the intended day, and keeps a Central-time
+# evening dose (01:00-03:00 UTC) on its own day too.
+BARN_UTC_OFFSET = timedelta(hours=-4)
 SINGULAR = {"lbs": "lb", "scoops": "scoop", "tablets": "tablet", "grams": "gram"}
 
 
@@ -113,6 +116,102 @@ def _to_line(task):
     }
 
 
+def _day(ms):
+    """ClickUp epoch-ms (string) -> 'YYYY-MM-DD' in barn-local time, or None."""
+    if not ms:
+        return None
+    try:
+        dt = datetime.fromtimestamp(int(ms) / 1000, tz=timezone.utc) + BARN_UTC_OFFSET
+    except (TypeError, ValueError):
+        return None
+    return dt.strftime("%Y-%m-%d")
+
+
+def _qty(task):
+    for f in task.get("custom_fields") or []:
+        if f.get("id") == F_VALUE:
+            try:
+                v = f.get("value")
+                return float(v) if v not in (None, "") else None
+            except (TypeError, ValueError):
+                return None
+    return None
+
+
+def _to_med(task, doses):
+    """An in-progress 💊Treatment task with AM/PM set -> one oral-med line."""
+    if _dropdown_name(task, F_NOTE_TYPE) != MED_NOTE_TYPE:
+        return None
+    horse = _horse_name(task)
+    product = _dropdown_name(task, F_PRODUCT)
+    ampm = _dropdown_name(task, F_AMPM)
+    if not (horse and product and ampm):
+        return None
+    qty = _qty(task)
+    unit = _dropdown_name(task, F_UNIT)
+    start, end = _day(task.get("start_date")), _day(task.get("due_date"))
+    med = {
+        "horse": horse,
+        "when": ampm.upper(),
+        "product": product,
+        "qty": qty,
+        "unit": unit,
+        "amount": _amount_label(qty, unit),
+        "task_id": task.get("id"),
+        "url": task.get("url"),
+        "course": {"start": start, "end": end} if (start or end) else None,
+        "doses_given": None,
+        "last_dose": None,
+    }
+    given = doses.get(task.get("id")) or []
+    if given:
+        last = given[-1]
+        med["doses_given"] = len(given)
+        med["last_dose"] = {"date": last["date"], "amount": last["amount"]}
+    return med
+
+
+def _fetch_dose_subtasks(session):
+    """parent id -> completed dose subtasks (oldest first), 💊Treatment only."""
+    tasks, page = [], 0
+    while True:
+        resp = session.get(
+            f"{BASE}/list/{HEALTH_LIST_ID}/task",
+            params={
+                "include_closed": "true",
+                "subtasks": "true",
+                "custom_fields": json.dumps([{"field_id": F_NOTE_TYPE, "operator": "=", "value": MED_NOTE_TYPE_ID}]),
+                "page": page,
+            },
+            timeout=HTTP_TIMEOUT,
+        )
+        resp.raise_for_status()
+        payload = resp.json()
+        batch = payload.get("tasks") or []
+        tasks.extend(batch)
+        if payload.get("last_page", True) or not batch:
+            break
+        page += 1
+        if page > 20:
+            break
+    doses = {}
+    for t in tasks:
+        parent = t.get("parent")
+        raw = t.get("status")
+        status = (raw.get("status") if isinstance(raw, dict) else raw) or ""
+        if not parent or status.lower() not in ("complete", "completed", "closed", "done"):
+            continue
+        qty = _qty(t)
+        unit = _dropdown_name(t, F_UNIT)
+        doses.setdefault(parent, []).append({
+            "date": _day(t.get("due_date") or t.get("date_closed")),
+            "amount": _amount_label(qty, unit) or None,
+        })
+    for v in doses.values():
+        v.sort(key=lambda d: d["date"] or "")
+    return doses
+
+
 class _FeedCache:
     def __init__(self):
         self.lock = threading.Lock()
@@ -132,7 +231,7 @@ class _FeedCache:
                 "fetched_at": self.fetched_at,
                 "age_seconds": round(time.time() - self.fetched_at, 1) if self.fetched_at else None,
                 "error": self.error,
-                "by_horse": {h: {"am": list(v["am"]), "pm": list(v["pm"])} for h, v in self.by_horse.items()},
+                "by_horse": {h: {"am": list(v["am"]), "pm": list(v["pm"]), "meds": list(v["meds"])} for h, v in self.by_horse.items()},
                 "active_task_ids": sorted(self.active_task_ids),
             }
 
@@ -148,12 +247,23 @@ class _FeedCache:
         try:
             session = _session()
             tasks = _fetch_feed_tasks(session)
+            try:
+                doses = _fetch_dose_subtasks(session)
+            except Exception as exc:
+                # Dose history is a nice-to-have; the meds themselves still show.
+                log.warning("dose subtask fetch failed: %s", exc)
+                doses = {}
             by_horse = {}
             for t in tasks:
+                med = _to_med(t, doses)
+                if med:
+                    bucket = by_horse.setdefault(med.pop("horse"), {"am": [], "pm": [], "meds": []})
+                    bucket["meds"].append(med)
+                    continue
                 line = _to_line(t)
                 if not line:
                     continue
-                bucket = by_horse.setdefault(line["horse"], {"am": [], "pm": []})
+                bucket = by_horse.setdefault(line["horse"], {"am": [], "pm": [], "meds": []})
                 key = "am" if line["when"] == "AM" else "pm"
                 bucket[key].append({
                     "product": line["product"],
@@ -164,6 +274,7 @@ class _FeedCache:
             for h in by_horse.values():
                 h["am"].sort(key=lambda i: i["product"])
                 h["pm"].sort(key=lambda i: i["product"])
+                h["meds"].sort(key=lambda i: (i["course"] is not None, i["product"]))
             # Every task here already matched the "in progress" filter server-side,
             # regardless of note type — this is how a finite med course (Bute,
             # Reserpine, a taper) gets to auto-disappear the moment its ClickUp

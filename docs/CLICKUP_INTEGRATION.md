@@ -54,7 +54,9 @@ starting `Horse:` / `Horse weight:`). What each part of the site reads:
 | **Board → Coming Up** | Any open task with a **due date** in the next 4 weeks | Due date = the day it happens. One task per dose/visit (e.g. one "Tammy: IM Prascend" per date). Closing it removes it. Name as `Horse: what` |
 | **Board → Watch List** | Any open task with the **`Alert`** dropdown set (Mild/Moderate/Severe) | Clear Alert or close the task to drop it |
 | **Feed Buckets** AM/PM | Note Type `🌾Feed`, status **`in progress`** | `Product` dropdown + `Value` + `Unit` + `🪣 AM/PM` all set |
-| Med courses end on the site | Any `in progress` task whose ID is referenced in `src/bucketData.js` | Marking the task complete removes the course |
+| **Feed Buckets** oral meds | Note Type `💊Treatment`, status **`in progress`**, with **`🪣 AM/PM` set** | `Product` + `Value` + `Unit`. AM/PM is what marks it as a bucket med: injection/shockwave series leave it blank and stay off the bucket |
+| Active med courses | Same, plus a **start and/or due date** on the task | Dates = the course window. Log each dose given as a **completed subtask** (with a due date = the day given, and `Value`/`Unit` if the dose varies); the site shows doses logged and the last one. Closing the parent removes the course |
+| **Hay** (Feed Buckets + stall cards) | Each horse's most recent `⚖️Weight` entry | Hay/day, weekly total and bale counts recompute from it at 2% BW |
 | **Horses → profile** | One task per horse named exactly **`<Horse>: Profile`**, Note Type `📋Other` (status can be complete) | Description is a bullet list of `**Label:** value` lines — see below |
 | **Horses → weight chart** | Note Type `⚖️Weight` | `Value` = lb (or the number in the name, e.g. `Avelin weight: 990 lb`). **Due date = weigh-in date** |
 | **Horses → endocrine labs** | Note Type `🩸Labs`, one task per test, named `<Horse>: Insulin`, `<Horse>: ACTH (post-TRH)`, `<Horse>: ACTH (pre-TRH)`, `<Horse>: T4 (Thyroxine)`, `<Horse>: Leptin` | `Value` = the result; due date = draw date; description has `**Result:** 68.78 µIU/mL`, `**Reference range:** 10-40 µIU/mL`, and `⚠️ **HIGH**` / `**LOW**` when out of range (that flag turns the number red) |
@@ -127,13 +129,22 @@ Setting a saddle subtask to `retired` or `completed` drops it off the site;
 doing that to a horse task hides the whole card. New saddles, pads and bits
 can be added as dropdown options freely.
 
+### 📇 Animal Service Providers doc → Board "Who to Call" + Horses footer
+
+Doc page `274d8-24577 / 274d8-20897`, checked every ~15 minutes. Keep its
+shape: `## Role` heading, then a **bold name** line per contact (text after
+it in parentheses becomes a note), then bullets: the phone number on its own
+bullet, a `Dr. …` bullet for the person, address, link, anything else as a
+note. Several bold names under one heading (like Emergency) are separate
+contacts. The Horses footer shows the `Equine Vet` and `Farrier` entries.
+
 ### Not live (still edited in code)
 
 The older built-in symptom notes (`SYMPTOMS` in `src/data.js`), used only
 for symptom groups that don't have a 🚨 Protocols task yet; the bundled copy
 of the "🚨 Barn Protocols" doc (`src/protocols/`), used only if the Protocols
-list can't be reached; Who to Call contacts; map layouts; Feed Buckets oral-med course
-detail (`src/bucketData.js`).
+list can't be reached; map layouts; the pole-work day-by-day grid; the
+`metabolic` flag on hay (context only).
 
 ### Written by the site itself (not ClickUp)
 
@@ -166,11 +177,12 @@ The app is **Vite + React**, served with its API from one Render service at
 | Endpoint | What |
 |---|---|
 | `GET /api/products` | `{ live, products: [{ id, n, c, v, loc, d, dose, note, warn, rx, exp, url, sx[], retired, img }] }` |
-| `GET /api/feeding` | `{ live, by_horse: { Horse: { am: [...], pm: [...] } }, active_task_ids[] }` |
+| `GET /api/feeding` | `{ live, by_horse: { Horse: { am: [...], pm: [...], meds: [{ when, product, qty, unit, amount, task_id, course, doses_given, last_dose }] } }, active_task_ids[] }` |
 | `GET /api/experiments` | live experiment programs |
 | `GET /api/protocols` | `{ live, protocols: { "Colic": { severity, vet, summary, img, ladder: [{tier, label, items[]}], sections: [{title, blocks}] } } }` |
 | `GET /api/board` | `{ upcoming: [{ horse, title, due }], watch: [{ horse, title, alert }] }` |
 | `GET /api/horses` | `{ horses: { Horse: { profile: {Label: value}, weights: [{date, lb}], labs: [{test, value, unit, ref, flag, date}] } } }` |
+| `GET /api/contacts` | `{ live, contacts: [{ role, name, person, phone, detail, address, url }] }` |
 | `GET /api/tack` | `{ live, horses: [{ horse, bit, breast_collar, boots, pad, notes, url, saddles: [{ label, saddle, color, pad, rank, note, url }] }] }` |
 | `GET/PUT /api/locations` | shared Paddocks board: `{ assignments: { Horse: "pad-2" \| "zone-Stall 1" \| … } }` |
 | `GET/POST/DELETE /api/board/notes` | Board sticky notes |

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  STATIC_BUCKETS, BUCKET_PRODUCTS, WEIGHTS, HAY, HAY_RATE,
-  HAY_WEEKLY_TOTAL, HAY_BALES, DAYS_PER_WEEK,
+  STATIC_BUCKETS, BUCKET_PRODUCTS, DAYS_PER_WEEK, hayFor, computeHay,
   mergeLiveBuckets, computePmSummary, computeFeedMill, computeCourses,
 } from "./bucketData";
 import { useFeedBuckets } from "./useFeedBuckets";
+import { useWeights } from "./useWeights";
 import { useProducts } from "./useProducts";
 import { HORSE_COLOR, locationIdFor } from "./data";
 import PaddockMap from "./PaddockMap";
@@ -46,12 +46,6 @@ function EatsMap() {
 
 const TYPE_LABEL = { feed: "Feed", supplement: "Supplement", med: "Medication" };
 const TYPE_COLOR = { feed: "#3F6B45", supplement: "#5A6822", med: "#5b3e7a" };
-
-const hayFor = (horse) => {
-  const w = WEIGHTS[horse] || 0;
-  const pct = HAY[horse]?.pct ?? HAY_RATE;
-  return { lbs: Math.round(w * pct * 10) / 10, pct, weight: w, metabolic: !!HAY[horse]?.metabolic };
-};
 
 function HorseIndex({ horses, selected, onSelect }) {
   return (
@@ -111,9 +105,9 @@ function Meal({ label, items, liveImgByName }) {
   );
 }
 
-function BucketCard({ bucket, liveImgByName }) {
+function BucketCard({ bucket, liveImgByName, weights }) {
   const color = HORSE_COLOR[bucket.horse] || "#46535c";
-  const hay = hayFor(bucket.horse);
+  const hay = hayFor(bucket.horse, weights);
   const count = bucket.am.length + bucket.pm.length + bucket.oralMeds.length;
   return (
     <article className="bk-card" style={{ "--hc": color }}>
@@ -125,14 +119,20 @@ function BucketCard({ bucket, liveImgByName }) {
       <div className="bk-hay">
         <span className="bk-hay-icon">🌾</span>
         <span className="bk-hay-text">
-          <strong>{hay.lbs} lbs hay/day</strong>
+          <strong>{hay.daily} lbs hay/day</strong>
           <span className="bk-hay-note">
             {hay.weight} lb × {Math.round(hay.pct * 1000) / 10}%{hay.metabolic ? " · metabolic" : ""}
           </span>
         </span>
       </div>
       <Meal label="AM bucket" items={bucket.am} liveImgByName={liveImgByName} />
-      {bucket.oralMeds.length > 0 && <Meal label="Oral meds (in AM bucket)" items={bucket.oralMeds} liveImgByName={liveImgByName} />}
+      {bucket.oralMeds.length > 0 && (
+        <Meal
+          label={bucket.oralMeds.some((i) => i.when === "PM") ? "Oral meds" : "Oral meds (in AM bucket)"}
+          items={bucket.oralMeds.map((i) => (i.when === "PM" ? { ...i, note: [i.note, "PM bucket"].filter(Boolean).join(" · ") } : i))}
+          liveImgByName={liveImgByName}
+        />
+      )}
       <Meal label="PM bucket" items={bucket.pm} liveImgByName={liveImgByName} />
     </article>
   );
@@ -172,8 +172,8 @@ function PmSummary({ pmSummary }) {
 
 // Herd-wide weekly totals for the feed-mill run. Everything here is computed in
 // bucketData.js (daily × 7), so the day and week columns can never desync.
-function FeedMill({ feedMill, courses }) {
-  const hayDay = Math.round(HAY_WEEKLY_TOTAL / DAYS_PER_WEEK);
+function FeedMill({ feedMill, courses, hay }) {
+  const hayDay = Math.round(hay.weeklyTotal / DAYS_PER_WEEK);
   return (
     <div className="bk-totals">
       <h3 className="sec-h">Feed mill — weekly shopping list</h3>
@@ -188,11 +188,11 @@ function FeedMill({ feedMill, courses }) {
           🌾 Hay <span className="bk-mill-sub">2% BW · every horse · free-choice</span>
         </span>
         <span className="bk-total-val">{hayDay} lbs/day</span>
-        <span className="bk-total-week">{HAY_WEEKLY_TOTAL} lbs/week</span>
+        <span className="bk-total-week">{hay.weeklyTotal} lbs/week</span>
       </div>
 
       <div className="bk-total-grid" style={{ marginBottom: 10 }}>
-        {HAY_BALES.map((b) => (
+        {hay.bales.map((b) => (
           <div className="bk-total-row" key={b.id}>
             <span className="bk-total-label">
               {b.label}
@@ -235,7 +235,9 @@ function FeedMill({ feedMill, courses }) {
                   {c.horse} — {BUCKET_PRODUCTS[c.product]?.full || c.product}
                   <span className="bk-mill-sub">
                     {c.note}
-                    {c.start ? ` · ${c.start}${c.end ? ` → ${c.end}` : " → ongoing"}` : ""}
+                    {c.start ? ` · ${c.start}${c.end ? ` → ${c.end}` : " → ongoing"}` : c.end ? ` · until ${c.end}` : ""}
+                    {c.dosesGiven ? ` · ${c.dosesGiven} dose${c.dosesGiven === 1 ? "" : "s"} logged` : ""}
+                    {c.lastDose?.date ? `, last ${c.lastDose.date}${c.lastDose.amount ? ` (${c.lastDose.amount})` : ""}` : ""}
                   </span>
                 </span>
                 <span className="bk-total-val">
@@ -264,6 +266,8 @@ export default function Buckets() {
   const pmSummary = useMemo(() => computePmSummary(buckets), [buckets]);
   const feedMill = useMemo(() => computeFeedMill(buckets), [buckets]);
   const courses = useMemo(() => computeCourses(buckets), [buckets]);
+  const { weights } = useWeights();
+  const hay = useMemo(() => computeHay(weights), [weights]);
   // Photos for products the Feed Buckets bundle has no static image for, borrowed
   // from the Product Cabinet's live ClickUp photos by matching display name.
   const liveImgByName = useMemo(
@@ -294,11 +298,11 @@ export default function Buckets() {
       <HorseIndex horses={horses} selected={selected} onSelect={setSelected} />
 
       <div className="bk-grid">
-        {visible.map((b) => <BucketCard key={b.horse} bucket={b} liveImgByName={liveImgByName} />)}
+        {visible.map((b) => <BucketCard key={b.horse} bucket={b} liveImgByName={liveImgByName} weights={weights} />)}
         {selected === null && <PmSummary pmSummary={pmSummary} />}
       </div>
 
-      <FeedMill feedMill={feedMill} courses={courses} />
+      <FeedMill feedMill={feedMill} courses={courses} hay={hay} />
     </div>
   );
 }

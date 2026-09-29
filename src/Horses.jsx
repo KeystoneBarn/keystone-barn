@@ -9,8 +9,9 @@
   Anything missing (no token, ClickUp down) just leaves that section off.
 */
 import { useEffect, useMemo, useState } from "react";
-import { CONTACTS, HORSE_COLOR, PADDOCKS } from "./data";
-import { BUCKET_PRODUCTS, STATIC_BUCKETS, WEIGHTS, mergeLiveBuckets } from "./bucketData";
+import { HORSE_COLOR, PADDOCKS } from "./data";
+import { isHorseCareContact, telHref, useContacts } from "./useContacts";
+import { BUCKET_PRODUCTS, STATIC_BUCKETS, WEIGHTS, hayFor, mergeLiveBuckets } from "./bucketData";
 import { useFeedBuckets } from "./useFeedBuckets";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
@@ -121,6 +122,7 @@ function BucketList({ items, empty }) {
 }
 
 function StallCard({ name, data, bucket, locations, board }) {
+  const { contacts } = useContacts();
   const prof = data?.profile || {};
   const weights = data?.weights || [];
   const labs = data?.labs || [];
@@ -191,11 +193,11 @@ function StallCard({ name, data, bucket, locations, board }) {
               <div className="hx-v">{prof["Eats At"].replace(/\s*\(.*\)\s*$/, "")}</div>
             </div>
           )}
-          {prof.Hay && (
+          {(prof.Hay || lb) && (
             <div>
               <div className="hx-k">Hay</div>
-              <div className="hx-v">{prof.Hay}</div>
-              {lb && <div className="hx-s">≈ {Math.round(lb * 0.02)} lb/day</div>}
+              <div className="hx-v">{prof.Hay || "Free choice, 2% BW"}</div>
+              {lb && <div className="hx-s">≈ {hayFor(name, { [name]: lb }).daily} lb/day</div>}
             </div>
           )}
           {prof.Height && (
@@ -282,9 +284,9 @@ function StallCard({ name, data, bucket, locations, board }) {
       </div>
 
       <footer className="hx-foot">
-        {CONTACTS.filter((c) => /^(primary vet|vet office|farrier)$/i.test(c.role)).map((c) => (
-          <a key={c.phone} href={`tel:${c.phone.replace(/\D/g, "")}`}>
-            {c.role}: {c.name} · {c.phone}
+        {contacts.filter(isHorseCareContact).map((c) => (
+          <a key={c.role + c.name} href={telHref(c.phone)}>
+            {c.role}: {c.person || c.name} · {c.phone}
           </a>
         ))}
       </footer>
