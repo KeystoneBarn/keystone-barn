@@ -127,7 +127,11 @@ def _plan_for(session, task_id):
 def _parse_focus(text):
     weeks, cur = [], None
     for line in text.splitlines()[1:]:
-        line = line.strip()
+        # Strip markup/JSON leftovers ("</invoke>", a trailing '"}') that
+        # AI-written comments sometimes carry.
+        line = re.sub(r'["}\]]+$', "", line.strip()).strip()
+        if line.startswith("<"):
+            continue
         m = FOCUS_WEEK.match(line)
         if m:
             cur = {"num": int(m.group(1)), "title": m.group(2).strip(), "summary": "", "points": [], "exercises": ""}
