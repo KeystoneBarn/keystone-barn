@@ -20,204 +20,213 @@ export const SADDLE_COLORS = [
 export const TACK_FALLBACK = [
   {
     "horse": "Avelin",
-    "bit": "Myler SS Kimberwick level 2 Low Port Comfort Snaffle 5\"",
-    "breast_collar": "Breast Collar",
+    "bit": "Myler SS Kimberwick L2 Low Port Comfort Snaffle 5\"",
+    "breast_collar": null,
     "boots": null,
     "pad": null,
-    "notes": null,
-    "url": null,
+    "notes": "Alt saddles: 🟠 Orange (with black pad, 54\", breast collar) and 📿 String (with pad & breast collar). No sheepskin-center pads (creates too much back pressure). Green saddle: right-side released, left-side closed adjustment balances panels perfectly (per Agetha 7/28).",
+    "url": "https://app.clickup.com/t/86e3anytc",
     "saddles": [
       {
         "label": "🟢 Green Saddle",
         "saddle": "🟢 Green Saddle",
-        "color": null,
-        "pad": "None needed",
+        "color": "#00FF00",
+        "pad": null,
         "rank": "1st",
-        "note": "Right-side released, left closed. Perfect fit.",
-        "url": null
+        "note": null,
+        "url": "https://app.clickup.com/t/86e3cwq79"
       },
       {
         "label": "🟠 Orange Saddle",
         "saddle": "🟠 Orange Saddle",
-        "color": null,
-        "pad": "Black pad, 54\", chest collar",
+        "color": "#FFA500",
+        "pad": null,
         "rank": "2nd",
-        "note": null,
-        "url": null
+        "note": "54\" girth. No sheepskin-center pads (creates too much back pressure). Needs breast collar (size TBD).",
+        "url": "https://app.clickup.com/t/86e3btx48"
       },
       {
-        "label": "📿 String Saddle",
-        "saddle": "📿 String Saddle",
-        "color": null,
-        "pad": "Pad + chest collar",
+        "label": "🔵 Pat's Saddle",
+        "saddle": "🟦 Pat's Saddle",
+        "color": "#3e63dd",
+        "pad": null,
         "rank": "3rd",
-        "note": null,
-        "url": null
+        "note": "perfect fit",
+        "url": "https://app.clickup.com/t/86e3cwrcz"
       }
     ]
   },
   {
     "horse": "Dahlia",
-    "bit": "Qu's old 3-piece D-ring with brass rollers",
+    "bit": "Myler L2 Med Baucher Low Port Comfort Snaffle 4.75\"",
     "breast_collar": null,
     "boots": null,
     "pad": null,
-    "notes": "Bridle: Western bridle, crown + browband only. No throat latch, no cavesson.",
-    "url": null,
+    "notes": "Blue saddle 60cm, squishy grippy pad while breaking in (per Agetha 7/28). Western bridle with only crown piece and browband, no throat latch, no cavesson. Straight-sided bits help Dahlia turn better. Q's old three-piece D-ring bit.",
+    "url": "https://app.clickup.com/t/86e3anytk",
     "saddles": [
       {
-        "label": "🔵 Blue Saddle",
+        "label": "🔵 Dahlia's Saddle",
         "saddle": "🔵 Blue Saddle",
-        "color": null,
-        "pad": "Squishy grippy half pad (breaking in)",
+        "color": "#0f5096",
+        "pad": "Grippy Half Pad",
         "rank": "1st",
-        "note": "60cm. Per Agetha 7/28",
-        "url": null
+        "note": null,
+        "url": "https://app.clickup.com/t/86e3cwuep"
       }
     ]
   },
   {
     "horse": "Hugo",
-    "bit": "Myler SS level 2 Dee Low Port 4 3/4\"",
+    "bit": "Myler SS L2 Dee Low Port 4.75\"",
     "breast_collar": null,
-    "boots": "Scoot Boots: fronts fit OK, hinds stretched",
+    "boots": "Scoot Boots (fitted set)",
     "pad": null,
-    "notes": null,
-    "url": null,
+    "notes": "Red saddle for smaller rider (Clara). 👵🏼 Old Saddle with thinline + pad for adult rider. Alt bits: Myler L2 Med Baucher 4.75\", Myler L1 HBT Shank. Scoot Boots: fronts OK (hoof pick needed for front straps), hinds have stretched front rubber pieces, awaiting longer front straps.",
+    "url": "https://app.clickup.com/t/86e3anytf",
     "saddles": [
       {
         "label": "🔴 Red Saddle",
         "saddle": "🔴 Red Saddle",
-        "color": null,
-        "pad": "Standard pad",
+        "color": "#FF0000",
+        "pad": null,
         "rank": "1st",
-        "note": "Use for smaller rider (Clara)",
-        "url": null
+        "note": "smaller rider",
+        "url": "https://app.clickup.com/t/86e3cwp5n"
       },
       {
-        "label": "👵🏼 Old Saddle",
-        "saddle": "👵🏼 Old Saddle",
-        "color": null,
-        "pad": "Thinline + pad",
+        "label": "🔵 Dahlia's saddle",
+        "saddle": "🔵 Blue Saddle",
+        "color": "#0f5096",
+        "pad": null,
         "rank": "2nd",
-        "note": "Use for adult rider",
-        "url": null
+        "note": null,
+        "url": "https://app.clickup.com/t/86e3cwpt4"
+      },
+      {
+        "label": "🤠 Blue Western Saddle",
+        "saddle": "🤠 Blue Western",
+        "color": "#cecece",
+        "pad": "Blue Wool",
+        "rank": "3rd",
+        "note": null,
+        "url": "https://app.clickup.com/t/86e3fx2ma"
       }
     ]
   },
   {
     "horse": "Linka",
-    "bit": "Myler SS Kimberwick level 2 Low Port Comfort Snaffle 5\"",
+    "bit": "Myler SS Kimberwick L2 Low Port Comfort Snaffle 5\"",
     "breast_collar": null,
     "boots": null,
     "pad": null,
-    "notes": null,
-    "url": null,
+    "notes": "Alt saddle: 🟠 Orange (once broken in).",
+    "url": "https://app.clickup.com/t/86e3anytd",
     "saddles": [
       {
-        "label": "🟣 Pink Saddle",
-        "saddle": "🟣 Pink Saddle",
-        "color": null,
-        "pad": "Standard pad",
+        "label": "🟢 Green Saddle",
+        "saddle": "🟢 Green Saddle",
+        "color": "#00FF00",
+        "pad": "ThinLine (no shims)",
         "rank": "1st",
         "note": null,
-        "url": null
+        "url": "https://app.clickup.com/t/86e3cwmaq"
       },
       {
         "label": "🟠 Orange Saddle",
         "saddle": "🟠 Orange Saddle",
-        "color": null,
-        "pad": "Standard pad (once broken in)",
+        "color": "#FFA500",
+        "pad": null,
         "rank": "2nd",
-        "note": null,
-        "url": null
+        "note": "Available once Orange saddle is broken in.",
+        "url": "https://app.clickup.com/t/86e3btx4a"
+      },
+      {
+        "label": "🩷 Pink Saddle",
+        "saddle": "🟣 Pink Saddle",
+        "color": "#C154C1",
+        "pad": null,
+        "rank": "3rd",
+        "note": "use 2 back billets",
+        "url": "https://app.clickup.com/t/86e3cwnd7"
       }
     ]
   },
   {
     "horse": "Mickey",
-    "bit": "Myler 3 3/4 D level 1 Twist Comfort Snaffle Copper Roller 5\"",
+    "bit": "Myler 3¾ D L1 Twist Comfort Snaffle Copper Roller 5\"",
     "breast_collar": null,
     "boots": null,
     "pad": null,
-    "notes": null,
-    "url": null,
+    "notes": "Pink saddle with small rear riser. Alt: 👵🏼 Old Saddle with thinline + pad.",
+    "url": "https://app.clickup.com/t/86e3anytg",
     "saddles": [
-      {
-        "label": "🟣 Pink Saddle",
-        "saddle": "🟣 Pink Saddle",
-        "color": null,
-        "pad": "Pad + small rear riser",
-        "rank": "1st",
-        "note": null,
-        "url": null
-      },
       {
         "label": "👵🏼 Old Saddle",
         "saddle": "👵🏼 Old Saddle",
-        "color": null,
-        "pad": "Thinline + pad",
-        "rank": "2nd",
-        "note": null,
-        "url": null
+        "color": "#A9A9A9",
+        "pad": null,
+        "rank": "1st",
+        "note": "Uses thinline + pad (not in dropdown). No rear riser with Old Saddle (rear riser is Pink Saddle only).",
+        "url": "https://app.clickup.com/t/86e3btx46"
       }
     ]
   },
   {
     "horse": "Qu",
-    "bit": "Myler Level 3 Wide Kimberwick MB33 5.5\"",
-    "breast_collar": "Breast Collar",
-    "boots": "Scoot Boots: sizing issues, Adjust model being evaluated",
+    "bit": "Myler L3 Wide Kimberwick MB33 5.5\"",
+    "breast_collar": null,
+    "boots": "Scoot Boots (fitted set)",
     "pad": null,
-    "notes": null,
-    "url": null,
+    "notes": "Orange saddle with black half pad and breast collar (interim per Agetha 7/28). No sheepskin-center pads. Alt: 🟢 Green (70cm, slides and pinches at top of panels once shifted). Breast collar: top strap snug, lower areas loose for shoulder movement. Current collars don't fit well, need to source proper one. Scoot Boots: hinds can't clip in front, fronts tight on heels, possible size up needed.",
+    "url": "https://app.clickup.com/t/86e3anytj",
     "saddles": [
       {
         "label": "🟠 Orange Saddle",
         "saddle": "🟠 Orange Saddle",
-        "color": null,
-        "pad": "Black half pad, breast collar",
+        "color": "#FFA500",
+        "pad": "Black Fuzzy Half Pad",
         "rank": "1st",
-        "note": "Interim setup (Agetha 7/28)",
-        "url": null
+        "note": null,
+        "url": "https://app.clickup.com/t/86e3fwqrb"
       },
       {
         "label": "🟢 Green Saddle",
         "saddle": "🟢 Green Saddle",
-        "color": null,
-        "pad": "Standard pad",
+        "color": "#00FF00",
+        "pad": "Front Gel Riser",
         "rank": "2nd",
-        "note": "Slides and pinches once shifted",
-        "url": null
+        "note": "70cm. Slides and pinches at top of panels once shifted. Backup option, Orange is preferred.",
+        "url": "https://app.clickup.com/t/86e3btx45"
       }
     ]
   },
   {
     "horse": "Stendahl",
-    "bit": "Myler Level 1 HBT Shank 5\"",
+    "bit": "Myler L1 HBT Shank 5\"",
     "breast_collar": null,
     "boots": null,
     "pad": null,
-    "notes": null,
-    "url": null,
+    "notes": "Pink saddle fits great (per Agetha 7/28). Alt: 📿 String (so-so fit). Alt bit: Eggbutt Mullen with roller & tongue relief 5\".",
+    "url": "https://app.clickup.com/t/86e3anytb",
     "saddles": [
       {
-        "label": "🟣 Pink Saddle",
+        "label": "🩷 Pink Saddle",
         "saddle": "🟣 Pink Saddle",
-        "color": null,
-        "pad": "Standard pad",
+        "color": "#C154C1",
+        "pad": null,
         "rank": "1st",
-        "note": "Fits great (Agetha 7/28)",
-        "url": null
+        "note": null,
+        "url": "https://app.clickup.com/t/86e3cwkgw"
       },
       {
-        "label": "📿 String Saddle",
-        "saddle": "📿 String Saddle",
-        "color": null,
-        "pad": "Pad (so-so fit)",
+        "label": "🔵 Pat's Saddle",
+        "saddle": "🟦 Pat's Saddle",
+        "color": "#3e63dd",
+        "pad": "ThinLine (no shims)",
         "rank": "2nd",
-        "note": null,
-        "url": null
+        "note": "good fit",
+        "url": "https://app.clickup.com/t/86e3cwk4x"
       }
     ]
   },
@@ -225,66 +234,39 @@ export const TACK_FALLBACK = [
     "horse": "Tammy",
     "bit": "Herm Sprenger SATINOX D-Ring Single Jointed 135mm",
     "breast_collar": null,
-    "boots": "Scoot Boots: size 3 front, size 2 hind (Adjust). Fit confirmed.",
+    "boots": "Scoot Boots (fitted set)",
     "pad": null,
-    "notes": null,
-    "url": null,
+    "notes": "Orange is 1st choice, better fit than Pink. Alt saddles: 🟣 Pink, 📿 String. Alt bit: Myler L1 HBT Shank. Scoot Boots: size 3 front, size 2 hind (Adjust model). Fit confirmed.",
+    "url": "https://app.clickup.com/t/86e3anyth",
     "saddles": [
-      {
-        "label": "🟠 Orange Saddle",
-        "saddle": "🟠 Orange Saddle",
-        "color": null,
-        "pad": "Standard pad",
-        "rank": "1st",
-        "note": "1st choice, better fit than Pink",
-        "url": null
-      },
       {
         "label": "🟣 Pink Saddle",
         "saddle": "🟣 Pink Saddle",
-        "color": null,
-        "pad": "Standard pad",
-        "rank": "2nd",
-        "note": null,
-        "url": null
-      },
-      {
-        "label": "📿 String Saddle",
-        "saddle": "📿 String Saddle",
-        "color": null,
-        "pad": "Standard pad",
-        "rank": "3rd",
-        "note": null,
-        "url": null
+        "color": "#C154C1",
+        "pad": null,
+        "rank": "1st",
+        "note": "Secondary to Orange. Orange is better fit.",
+        "url": "https://app.clickup.com/t/86e3btx49"
       }
     ]
   },
   {
     "horse": "Ulyssa",
-    "bit": "Myler SS FullCheek level 2 Low Port Comfort Snaffle 5\"",
-    "breast_collar": "Breast Collar",
-    "boots": "Scoot Boots: front feet, size 2",
+    "bit": "Myler SS FullCheek L2 Hook Low Port Comfort Snaffle 5\"",
+    "breast_collar": "Breast Collar (larger)",
+    "boots": "Scoot Boots (fitted set)",
     "pad": null,
-    "notes": null,
-    "url": null,
+    "notes": "Pink saddle with breast collar fits great (per Agetha 7/28). Alt: 📿 String (with breast collar). Alt bit: Myler SS L2 Dee Low Port 4.75\". Scoot Boots: front feet, size 2. Breast collar size not specified in old records.",
+    "url": "https://app.clickup.com/t/86e3anyte",
     "saddles": [
       {
-        "label": "🟣 Pink Saddle",
+        "label": "🩷 Pink Saddle",
         "saddle": "🟣 Pink Saddle",
-        "color": null,
-        "pad": "Standard pad, chest collar",
+        "color": "#C154C1",
+        "pad": "Grippy Rear Riser",
         "rank": "1st",
-        "note": "Fits great (Agetha 7/28)",
-        "url": null
-      },
-      {
-        "label": "📿 String Saddle",
-        "saddle": "📿 String Saddle",
-        "color": null,
-        "pad": "Pad + chest collar",
-        "rank": "2nd",
         "note": null,
-        "url": null
+        "url": "https://app.clickup.com/t/86e3cwt63"
       }
     ]
   }
