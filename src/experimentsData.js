@@ -10,7 +10,7 @@
 // for when /api/experiments is unreachable or a PDF won't parse — no need
 // to keep them in sync by hand.
 //
-// Exports: STATIC_PROGRAMS, mergeLivePrograms, HORSE_NOTES, CHEAT_SHEET, NUTRITION, TIMELINE, COMING_NEXT
+// Exports: STATIC_PROGRAMS, mergeLivePrograms, TIMELINE, COMING_NEXT
 
 // COMING_NEXT — a placeholder card for experiments that are planned but not
 // built yet. Render as a muted/dashed card at the BOTTOM of the Experiments tab
@@ -197,42 +197,3 @@ export function mergeLivePrograms(staticPrograms, livePrograms, live) {
     };
   });
 }
-
-// Trimmed to horses actually in an active program. Fjords (Linka, Mickey,
-// Tammy here) run short-strided and get a standing distance adjustment;
-// Dahlia is a sport horse and may progress faster through the weeks.
-export const HORSE_NOTES = [
-  {
-    horse: "Fjords",
-    who: "Mickey, Tammy, Linka",
-    tag: "fjord",
-    note:
-      "Short-strided. Subtract ~10 cm from standard pole distances. Stay in-hand longer if green.",
-  },
-  {
-    horse: "Dahlia",
-    tag: "sport",
-    note:
-      "Sport horse stride — may progress faster through the weeks, but do not skip in-hand work if a step needs repeating.",
-  },
-];
-
-export const CHEAT_SHEET = {
-  distances: [
-    ["Walk poles", "~0.75 m (2.5 ft) apart"],
-    ["Trot poles", "~1.2–1.3 m (4 ft) apart"],
-    ["Trot poles, Fjords", "~1.1–1.2 m apart"],
-    ["Raised height", "4–6 in (10–15 cm) block under one end"],
-    ["Fjord adjustment", "Subtract ~10 cm from all standard distances"],
-  ],
-  terms: [
-    ["In-hand", "Handler leads from the ground, no rider weight"],
-    ["Ridden", "Worked under saddle"],
-    ["Topline", "Muscles along the spine: back, loin, croup"],
-    ["Engagement", "Hind legs stepping further under the body"],
-    ["Proprioception", "Body awareness — where the feet are in space"],
-  ],
-};
-
-export const NUTRITION =
-  "Aim for 0.8–1.0 g crude protein per kg bodyweight daily. Lysine is the limiting amino acid for muscle building. If hay tests low, a quality ration balancer goes a long way — muscle is built in the stall, not just the arena.";

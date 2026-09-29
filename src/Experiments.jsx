@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  STATIC_PROGRAMS, HORSE_NOTES, CHEAT_SHEET, NUTRITION, TIMELINE, COMING_NEXT,
+  STATIC_PROGRAMS, TIMELINE, COMING_NEXT,
   mergeLivePrograms,
 } from "./experimentsData";
 import { useExperiments } from "./useExperiments";
@@ -259,8 +259,6 @@ function ProgramCard({ program }) {
 }
 
 export default function Experiments({ onGuide }) {
-  const [showCheat, setShowCheat] = useState(false);
-  const [showNotes, setShowNotes] = useState(false);
   const { programs: livePrograms, live } = useExperiments();
   const programs = mergeLivePrograms(STATIC_PROGRAMS, livePrograms, live);
 
@@ -279,53 +277,6 @@ export default function Experiments({ onGuide }) {
       </div>
 
       <Timeline />
-
-      <div className="exp-actions" style={{ margin: "16px 0 14px" }}>
-        <button className="toggle" data-on={showCheat ? "1" : "0"} onClick={() => setShowCheat(!showCheat)}>
-          Cheat Sheet
-        </button>
-        <button className="toggle" data-on={showNotes ? "1" : "0"} onClick={() => setShowNotes(!showNotes)}>
-          Horse Notes
-        </button>
-      </div>
-
-      {showCheat && (
-        <div className="exp-cheat" style={{ marginBottom: 16 }}>
-          <div className="exp-table">
-            {CHEAT_SHEET.distances.map(([k, v]) => (
-              <div className="exp-table-row" key={k}>
-                <span className="exp-table-k">{k}</span>
-                <span className="exp-table-v">{v}</span>
-              </div>
-            ))}
-          </div>
-          <div className="exp-table" style={{ marginTop: 8 }}>
-            {CHEAT_SHEET.terms.map(([k, v]) => (
-              <div className="exp-table-row" key={k}>
-                <span className="exp-table-k">{k}</span>
-                <span className="exp-table-v">{v}</span>
-              </div>
-            ))}
-          </div>
-          <div className="rule-note" style={{ marginTop: 10 }}>
-            <strong>🥩 Nutrition:</strong> {NUTRITION}
-          </div>
-        </div>
-      )}
-
-      {showNotes && (
-        <div className="exp-notes" style={{ marginBottom: 16 }}>
-          {HORSE_NOTES.map((n) => (
-            <div className="exp-note-row" key={n.horse}>
-              <span className="exp-note-horse">{n.horse}</span>
-              <span className="exp-note-text">
-                {n.who && <em>({n.who}) </em>}
-                {n.note}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
 
       {programs.map((p) => (
         <ProgramCard key={p.id} program={p} />
