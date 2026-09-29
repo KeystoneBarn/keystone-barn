@@ -87,7 +87,10 @@ def _fetch_active_tasks(session):
 
 
 PLAN_TITLE = re.compile(r"workout plan", re.I)
-FOCUS_HEADER = re.compile(r"^\s*GPW\s+(.+?)\s+Plan:\s*Weekly Focus Summaries", re.I)
+# The weekly GPW emails, saved as PDFs: "Welcome to Week 2 of ...",
+# "Hind End 4 Week Workout Plan Week 3.pdf", "... Welcome.pdf".
+EMAIL_TITLE = re.compile(r"welcome|\bweek\s+\d+\b(?!\s*workout)", re.I)
+FOCUS_HEADER = re.compile(r"^\s*GPW\s+(.+?)\s+Plan:\s*Weekly Focus Summaries", re.I | re.M)
 FOCUS_WEEK = re.compile(r"^(?:-{3,})?\s*Week\s+(\d+):\s*(.+)$", re.I)
 LOG_LINE = re.compile(r"^\s*\d{1,2}/\d{1,2}(?:/\d{2,4})?\s*:")
 ATTACHMENT_LINE = re.compile(r"^[0-9a-f-]{36}\.\w+$", re.I)
@@ -101,12 +104,11 @@ _plan_cache = {}
 def _plan_for(session, task_id):
     resp = session.get(f"{BASE}/task/{task_id}", timeout=HTTP_TIMEOUT)
     resp.raise_for_status()
-    # "Welcome to ..." PDFs are the weekly GPW emails, not the plan grid.
     candidates = [
         a for a in resp.json().get("attachments") or []
         if (a.get("extension") or "").lower() == "pdf"
         and PLAN_TITLE.search(a.get("title") or "")
-        and not (a.get("title") or "").lower().startswith("welcome")
+        and not EMAIL_TITLE.search(a.get("title") or "")
     ]
     candidates.sort(key=lambda a: a.get("date") or "0", reverse=True)
     for att in candidates:
@@ -126,6 +128,8 @@ def _plan_for(session, task_id):
 
 def _parse_focus(text):
     weeks, cur = [], None
+    # Anything before the header line (e.g. a correction note) is skipped.
+    text = text[FOCUS_HEADER.search(text).start():]
     for line in text.splitlines()[1:]:
         # Strip markup/JSON leftovers ("</invoke>", a trailing '"}') that
         # AI-written comments sometimes carry.
@@ -156,7 +160,7 @@ def _focus_and_log(comments, plan_title, horse, start_ms):
     focus, logs = None, []
     for c in comments:
         text = (c.get("comment_text") or "").strip()
-        header = FOCUS_HEADER.match(text)
+        header = FOCUS_HEADER.search(text)
         if header:
             if focus is None and plan_title and header.group(1).strip().lower() == plan_title.lower():
                 focus = _parse_focus(text)
