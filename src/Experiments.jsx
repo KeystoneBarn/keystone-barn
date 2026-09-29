@@ -14,26 +14,92 @@ function parseLocalDate(iso) {
   return new Date(y, m - 1, d);
 }
 
+const shortDate = (d) => d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+
+// GPW grids run Monday–Sunday, so Week 1 Monday is the first Monday on or
+// after the ClickUp start date (a Sunday 9/13 start -> Mon 9/14). Counting
+// weeks straight from the start date put every Sunday in the wrong week.
+function planAnchor(program) {
+  const start = parseLocalDate(program.startDate);
+  const toMonday = (8 - start.getDay()) % 7;
+  return new Date(start.getFullYear(), start.getMonth(), start.getDate() + toMonday);
+}
+
+function dayAt(program, index) {
+  const week = program.weeks[Math.floor(index / 7)];
+  return week ? { week: week.num, ...week.days[index % 7] } : null;
+}
+
 function programProgress(program) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const start = parseLocalDate(program.startDate);
-  const due = parseLocalDate(program.dueDate);
-  const totalDays = Math.round((due - start) / DAY_MS);
 
-  if (today < start) {
-    return { label: `Starts ${start.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`, currentWeek: 1 };
+  if (!program.weeks.length) {
+    const start = parseLocalDate(program.startDate);
+    const due = parseLocalDate(program.dueDate);
+    if (today < start) return { label: `Starts ${shortDate(start)}`, currentWeek: null };
+    if (today > due) return { label: "Program complete", currentWeek: null };
+    const total = Math.round((due - start) / DAY_MS) + 1;
+    return { label: `Day ${Math.floor((today - start) / DAY_MS) + 1} of ${total}`, currentWeek: null };
   }
-  if (today > due) {
-    return { label: "Program complete", currentWeek: program.weeks.length };
+
+  const anchor = planAnchor(program);
+  const totalDays = program.weeks.length * 7;
+  const index = Math.round((today - anchor) / DAY_MS);
+
+  if (index < 0) {
+    return { label: `Starts ${shortDate(anchor)}`, currentWeek: 1, next: { date: anchor, ...dayAt(program, 0) } };
   }
-  const daysElapsed = Math.floor((today - start) / DAY_MS);
-  const currentWeek = Math.min(program.weeks.length, Math.floor(daysElapsed / 7) + 1);
+  if (index >= totalDays) {
+    return { label: "Program complete", currentWeek: program.weeks.length, complete: true };
+  }
+
+  const currentWeek = Math.floor(index / 7) + 1;
+  // Next workout day after today, so a rest day still says what's coming.
+  let next = null;
+  for (let i = index + 1; i < totalDays; i++) {
+    const d = dayAt(program, i);
+    if (!d.rest) {
+      next = { date: new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + i), ...d };
+      break;
+    }
+  }
   return {
-    label: `Day ${daysElapsed + 1} of ${totalDays} · Week ${currentWeek}`,
+    label: `Day ${index + 1} of ${totalDays} · Week ${currentWeek}`,
     currentWeek,
     todayName: today.toLocaleDateString(undefined, { weekday: "long" }),
+    today: dayAt(program, index),
+    next,
   };
+}
+
+function TodayCard({ progress, program }) {
+  if (!program.weeks.length || progress.complete) return null;
+  const { today, next } = progress;
+  const color = weekColor(today?.week || 1);
+  return (
+    <div className="exp-day" style={{ margin: "0 14px 12px", borderColor: color, borderWidth: 2 }}>
+      <div className="exp-day-head">
+        <span className="exp-day-num">
+          {today ? `Today · Week ${today.week} ${today.weekday}` : "Not started yet"}
+        </span>
+        {today && !today.rest && today.mode && <span className="exp-day-mode">{today.mode}</span>}
+      </div>
+      <div className="exp-day-body">
+        {today && !today.rest && (
+          <p className="exp-day-detail" style={{ marginTop: 0 }}><strong>{today.name}.</strong> {today.detail}</p>
+        )}
+        {today?.rest && (
+          <p className="exp-day-detail" style={{ marginTop: 0, fontStyle: "italic", color: "var(--ink-3)" }}>Rest day</p>
+        )}
+        {next && (!today || today.rest) && (
+          <p className="exp-day-detail" style={{ color: "var(--ink-2)" }}>
+            Next: <strong>{next.name}</strong> ({next.mode}) · {shortDate(next.date)}
+          </p>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function Timeline() {
@@ -132,6 +198,7 @@ function ProgramCard({ program }) {
           <span className="exp-horse-chip" key={h}>{h}</span>
         ))}
       </div>
+      <TodayCard progress={progress} program={program} />
       {program.weeks.length > 0 ? (
         <div className="exp-weeks" style={{ padding: "0 14px 14px" }}>
           {program.weeks.map((w) => (
