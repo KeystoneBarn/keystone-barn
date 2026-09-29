@@ -12,15 +12,22 @@ This module makes the ClickUp "🧬 Experiments" list (901715740404), filtered
 to status "active", the live source for which programs are running, which
 horses are in each, and their hypothesis/dates.
 
-Scoped deliberately to the experiment "shell" — Hypothesis, Target Symptom,
-Animal and the task's start/due dates all map cleanly onto structured
-fields. The day-by-day exercise grid itself (which poles, which days,
-which gait) is NOT live: it lives in a GPW-generated PDF attached to each
-task, not in any structured field ClickUp exposes, so there is nothing to
-parse it from. The frontend keeps a hand-transcribed grid per program type
-and matches it by Target Symptom; a program whose Target Symptom doesn't
-match a known grid still shows live (hypothesis, horses, dates) with no
-day-by-day detail, rather than being hidden.
+Hypothesis, Target Symptom, Animal and the task's start/due dates come
+from structured fields. Everything else comes from how the experiments are
+already kept in ClickUp, so nothing needs re-entering:
+
+* Day-by-day grid: parsed from the GPW "4-Week Workout Plan" PDF attached
+  to the task (see gpw_plan.py). Swap the PDF, the site follows. Parsed
+  once per attachment id, not every refresh.
+* Weekly focus: the "GPW <Plan> Plan: Weekly Focus Summaries" comment,
+  split into "Week N: Title" sections. Only used when <Plan> matches the
+  plan PDF's title, so a summary posted on the wrong task doesn't show up
+  on the wrong program.
+* Session log: comments that start with a date ("9/13: ..."), newest
+  first, tagged with the horse.
+
+A program with no parseable plan PDF still shows live (hypothesis, horses,
+dates, log); the frontend then falls back to its bundled grid if it has one.
 
 Horses running the identical protocol (e.g. Linka/Mickey/Tammy all on the
 Topline plan) are separate ClickUp tasks, one per horse, that happen to
@@ -29,10 +36,12 @@ module groups them into one program card.
 """
 import logging
 import os
+import re
 import threading
 import time
 
 from clickup_live import BASE, HTTP_TIMEOUT, TOKEN, _dropdown_name, _raw_value, _session
+from gpw_plan import parse_plan
 
 log = logging.getLogger("experiments_live")
 
@@ -77,6 +86,84 @@ def _fetch_active_tasks(session):
     return tasks
 
 
+PLAN_TITLE = re.compile(r"workout plan", re.I)
+FOCUS_HEADER = re.compile(r"^\s*GPW\s+(.+?)\s+Plan:\s*Weekly Focus Summaries", re.I)
+FOCUS_WEEK = re.compile(r"^(?:-{3,})?\s*Week\s+(\d+):\s*(.+)$", re.I)
+LOG_LINE = re.compile(r"^\s*\d{1,2}/\d{1,2}(?:/\d{2,4})?\s*:")
+ATTACHMENT_LINE = re.compile(r"^[0-9a-f-]{36}\.\w+$", re.I)
+LOG_LIMIT = 8
+
+# attachment id -> parsed plan (or None). GPW PDFs never change in place;
+# a revised plan is a new attachment with a new id.
+_plan_cache = {}
+
+
+def _plan_for(session, task_id):
+    resp = session.get(f"{BASE}/task/{task_id}", timeout=HTTP_TIMEOUT)
+    resp.raise_for_status()
+    # "Welcome to ..." PDFs are the weekly GPW emails, not the plan grid.
+    candidates = [
+        a for a in resp.json().get("attachments") or []
+        if (a.get("extension") or "").lower() == "pdf"
+        and PLAN_TITLE.search(a.get("title") or "")
+        and not (a.get("title") or "").lower().startswith("welcome")
+    ]
+    candidates.sort(key=lambda a: a.get("date") or "0", reverse=True)
+    for att in candidates:
+        if att["id"] not in _plan_cache:
+            url = att.get("url") or att.get("url_w_query")
+            try:
+                pdf = session.get(url, timeout=HTTP_TIMEOUT)
+                pdf.raise_for_status()
+                _plan_cache[att["id"]] = parse_plan(pdf.content)
+            except Exception as exc:
+                log.warning("plan pdf %s on %s failed: %s", att.get("title"), task_id, exc)
+                continue
+        if _plan_cache[att["id"]]:
+            return _plan_cache[att["id"]]
+    return None
+
+
+def _parse_focus(text):
+    weeks, cur = [], None
+    for line in text.splitlines()[1:]:
+        line = line.strip()
+        m = FOCUS_WEEK.match(line)
+        if m:
+            cur = {"num": int(m.group(1)), "title": m.group(2).strip(), "summary": "", "points": [], "exercises": ""}
+            weeks.append(cur)
+        elif cur and line:
+            if line.lower().startswith("exercises:"):
+                cur["exercises"] = line.split(":", 1)[1].strip()
+            elif not cur["summary"]:
+                cur["summary"] = line
+            else:
+                cur["points"].append(line)
+    return weeks
+
+
+def _comments_for(session, task_id):
+    resp = session.get(f"{BASE}/task/{task_id}/comment", timeout=HTTP_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json().get("comments") or []
+
+
+def _focus_and_log(comments, plan_title, horse, start_ms):
+    focus, logs = None, []
+    for c in comments:
+        text = (c.get("comment_text") or "").strip()
+        header = FOCUS_HEADER.match(text)
+        if header:
+            if focus is None and plan_title and header.group(1).strip().lower() == plan_title.lower():
+                focus = _parse_focus(text)
+            continue
+        if not LOG_LINE.match(text) or int(c.get("date") or 0) < int(start_ms or 0):
+            continue
+        body = "\n".join(l for l in text.splitlines() if not ATTACHMENT_LINE.match(l.strip())).strip()
+        logs.append({"horse": horse, "date": c.get("date"), "text": body})
+    return focus, logs
+
+
 def _to_entry(task):
     horse = _horse_name(task)
     target_symptom = (_raw_value(task, F_TARGET_SYMPTOM) or "").strip()
@@ -90,6 +177,7 @@ def _to_entry(task):
         "due_date": task.get("due_date"),
         "url": task.get("url"),
         "updated": task.get("date_updated"),
+        "id": task.get("id"),
     }
 
 
@@ -127,6 +215,17 @@ class _ExperimentsCache:
             session = _session()
             tasks = _fetch_active_tasks(session)
             entries = [e for e in (_to_entry(t) for t in tasks) if e]
+            for e in entries:
+                try:
+                    e["plan"] = _plan_for(session, e["id"])
+                    e["focus"], e["log"] = _focus_and_log(
+                        _comments_for(session, e["id"]),
+                        (e["plan"] or {}).get("title"), e["horse"], e["start_date"],
+                    )
+                except Exception as exc:
+                    log.warning("experiment detail for %s failed: %s", e["id"], exc)
+                    e.setdefault("plan", None)
+                    e["focus"], e["log"] = None, []
 
             # Group tasks that share a Target Symptom into one program — that
             # shared text is what ties Linka/Mickey/Tammy's separate Topline
@@ -141,8 +240,14 @@ class _ExperimentsCache:
                     "start_date": e["start_date"],
                     "due_date": e["due_date"],
                     "url": e["url"],
+                    "plan": None,
+                    "focus": None,
+                    "log": [],
                 })
                 g["horses"].append(e["horse"])
+                g["plan"] = g["plan"] or e["plan"]
+                g["focus"] = g["focus"] or e["focus"]
+                g["log"].extend(e["log"])
                 # Prefer the most recently updated task's hypothesis/dates/url —
                 # they're near-identical per horse, but this keeps one
                 # consistent choice instead of "whichever came back first".
@@ -157,6 +262,13 @@ class _ExperimentsCache:
             for g in grouped.values():
                 g.pop("_updated", None)
                 g["horses"] = sorted(g["horses"])
+                # One note posted on each horse's task shows once, with all of them.
+                merged = {}
+                for l in g["log"]:
+                    m = merged.setdefault(l["text"], {"horses": [], "date": l["date"], "text": l["text"]})
+                    m["horses"] = sorted(set(m["horses"]) | {l["horse"]})
+                    m["date"] = min(m["date"], l["date"], key=lambda d: int(d or 0))
+                g["log"] = sorted(merged.values(), key=lambda l: int(l["date"] or 0), reverse=True)[:LOG_LIMIT]
                 programs.append(g)
             programs.sort(key=lambda p: p["target_symptom"])
 

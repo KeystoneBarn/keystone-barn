@@ -176,6 +176,36 @@ function WeekCard({ week, expanded, onToggle, todayName, isCurrentWeek }) {
   );
 }
 
+function WeekFocus({ focus, currentWeek }) {
+  const week = focus.find((w) => w.num === currentWeek);
+  if (!week) return null;
+  return (
+    <div className="rule-note" style={{ margin: "0 14px 12px" }}>
+      <strong>Week {week.num} focus: {week.title}.</strong> {week.summary}
+      {week.points.length > 0 && (
+        <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+          {week.points.map((pt) => <li key={pt}>{pt}</li>)}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function SessionLog({ log }) {
+  if (!log.length) return null;
+  return (
+    <div style={{ padding: "0 14px 14px" }}>
+      <h4 className="exp-day-num" style={{ margin: "4px 0 6px" }}>Session log</h4>
+      {log.map((l) => (
+        <div className="exp-note-row" key={l.date + l.text}>
+          <span className="exp-note-horse">{l.horses.join(", ")}</span>
+          <span className="exp-note-text" style={{ whiteSpace: "pre-line" }}>{l.text}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ProgramCard({ program }) {
   const progress = programProgress(program);
   const [openWeek, setOpenWeek] = useState(progress.currentWeek);
@@ -199,6 +229,7 @@ function ProgramCard({ program }) {
         ))}
       </div>
       <TodayCard progress={progress} program={program} />
+      {program.focus?.length > 0 && <WeekFocus focus={program.focus} currentWeek={progress.currentWeek} />}
       {program.weeks.length > 0 ? (
         <div className="exp-weeks" style={{ padding: "0 14px 14px" }}>
           {program.weeks.map((w) => (
@@ -222,6 +253,7 @@ function ProgramCard({ program }) {
           </p>
         </div>
       )}
+      {program.log?.length > 0 && <SessionLog log={program.log} />}
     </div>
   );
 }
@@ -239,9 +271,9 @@ export default function Experiments({ onGuide }) {
           🧪 Active Training Programs
         </h2>
         <p className="prose" style={{ margin: "6px 0 0" }}>
-          Which programs are active, their horses and dates come live from ClickUp's
-          Experiments list. Each program's day-by-day plan is transcribed from its GPW
-          workout PDF and updates only when the plan itself changes.
+          Everything here comes live from ClickUp's Experiments list: which programs
+          are running and who's on them, the day-by-day plan read from the GPW PDF
+          attached to each task, the weekly focus, and the session log from comments.
           {!live && " (Showing the last known snapshot — live feed unavailable.)"}
         </p>
       </div>

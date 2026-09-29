@@ -4,11 +4,11 @@
 // (GroundPoleWorkouts.com) 4-week plans, run concurrently per horse:
 //   - Topline Strength: Linka, Mickey, Tammy
 //   - Hind End Strength: Dahlia
-// Content pulled from the source PDFs attached to each horse's experiment
-// task in ClickUp (🧬 Experiments list, 901715740404): "GPW 4-Week Workout
-// Plan - Topline" and "GPW 4-Week Workout Plan - Hind End", both dated
-// 2026.09.13. Update this file directly if GPW revises either plan; ClickUp
-// only holds the PDF, not structured per-day data.
+// The live site reads each program's grid straight from the GPW plan PDF
+// attached to its ClickUp task (backend/gpw_plan.py), plus the weekly focus
+// and session-log comments. The grids below are only the offline fallback
+// for when /api/experiments is unreachable or a PDF won't parse — no need
+// to keep them in sync by hand.
 //
 // Exports: STATIC_PROGRAMS, mergeLivePrograms, HORSE_NOTES, CHEAT_SHEET, NUTRITION, TIMELINE, COMING_NEXT
 
@@ -191,7 +191,9 @@ export function mergeLivePrograms(staticPrograms, livePrograms, live) {
       targetSymptom: p.target_symptom,
       startDate: epochToLocalDate(p.start_date),
       dueDate: epochToLocalDate(p.due_date),
-      weeks: known?.weeks || [],
+      weeks: p.plan?.weeks?.length ? p.plan.weeks : (known?.weeks || []),
+      focus: p.focus || [],
+      log: p.log || [],
     };
   });
 }
