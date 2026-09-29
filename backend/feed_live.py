@@ -12,8 +12,9 @@ the live source for each horse's daily AM/PM bucket.
 Oral meds are live too (added 2026-09-28): any "in progress" 💊Treatment
 entry with the 🪣 AM/PM field set is a bucket med. That field is what already
 separates the oral meds (Prascend, Thyro-L, Reserpine…) from injection and
-shockwave series, which never carry AM/PM. A med whose task has a start or
-due date is a finite course; its logged doses (subtasks, which keep the log
+shockwave series, which never carry AM/PM. A med whose task has a due
+date is a finite course (a start date alone just records when an ongoing
+daily med began, like Prascend or Thyro-L); its logged doses (subtasks, which keep the log
 uncluttered) supply "doses given so far" and the most recent dose.
 
 `active_task_ids` still carries every "in progress" task id across the whole
@@ -159,7 +160,7 @@ def _to_med(task, doses):
         "amount": _amount_label(qty, unit),
         "task_id": task.get("id"),
         "url": task.get("url"),
-        "course": {"start": start, "end": end} if (start or end) else None,
+        "course": {"start": start, "end": end} if end else None,
         "doses_given": None,
         "last_dose": None,
     }

@@ -34,7 +34,8 @@ def task(tid, note, product, qty=None, unit=None, ampm=None, animal=None, start=
 
 
 def main():
-    daily = fl._to_med(task("mickey-prascend", 5, 10, "2", 2, 0, 3), {})
+    # Start date alone = when an ongoing daily med began, not a course
+    daily = fl._to_med(task("mickey-prascend", 5, 10, "2", 2, 0, 3, start="1756800000000"), {})
     assert daily["horse"] == "Mickey" and daily["amount"] == "2 tablets" and daily["course"] is None, daily
 
     doses = {"reserpine": [{"date": "2026-09-01", "amount": None}, {"date": "2026-09-02", "amount": None}]}
