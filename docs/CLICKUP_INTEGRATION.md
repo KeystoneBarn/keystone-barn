@@ -1,6 +1,6 @@
 # Keystone Barn site — brief for ClickUp Brain
 
-Updated 2026-09-24. Give this to Brain whenever it (a) edits the ClickUp lists
+Updated 2026-09-28. Give this to Brain whenever it (a) edits the ClickUp lists
 below, or (b) produces a new version of the Keystone Barn Resources app.
 
 **The short version:** keystone-barn.onrender.com reads most of its content
@@ -107,6 +107,26 @@ fields plus the task's start/due dates are shown. Horses on the same protocol
 are separate tasks with **identical Target Symptom text** — that shared text
 is what groups them into one program card.
 
+### 🧢 Tack Board (list 901717141323) → Tack Board tab
+
+Checked every ~5 minutes.
+
+| Site shows | Comes from |
+|---|---|
+| One card per horse | A **top-level task named with the horse's barn name**, status `active` |
+| Bit | Horse task's `Bit` dropdown |
+| Chest/breast collar badge | Horse task's `Breast Collar` dropdown (`None` = no badge) |
+| Boots | Horse task's `Boots` dropdown (`None` = hidden) |
+| Fit Notes box | Horse task's `Fit Notes` field |
+| Saddle rows | **Subtasks** of the horse task, named `<Horse>: <saddle> (optional note)`, status `active`. The name after the colon is what's shown; anything in trailing parentheses becomes the italic note, together with the subtask's own `Fit Notes` |
+| Saddle order + rank label | Subtask `Preference Rank` (1st → 2nd → 3rd → Alt; unranked go last) |
+| Pad | Subtask `Pad` dropdown (`None` = hidden), else the horse task's `Pad` |
+| Saddle swatch color | Subtask `Saddle` dropdown |
+
+Setting a saddle subtask to `retired` or `completed` drops it off the site;
+doing that to a horse task hides the whole card. New saddles, pads and bits
+can be added as dropdown options freely.
+
 ### Not live (still edited in code)
 
 The older built-in symptom notes (`SYMPTOMS` in `src/data.js`), used only
@@ -132,7 +152,7 @@ The app is **Vite + React**, served with its API from one Render service at
 **Do not:**
 
 1. **Bake live data back into the bundle.** Products, feed buckets, protocols,
-   experiments, the Board, horse profiles/weights/labs all come from the API
+   experiments, the Board, horse profiles/weights/labs and the Tack Board all come from the API
    below. `src/data.js` / `bucketData.js` keep an *offline fallback* copy only.
 2. **Call anything external.** The only allowed `fetch` is same-origin
    `/api/*` (relative URLs). No third-party APIs, CDNs, analytics, or
@@ -151,6 +171,7 @@ The app is **Vite + React**, served with its API from one Render service at
 | `GET /api/protocols` | `{ live, protocols: { "Colic": { severity, vet, summary, img, ladder: [{tier, label, items[]}], sections: [{title, blocks}] } } }` |
 | `GET /api/board` | `{ upcoming: [{ horse, title, due }], watch: [{ horse, title, alert }] }` |
 | `GET /api/horses` | `{ horses: { Horse: { profile: {Label: value}, weights: [{date, lb}], labs: [{test, value, unit, ref, flag, date}] } } }` |
+| `GET /api/tack` | `{ live, horses: [{ horse, bit, breast_collar, boots, pad, notes, url, saddles: [{ label, saddle, color, pad, rank, note, url }] }] }` |
 | `GET/PUT /api/locations` | shared Paddocks board: `{ assignments: { Horse: "pad-2" \| "zone-Stall 1" \| … } }` |
 | `GET/POST/DELETE /api/board/notes` | Board sticky notes |
 

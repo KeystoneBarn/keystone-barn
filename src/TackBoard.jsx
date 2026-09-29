@@ -1,6 +1,13 @@
 import { useState } from "react";
-import { TACK, SADDLES } from "./tackData";
+import { SADDLE_COLORS } from "./tackData";
 import { HORSE_COLOR } from "./data";
+import { useTack } from "./useTack";
+
+function saddleColor(s) {
+  const key = ((s.saddle || "") + " " + (s.label || "")).toLowerCase();
+  const hit = SADDLE_COLORS.find(([word]) => key.includes(word));
+  return hit ? hit[1] : s.color || "#7a7a7a";
+}
 
 function TackCard({ t }) {
   const color = HORSE_COLOR[t.horse] || "#46535c";
@@ -9,36 +16,32 @@ function TackCard({ t }) {
       <header className="bk-head">
         <span className="bk-swatch" style={{ background: color }} />
         <h3 className="bk-name">{t.horse}</h3>
-        {t.breastCollar && <span className="tk-collar">Chest Collar</span>}
+        {t.breast_collar && <span className="tk-collar">{t.breast_collar}</span>}
       </header>
 
       <div className="tk-section">
-        <div className="field-label">Saddle{t.saddles.length > 1 ? "s" : ""}</div>
+        <div className="field-label">Saddle{t.saddles.length === 1 ? "" : "s"}</div>
+        {t.saddles.length === 0 && <p className="tk-bit">No saddle set up yet.</p>}
         {t.saddles.map((s, i) => {
-          const sd = SADDLES[s.name] || {};
+          const sc = saddleColor(s);
           return (
-            <div className="tk-saddle" key={i} style={{ "--sc": sd.color || "#7a7a7a" }}>
-              <span className="tk-saddle-dot" style={{ background: sd.color || "#7a7a7a" }} />
+            <div className="tk-saddle" key={s.id || i} style={{ "--sc": sc }}>
+              <span className="tk-saddle-dot" style={{ background: sc }} />
               <span className="tk-saddle-info">
-                <strong>{sd.label || s.name}</strong>
-                <span className="tk-pad">{s.pad}</span>
+                <strong>{s.label}</strong>
+                {(s.pad || t.pad) && <span className="tk-pad">Pad: {s.pad || t.pad}</span>}
                 {s.note && <span className="tk-note">{s.note}</span>}
               </span>
-              <span className="tk-pref">#{i + 1}</span>
+              {s.rank && <span className="tk-pref">{s.rank}</span>}
             </div>
           );
         })}
       </div>
 
-      <div className="tk-section">
-        <div className="field-label">Bit</div>
-        <p className="tk-bit">{t.bit}</p>
-      </div>
-
-      {t.bridle && (
+      {t.bit && (
         <div className="tk-section">
-          <div className="field-label">Bridle</div>
-          <p className="tk-bit">{t.bridle}</p>
+          <div className="field-label">Bit</div>
+          <p className="tk-bit">{t.bit}</p>
         </div>
       )}
 
@@ -48,14 +51,22 @@ function TackCard({ t }) {
           <p className="tk-bit">{t.boots}</p>
         </div>
       )}
+
+      {t.notes && (
+        <div className="tk-section">
+          <div className="field-label">Fit Notes</div>
+          <p className="tk-bit">{t.notes}</p>
+        </div>
+      )}
     </article>
   );
 }
 
 export default function TackBoard() {
   const [selected, setSelected] = useState(null);
-  const horses = TACK.map((t) => t.horse);
-  const visible = selected ? TACK.filter((t) => t.horse === selected) : TACK;
+  const { horses: tack } = useTack();
+  const horses = tack.map((t) => t.horse);
+  const visible = selected ? tack.filter((t) => t.horse === selected) : tack;
 
   return (
     <div className="bk-wrap">
@@ -64,7 +75,7 @@ export default function TackBoard() {
           Tack Board
         </h2>
         <p className="prose" style={{ margin: "8px 0 0" }}>
-          What to grab for each horse. Saddle preference order matters: #1 is the best fit.
+          What to grab for each horse. Saddles are listed in preference order: 1st is the best fit.
         </p>
       </div>
 

@@ -23,6 +23,7 @@ import experiments_live
 import board_live
 import horses_live
 import protocols_live
+import tack_live
 
 app = FastAPI(title="Horse Locations")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -36,6 +37,7 @@ def _start_clickup_feed():
     board_live.start()
     horses_live.start()
     protocols_live.start()
+    tack_live.start()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "zones.db")
 
@@ -369,6 +371,12 @@ def get_protocol_image(task_id: str):
         raise HTTPException(status_code=404, detail="no cached image")
     media_type = mimetypes.guess_type(path)[0] or "image/jpeg"
     return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/api/tack")
+def get_tack():
+    """Per-horse bit/collar/boots and ranked saddle options from the 🧢 Tack Board list."""
+    return tack_live.tack_payload()
 
 
 @app.get("/api/horses")
