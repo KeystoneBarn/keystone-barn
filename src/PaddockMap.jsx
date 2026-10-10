@@ -12,8 +12,8 @@
     - Oct 2026 (Meghann's fence sketch, 2026-10-10): new electric fence makes
       eight paddocks, 1-4 west to east on the north side and 5-8 east to west
       on the south. North: 2|3 is the old permanent fence; 1|2 jogs near the
-      barn wall. South: all electric; 6 is a strip along the barn wall and 5
-      wraps around it in an L. Herds live in pairs (1 & 2, 3 & 4, 5 & 6,
+      barn wall. South: all electric; 6 is a small square against the barn
+      wall and 5 wraps around it in an L. Herds live in pairs (1 & 2, 3 & 4, 5 & 6,
       7 & 8), so each pair is one tap target.
     - Stall 1 also opens north into Paddock 4; Stall 4 south into Paddock 5.
     - The N Porch is the barn's NE corner, east of Stall 1: open to Paddock 2
@@ -36,7 +36,7 @@ const TOP = 200, BOT = 460;                 // barn's north and south walls
 const WEST = 20, EAST = 510;                // barn / paddock west and east edges
 const FENCE_X = 235;                        // between pairs: 2|3 (permanent), 7|6 (electric)
 const SPLIT_W = 115, SPLIT_E = 340;         // inside pairs: 1|2, 8|7 and 3|4, 6|5
-const STRIP_Y = 517;                        // outer edge of Paddock 6, the strip along the barn
+const SQUARE_Y = BOT + (SPLIT_E - FENCE_X); // outer edge of Paddock 6, the small square by the barn
 const SX = 340;                             // west wall of the stall block
 const OUTER_W = 72, INNER_W = 100;          // S1/S4 (outer) are narrower than S2/S3 (inner)
 const PX = SX + OUTER_W;                    // porches start east of S1 / S4
@@ -63,13 +63,14 @@ const PADDOCK_LABEL = {
   "pad-1-2": { name: "Paddocks 1 & 2", corner: "NW", x: 128, y: 52 },
   "pad-3-4": { name: "Paddocks 3 & 4", corner: "NE", x: 362, y: 52 },
   "pad-7-8": { name: "Paddocks 7 & 8", corner: "SW", x: 128, y: 502 },
-  "pad-5-6": { name: "Paddocks 5 & 6", corner: "SE", x: 380, y: 552 },
+  // label in the L's bottom arm, horses in its east arm (nx/ny)
+  "pad-5-6": { name: "Paddocks 5 & 6", corner: "SE", x: 373, y: 610, nx: 425, ny: 494 },
 };
 // Each single paddock's number.
 const PADDOCK_NUMS = [
   [1, (WEST + SPLIT_W) / 2, TOP - 12], [2, (SPLIT_W + FENCE_X) / 2 + 8, TOP - 12],
   [3, (FENCE_X + SPLIT_E) / 2, TOP - 12], [4, (SPLIT_E + EAST) / 2, TOP - 12],
-  [5, EAST - 22, 660], [6, (FENCE_X + SPLIT_E) / 2, BOT + 36],
+  [5, EAST - 22, 660], [6, (FENCE_X + SPLIT_E) / 2, (BOT + SQUARE_Y) / 2 + 6],
   [7, (SPLIT_W + FENCE_X) / 2, 660], [8, (WEST + SPLIT_W) / 2, 660],
 ];
 // Fence lines inside the paddock rows; everything but 2|3 is electric.
@@ -79,7 +80,7 @@ const FENCES = [
   { pts: [[SPLIT_E, 14], [SPLIT_E, TOP - 4]], electric: true },
   { pts: [[FENCE_X, BOT + 4], [FENCE_X, 666]], electric: true },
   { pts: [[SPLIT_W, BOT + 4], [SPLIT_W, 666]], electric: true },
-  { pts: [[FENCE_X, STRIP_Y], [SPLIT_E, STRIP_Y], [SPLIT_E, BOT + 4]], electric: true },
+  { pts: [[FENCE_X, SQUARE_Y], [SPLIT_E, SQUARE_Y], [SPLIT_E, BOT + 4]], electric: true },
 ];
 
 const ROOMS = [
@@ -180,7 +181,7 @@ export default function PaddockMap({
             <text x={p.x} y={p.y} textAnchor="middle" className="pm-pad-name">{p.name}</text>
             <text x={p.x} y={p.y + 22} textAnchor="middle" className="pm-pad-corner">{p.corner}</text>
             {horsesAt(id).map((h, i) => (
-              <HorseTag key={h} h={h} x={p.x} y={p.y + 56 + i * 27}
+              <HorseTag key={h} h={h} x={p.nx ?? p.x} y={(p.ny ?? p.y + 56) + i * 27}
                 selected={selected === h} onPick={onPick} />
             ))}
           </g>
