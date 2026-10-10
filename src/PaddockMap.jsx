@@ -16,7 +16,7 @@
       wall and 5 wraps around it in an L. Herds live in pairs (1 & 2, 3 & 4, 5 & 6,
       7 & 8), so each pair is one tap target.
     - Stall 1 also opens north into Paddock 4; Stall 4 south into Paddock 5.
-    - The N Porch is the barn's NE corner, east of Stall 1: open to Paddock 2
+    - The N Porch is the barn's NE corner, east of Stall 1: open to Paddock 4
       and with a door into Stall 2. The S Porch mirrors it at the SE corner
       (Paddock 5, Stall 3).
     - The aisle has doors into Paddock 3 (north wall) and Paddock 6 (south

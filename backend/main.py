@@ -30,6 +30,20 @@ app = FastAPI(title="Horse Locations")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
+@app.middleware("http")
+async def _cache_headers(request, call_next):
+    """Make phones pick up each deploy. The page itself (and the API) must be
+    re-checked every visit; without a header, Safari and home-screen shortcuts
+    keep showing an old build for days. Built files under /assets/ carry a
+    content hash in their names, so those can be cached for good."""
+    response = await call_next(request)
+    if request.url.path.startswith("/assets/"):
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    elif "cache-control" not in response.headers:
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 @app.on_event("startup")
 def _start_clickup_feed():
     clickup_live.start()
