@@ -206,11 +206,12 @@ export function mergeLiveBuckets(staticBuckets, byHorse, live, activeTaskIds) {
       ? b.oralMeds.filter((i) => !i.taskId || activeTaskIds.has(i.taskId))
       : b.oralMeds;
     if (l && Array.isArray(l.meds)) oralMeds = l.meds.map((m) => liveMed(m, b.oralMeds));
-    if (!l) return oralMeds === b.oralMeds ? b : { ...b, oralMeds };
+    // Live ClickUp is the whole truth: an empty list means nothing goes in
+    // that bucket (e.g. PM feeding dropped Oct 2026), never "use the snapshot".
     return {
       ...b,
-      am: l.am.length ? l.am : b.am,
-      pm: l.pm.length ? l.pm : b.pm,
+      am: l?.am || [],
+      pm: l?.pm || [],
       oralMeds,
     };
   });
