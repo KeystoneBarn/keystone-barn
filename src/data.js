@@ -586,11 +586,15 @@ export const HORSE_COLOR = {
   Stendahl: "#2B2F33", Ulyssa: "#D8398A", Hugo: "#6B4A9C", Linka: "#3F6B45", Tammy: "#7A5230",
 };
 
+// Eight paddocks since Oct 2026 (new fence run ahead of Denozzo and
+// Ratatouille): 1-4 across the north side west to east, 5-8 across the south
+// east to west (clockwise, like the old four). For now each herd has a pair;
+// a pair is one spot on the board, id "pad-1-2".
 export const PADDOCKS = [
-  { id: 1, name: "Paddock 1", corner: "NW", horses: ["Qu"], note: "Solo. New-ish here and still finding his feet." },
-  { id: 2, name: "Paddock 2", corner: "NE", horses: ["Mickey", "Avelin", "Dahlia"] },
-  { id: 3, name: "Paddock 3", corner: "SE", horses: ["Hugo", "Linka", "Tammy"] },
-  { id: 4, name: "Paddock 4", corner: "SW", horses: ["Stendahl", "Ulyssa"] },
+  { id: "1-2", nums: [1, 2], name: "Paddocks 1 & 2", corner: "NW", horses: ["Qu"], note: "Solo. New-ish here and still finding his feet." },
+  { id: "3-4", nums: [3, 4], name: "Paddocks 3 & 4", corner: "NE", horses: ["Mickey", "Avelin", "Dahlia"] },
+  { id: "5-6", nums: [5, 6], name: "Paddocks 5 & 6", corner: "SE", horses: ["Hugo", "Linka", "Tammy"] },
+  { id: "7-8", nums: [7, 8], name: "Paddocks 7 & 8", corner: "SW", horses: ["Stendahl", "Ulyssa"] },
 ];
 
 export const ZONES = [
@@ -610,7 +614,7 @@ export const ZONES = [
   { name: "Porch S", type: "porch" },
 ];
 
-// "Paddock 4" / "Stall 1" / "N Porch" (the Lives In line on each ClickUp
+// "Paddocks 7 & 8" / "Paddock 5" / "Stall 1" / "N Porch" (the Lives In line on each ClickUp
 // profile, or Eats At) -> a location id on this board. Unrecognised text returns null.
 export function locationIdFor(text) {
   const t = (text || "").trim().toLowerCase();
@@ -619,13 +623,17 @@ export function locationIdFor(text) {
   if ((m = /stall\s*(\d)/.exec(t))) return "zone-Stall " + m[1];
   if (/(^|\b)(n|north)\s*porch|porch\s*(n|north)\b/.test(t)) return "zone-Porch N";
   if (/(^|\b)(s|south)\s*porch|porch\s*(s|south)\b/.test(t)) return "zone-Porch S";
-  if ((m = /paddock\s*(\d)/.exec(t))) return "pad-" + m[1];
+  // any paddock number lands on the pair it belongs to
+  if ((m = /paddocks?\s*(\d)/.exec(t))) {
+    const p = PADDOCKS.find((pp) => pp.nums.includes(+m[1]));
+    return p ? "pad-" + p.id : null;
+  }
   const z = ZONES.find((zz) => zz.name.toLowerCase() === t);
   return z ? "zone-" + z.name : null;
 }
 
 export const PADDOCK_META = {
-  effective: "Effective Feb 1, 2026",
+  effective: "Effective Oct 10, 2026",
   extras: [
     "Tracks, pastures, and arenas are shared rotational turnout, not permanent assignments.",
     "Hugo and Dahlia do not go out together. Aug 21, 2026: pinned ears, galloping the fence, kicking through it.",

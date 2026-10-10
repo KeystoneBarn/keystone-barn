@@ -18,6 +18,15 @@ PADDOCKS.forEach((p) => {
   p.horses.forEach((h) => { INITIAL_ASSIGNMENTS[h] = "pad-" + p.id; });
 });
 
+// Saved spots that no longer exist (e.g. "pad-2" from before the Oct 2026
+// eight-paddock fence) fall back to the horse's home paddock.
+const KNOWN_IDS = new Set(ALL_LOCATIONS.map((l) => l.id));
+const clean = (a) => {
+  const out = { ...INITIAL_ASSIGNMENTS };
+  for (const [h, id] of Object.entries(a || {})) if (KNOWN_IDS.has(id)) out[h] = id;
+  return out;
+};
+
 const ZONE_EMOJI = { track: "🏇", pasture: "🌿", arena: "⭕", stall: "🏠", porch: "🚪", paddock: "🐴" };
 const ZONE_COLOR = { track: "#8c6a1e", pasture: "#3F6B45", arena: "#A0522D", stall: "#4A4A4A", porch: "#5B6236", paddock: "#46535c" };
 
@@ -25,7 +34,7 @@ export default function Paddocks() {
   const [assignments, setAssignments] = useState(() => {
     try {
       const saved = localStorage.getItem(LS_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) return clean(JSON.parse(saved));
     } catch (e) {}
     return INITIAL_ASSIGNMENTS;
   });
@@ -45,8 +54,9 @@ export default function Paddocks() {
         if (!r.ok) return;
         const data = await r.json();
         if (alive && data && data.assignments) {
-          setAssignments(data.assignments);
-          try { localStorage.setItem(LS_KEY, JSON.stringify(data.assignments)); } catch (e) {}
+          const next = clean(data.assignments);
+          setAssignments(next);
+          try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch (e) {}
         }
       } catch (e) {}
     };

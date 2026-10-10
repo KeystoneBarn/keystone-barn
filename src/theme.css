@@ -1148,6 +1148,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .pm-aisle-label { font-family: "Source Sans 3", sans-serif; font-style: italic; font-size: 22px; fill: #5a2618; text-anchor: middle; pointer-events: none; }
 .pm-small-label { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; fill: #5a4a3a; text-anchor: middle; pointer-events: none; }
 .pm-pad-name { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 26px; letter-spacing: 0.06em; text-transform: uppercase; fill: #3d4224; }
+.pm-fence { fill: none; }
+.pm-fence.electric { stroke: #c08f00; stroke-width: 3; stroke-dasharray: 2 7; stroke-linecap: round; stroke-linejoin: round; }
+.pm-pad-num { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 17px; fill: #6b6a55; pointer-events: none; }
+.pm-haloed text { paint-order: stroke; stroke: var(--halo); stroke-width: 7px; stroke-linejoin: round; }
 .pm-pad-corner { font-family: "Archivo Narrow", sans-serif; font-size: 18px; letter-spacing: 0.12em; fill: #6b6a55; }
 .pm-hname { font-family: "Source Sans 3", sans-serif; font-weight: 700; font-size: 25px; fill: #2d2a26; cursor: pointer; }
 .pm-hname.sm { font-size: 16px; }
