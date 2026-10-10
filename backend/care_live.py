@@ -8,8 +8,8 @@ Spec: Part 3 of the ClickUp doc "🔌 Keystone Barn site: how ClickUp feeds it"
 Every Health Log task whose 📋 Animal Note Type is one of the care types
 below comes through as a dated record, grouped by horse (🐾 Animal dropdown,
 falling back to the name before the colon) and category. Vaccinations carry
-the Product dropdown (Flu/Rhino, EWT/WNV, Rabies, Strangles) so the site can
-show one row per vaccine.
+the vaccine (Product dropdown, else read from the task name; see
+VACCINE_NAMES) so the site can show one row per vaccine.
 
 The site decides last done / next scheduled / green-amber-red itself from
 the dates (src/careConfig.js holds the intervals), so this module never
@@ -19,6 +19,7 @@ visits are "complete", and both count. `open` is passed along only so
 """
 import logging
 import os
+import re
 import threading
 import time
 from datetime import datetime, timezone
@@ -41,6 +42,31 @@ CARE_TYPES = {
     "3927ff54-aa58-4791-a99f-893e061927d1": "dewormer",     # 🪱Dewormer
     "1fe47416-0e23-4651-bad7-0db3440cffb2": "labs",         # 🩸Labs
 }
+
+
+# Vaccination tasks rarely have the Product dropdown set, so the vaccine is
+# read from the name ("Qu Vaccination: Flu/Rhino"). A 6-/7-way combo covers
+# both EWT/WNV and Flu/Rhino. Generic "Spring Vaccinations" visits don't say
+# which shots, so they don't count toward any vaccine.
+VACCINE_NAMES = [
+    (re.compile(r"\b[67]\s*-?\s*way\b", re.I), ["EWT/WNV", "Flu/Rhino"]),
+    (re.compile(r"flu|rhino|calvenza", re.I), ["Flu/Rhino"]),
+    (re.compile(r"ewt|wnv|west nile|eee|wee|tetanus", re.I), ["EWT/WNV"]),
+    (re.compile(r"rabies", re.I), ["Rabies"]),
+    (re.compile(r"strangles", re.I), ["Strangles"]),
+    (re.compile(r"potomac|patomic", re.I), ["Potomac"]),
+]
+
+
+def _vaccines(task):
+    product = _dropdown_name(task, F_PRODUCT)
+    if product:
+        return [product]
+    name = (task.get("name") or "").split(":", 1)[-1]
+    for pattern, vaccines in VACCINE_NAMES:
+        if pattern.search(name):
+            return vaccines
+    return []
 
 
 def _day(ms):
@@ -88,14 +114,19 @@ class _CareCache:
                     horse = _horse(t) or _name_horse(t)
                     if not horse:
                         continue
-                    records.setdefault(horse, {}).setdefault(cat, []).append({
+                    base = {
                         "id": t.get("id"),
                         "name": t.get("name"),
                         "url": t.get("url") or f"https://app.clickup.com/t/{t.get('id')}",
                         "date": _day(t["due_date"]),
                         "open": _is_open(t),
-                        "product": _dropdown_name(t, F_PRODUCT),
-                    })
+                    }
+                    if cat == "vaccination":
+                        # one record per vaccine the shot covers
+                        recs = [{**base, "product": v} for v in _vaccines(t)]
+                    else:
+                        recs = [{**base, "product": _dropdown_name(t, F_PRODUCT)}]
+                    records.setdefault(horse, {}).setdefault(cat, []).extend(recs)
             for cats in records.values():
                 for recs in cats.values():
                     recs.sort(key=lambda r: r["date"])
