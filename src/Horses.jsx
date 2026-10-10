@@ -10,7 +10,7 @@
   Anything missing (no token, ClickUp down) just leaves that section off.
 */
 import { useEffect, useMemo, useState } from "react";
-import { HORSE_COLOR, PADDOCKS } from "./data";
+import { HORSE_COLOR, PADDOCKS, locationIdFor } from "./data";
 import { isHorseCareContact, telHref, useContacts } from "./useContacts";
 import { BUCKET_PRODUCTS, STATIC_BUCKETS, WEIGHTS, hayFor, mergeLiveBuckets } from "./bucketData";
 import { useFeedBuckets } from "./useFeedBuckets";
@@ -54,7 +54,7 @@ function locationLabel(id) {
   if (!id) return null;
   if (id.startsWith("pad-")) {
     const p = PADDOCKS.find((x) => "pad-" + x.id === id);
-    return p ? `${p.name} ${p.corner}` : id;
+    return p ? `${p.name} ${p.corner}` : null;   // a stale id from an old paddock layout
   }
   return id.replace(/^zone-/, "");
 }
@@ -140,8 +140,10 @@ function StallCard({ name, data, bucket, locations, board }) {
   const delta = last && prev ? last.lb - prev.lb : null;
   const first = weights.slice(-12)[0];
 
-  const locId = locations?.[name];
-  const mates = locId ? Object.keys(locations).filter((h) => h !== name && locations[h] === locId) : [];
+  // A board spot from before the Oct 2026 eight-paddock fence reads as home.
+  const saved = locations?.[name];
+  const locId = locationLabel(saved) ? saved : locationIdFor(prof["Lives In"]);
+  const mates = saved ? Object.keys(locations).filter((h) => h !== name && locations[h] === saved) : [];
 
   const watch = (board?.watch || []).filter((w) => w.horse === name);
   const upcoming = (board?.upcoming || []).filter((u) => u.horse === name);
