@@ -307,11 +307,12 @@ export default function Horses() {
 
   return (
     <div className="hx-wrap">
-      <div className="hx-pills" role="tablist" aria-label="Choose a horse">
+      <div className="bk-index" role="tablist" aria-label="Choose a horse">
         {HORSES.map((h) => (
-          <button key={h} role="tab" aria-selected={selected === h} className="hx-pill"
+          <button key={h} role="tab" aria-selected={selected === h} className="bk-idx-btn"
             data-on={selected === h ? "1" : "0"} style={{ "--hc": HORSE_COLOR[h] }}
             onClick={() => setSelected(h)}>
+            <span className="bk-idx-dot" style={{ background: HORSE_COLOR[h] }} />
             {h}
           </button>
         ))}

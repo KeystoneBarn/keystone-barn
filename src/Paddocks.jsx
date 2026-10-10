@@ -164,11 +164,13 @@ export default function Paddocks() {
                 {here.map((h) => (
                   <button
                     key={h}
-                    className={"hchip" + (selected === h ? " hchip-selected" : "")}
+                    className="bk-idx-btn"
+                    data-on={selected === h ? "1" : "0"}
+                    style={{ "--hc": HORSE_COLOR[h] }}
                     onClick={(e) => { e.stopPropagation(); setSelected(selected === h ? null : h); }}
                   >
-                    <span className="swatch" style={{ background: HORSE_COLOR[h] }} />
-                    <span className="hn">{h}</span>
+                    <span className="bk-idx-dot" style={{ background: HORSE_COLOR[h] }} />
+                    {h}
                   </button>
                 ))}
                 {here.length === 0 && !selected && <span className="loc-empty">empty</span>}
