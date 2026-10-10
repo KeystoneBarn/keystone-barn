@@ -149,6 +149,18 @@ def _clean(text):
     return text.strip()
 
 
+# A photo pasted into the description: ![](https://...clickup-attachments.com/<ws>/<uuid>/name.png)
+INLINE_IMAGE = re.compile(r"!\[[^\]]*\]\(([^)\s]+)\)")
+ATTACHMENT_UUID = re.compile(r"/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/")
+
+
+def inline_image_uuid(markdown):
+    """Attachment id of the first photo pasted into a description, if any."""
+    m = INLINE_IMAGE.search(markdown or "")
+    u = ATTACHMENT_UUID.search(m.group(1)) if m else None
+    return u.group(1) if u else None
+
+
 def split_description(markdown):
     """-> (what_it's_for, directions_from_body, barn_note)
 
@@ -156,7 +168,7 @@ def split_description(markdown):
     is for, sometimes a usage paragraph, and sometimes a "## Notes" section
     with barn context or an escalation rule.
     """
-    text = _clean(markdown)
+    text = _clean(INLINE_IMAGE.sub("", markdown or ""))
     if not text:
         return "", "", ""
 
@@ -221,8 +233,10 @@ def cached_image_path(task_id):
     return path if os.path.exists(path) else None
 
 
-def _fetch_image(session, task_id, index):
-    """Pull the first image attachment for one task into the disk cache."""
+def _fetch_image(session, task_id, index, preferred=None):
+    """Pull an image attachment for one task into the disk cache: the photo
+    pasted into the description if there is one (`preferred`, its attachment
+    id), otherwise the first image attached."""
     try:
         detail = session.get(
             f"{BASE}/task/{task_id}",
@@ -231,6 +245,8 @@ def _fetch_image(session, task_id, index):
         )
         detail.raise_for_status()
         attachments = detail.json().get("attachments") or []
+        if preferred:
+            attachments.sort(key=lambda a: not (a.get("id") or "").startswith(preferred))
     except Exception as exc:
         log.warning("attachment lookup failed for %s: %s", task_id, exc)
         index[task_id] = {"file": None, "checked": time.time()}
@@ -398,17 +414,21 @@ class _Feed:
             tasks = _fetch_tasks(session)
             index = _load_image_index()
             products = [_to_product(t, index) for t in tasks]
+            pasted = {t.get("id"): inline_image_uuid(t.get("markdown_description")) for t in tasks}
 
-            # Lazily fill in photos for products we've never looked at, within
-            # a per-cycle budget so we stay far under ClickUp's rate limit.
+            # Lazily fill in photos for products we haven't looked at since
+            # they last changed (a photo is often attached after the task is
+            # made), within a per-cycle budget so we stay far under ClickUp's
+            # rate limit.
             budget = IMAGE_FETCH_BUDGET
             touched = False
             for p in products:
                 if budget <= 0:
                     break
-                if p["img"] or p["id"] in index:
+                checked = (index.get(p["id"]) or {}).get("checked")
+                if p["img"] or (checked and checked * 1000 >= int(p.get("updated") or 0)):
                     continue
-                p["img"] = _fetch_image(session, p["id"], index)
+                p["img"] = _fetch_image(session, p["id"], index, pasted.get(p["id"]))
                 touched = True
                 budget -= 1
             if touched:
