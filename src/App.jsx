@@ -37,6 +37,7 @@ import Buckets from "./Buckets";
 import TackBoard from "./TackBoard";
 import Experiments from "./Experiments";
 import GuidePage from "./GuidePage";
+import Care from "./Care";
 
 
 
@@ -52,6 +53,7 @@ const buildTabs = ({ products, herd, tack, experiments }) => [
   { id: "paddocks", label: "Paddocks", count: herd, icon: "📍" },
   { id: "redlight", label: "Red Light", icon: "🔴" },
   { id: "surefoot", label: "Sure Foot", icon: "🦶" },
+  { id: "care", label: "Care", icon: "🩺" },
 ];
 
 export default function App() {
@@ -124,6 +126,7 @@ export default function App() {
         {tab === "paddocks" && <Paddocks />}
         {tab === "redlight" && <GuidePage guide="redlight" />}
         {tab === "surefoot" && <GuidePage guide="surefoot" />}
+        {tab === "care" && <Care />}
       </main>
 
       <footer className="foot">

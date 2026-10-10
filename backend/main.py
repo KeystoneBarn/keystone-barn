@@ -25,6 +25,7 @@ import horses_live
 import protocols_live
 import tack_live
 import contacts_live
+import care_live
 
 app = FastAPI(title="Horse Locations")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -54,6 +55,7 @@ def _start_clickup_feed():
     protocols_live.start()
     tack_live.start()
     contacts_live.start()
+    care_live.start()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "zones.db")
 
@@ -399,6 +401,12 @@ def get_tack():
 def get_contacts():
     """Who to Call, from the ClickUp "Animal Service Providers" doc page."""
     return contacts_live.contacts_payload()
+
+
+@app.get("/api/care")
+def get_care():
+    """Care tracker records: { live, records: { Horse: { category: [ {id, name, url, date, open, product} ] } } }."""
+    return care_live.care_payload()
 
 
 @app.get("/api/horses")

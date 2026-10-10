@@ -6,6 +6,7 @@
     /api/feeding    AM/PM bucket lines (merged over bucketData.js, like Feed Buckets)
     /api/locations  where the Paddocks board has the horse right now
     /api/board      open watch-list items and upcoming dates
+    /api/care       last farrier / bodywork / weight / dental / vaccine / dewormer / labs (Care.jsx)
   Anything missing (no token, ClickUp down) just leaves that section off.
 */
 import { useEffect, useMemo, useState } from "react";
@@ -13,6 +14,7 @@ import { HORSE_COLOR, PADDOCKS } from "./data";
 import { isHorseCareContact, telHref, useContacts } from "./useContacts";
 import { BUCKET_PRODUCTS, STATIC_BUCKETS, WEIGHTS, hayFor, mergeLiveBuckets } from "./bucketData";
 import { useFeedBuckets } from "./useFeedBuckets";
+import { CareSection } from "./Care";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
   ? "http://localhost:8000"
@@ -248,6 +250,8 @@ function StallCard({ name, data, bucket, locations, board }) {
             </div>
           </div>
         )}
+
+        <CareSection horse={name} />
 
         {labs.length > 0 && (
           <div className="hx-section">
