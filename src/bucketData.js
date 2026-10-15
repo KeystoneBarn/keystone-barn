@@ -169,6 +169,9 @@ export const STATIC_BUCKETS = [
     ],
     oralMeds: [],
   },
+  // Arrived Oct 2026; buckets fill from their 🌾Feed entries in ClickUp.
+  { horse: "DeNozzo", am: [], pm: [], oralMeds: [] },
+  { horse: "Ratatouille", am: [], pm: [], oralMeds: [] },
 ];
 
 // Merge live ClickUp data (from /api/feeding) over the static fallback.
@@ -200,7 +203,12 @@ function liveMed(m, staticMeds) {
 
 export function mergeLiveBuckets(staticBuckets, byHorse, live, activeTaskIds) {
   if (!live) return staticBuckets;
-  return staticBuckets.map((b) => {
+  // A horse with live entries but no snapshot (a new arrival) still gets a bucket.
+  const known = new Set(staticBuckets.map((b) => b.horse));
+  const added = Object.keys(byHorse || {})
+    .filter((h) => !known.has(h))
+    .map((h) => ({ horse: h, am: [], pm: [], oralMeds: [] }));
+  return [...staticBuckets, ...added].map((b) => {
     const l = byHorse[b.horse];
     let oralMeds = activeTaskIds
       ? b.oralMeds.filter((i) => !i.taskId || activeTaskIds.has(i.taskId))

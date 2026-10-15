@@ -583,8 +583,8 @@ export const sxLabel = (n) => LABEL[n] || n;
 // ---------------------------------------------------------------- paddocks
 export const HORSE_COLOR = {
   Mickey: "#2E6E8E", Avelin: "#D2761B", Dahlia: "#B5537A", Qu: "#7A8288",
-  Stendahl: "#2B2F33", Ulyssa: "#D8398A", Hugo: "#6B4A9C", Linka: "#3F6B45", Tammy: "#7A5230",
-  DeNozzo: "#B08A1E", Ratatouille: "#9C6B5E",
+  Stendahl: "#2B2F33", Ulyssa: "#D8398A", Hugo: "#6B4A9C", Linka: "#7CB518", Tammy: "#7A5230",
+  DeNozzo: "#1E5631", Ratatouille: "#2F5FD0",
 };
 
 // Eight paddocks since Oct 2026 (new fence run ahead of Denozzo and
