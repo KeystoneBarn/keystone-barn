@@ -13,8 +13,7 @@
       eight paddocks, 1-4 west to east on the north side and 5-8 east to west
       on the south. North: 2|3 is the old permanent fence; 1|2 jogs near the
       barn wall. South: all electric; 6 is a small square against the barn
-      wall and 5 wraps around it in an L. Herds live in pairs (1 & 2, 3 & 4, 5 & 6,
-      7 & 8), so each pair is one tap target.
+      wall and 5 wraps around it in an L. Each paddock is its own tap target.
     - Stall 1 also opens north into Paddock 4; Stall 4 south into Paddock 5.
     - The N Porch is the barn's NE corner, east of Stall 1: open to Paddock 4
       and with a door into Stall 2. The S Porch mirrors it at the SE corner
@@ -50,29 +49,36 @@ const BARN = [
   [EAST, BUMP.y2], [EAST, BOT], [WEST, BOT],
 ];
 
-// Tap areas for each paddock pair (the two halves of each side, split at the fence).
+// Tap areas for each paddock, following the fences below. 1|2 jogs near the
+// barn wall; 5 is the L wrapped around 6.
+const JOG = [[SPLIT_W + 13, 10], [SPLIT_W + 13, TOP - 34], [SPLIT_W - 2, TOP]];
 const PADDOCKS = {
-  "pad-1-2": [[WEST, 10], [FENCE_X, 10], [FENCE_X, TOP], [WEST, TOP]],
-  "pad-3-4": [[FENCE_X, 10], [402, 10], [EAST, 104], [EAST, TOP], [FENCE_X, TOP]],
-  "pad-7-8": [[WEST, BOT], [FENCE_X, BOT], [FENCE_X, 670], [WEST, 670]],
-  "pad-5-6": [[FENCE_X, BOT], [EAST, BOT], [EAST, 670], [FENCE_X, 670]],
+  "paddock-1": [[WEST, 10], ...JOG, [WEST, TOP]],
+  "paddock-2": [...JOG, [FENCE_X, TOP], [FENCE_X, 10]],
+  "paddock-3": [[FENCE_X, 10], [SPLIT_E, 10], [SPLIT_E, TOP], [FENCE_X, TOP]],
+  "paddock-4": [[SPLIT_E, 10], [402, 10], [EAST, 104], [EAST, TOP], [SPLIT_E, TOP]],
+  "paddock-5": [[SPLIT_E, BOT], [EAST, BOT], [EAST, 670], [FENCE_X, 670], [FENCE_X, SQUARE_Y], [SPLIT_E, SQUARE_Y]],
+  "paddock-6": [[FENCE_X, BOT], [SPLIT_E, BOT], [SPLIT_E, SQUARE_Y], [FENCE_X, SQUARE_Y]],
+  "paddock-7": [[SPLIT_W, BOT], [FENCE_X, BOT], [FENCE_X, 670], [SPLIT_W, 670]],
+  "paddock-8": [[WEST, BOT], [SPLIT_W, BOT], [SPLIT_W, 670], [WEST, 670]],
 };
-const PADDOCK_FILL = { "pad-1-2": "#dfe6cf", "pad-3-4": "#e7ead3", "pad-5-6": "#dfe6cf", "pad-7-8": "#e7ead3" };
+const LIGHT = "#dfe6cf", DARK = "#e7ead3";   // neighbours alternate so each paddock reads on its own
+const PADDOCK_FILL = {
+  "paddock-1": LIGHT, "paddock-2": DARK, "paddock-3": LIGHT, "paddock-4": DARK,
+  "paddock-5": LIGHT, "paddock-6": DARK, "paddock-7": LIGHT, "paddock-8": DARK,
+};
 const TARGET_FILL = "#f3e7b8";
+// Where each paddock's number sits; its horses stack below it.
 const PADDOCK_LABEL = {
-  "pad-1-2": { name: "Paddocks 1 & 2", corner: "NW", x: 128, y: 52 },
-  "pad-3-4": { name: "Paddocks 3 & 4", corner: "NE", x: 362, y: 52 },
-  "pad-7-8": { name: "Paddocks 7 & 8", corner: "SW", x: 128, y: 502 },
-  // label in the L's bottom arm, horses in its east arm (nx/ny)
-  "pad-5-6": { name: "Paddocks 5 & 6", corner: "SE", x: 373, y: 610, nx: 425, ny: 494 },
+  "paddock-1": { n: 1, x: (WEST + SPLIT_W) / 2, y: 44 },
+  "paddock-2": { n: 2, x: (SPLIT_W + 13 + FENCE_X) / 2, y: 44 },
+  "paddock-3": { n: 3, x: (FENCE_X + SPLIT_E) / 2, y: 44 },
+  "paddock-4": { n: 4, x: (SPLIT_E + EAST) / 2 - 8, y: 70 },
+  "paddock-5": { n: 5, x: (SPLIT_E + EAST) / 2, y: BOT + 38 },   // the L's east arm
+  "paddock-6": { n: 6, x: (FENCE_X + SPLIT_E) / 2, y: BOT + 30, tight: true },
+  "paddock-7": { n: 7, x: (SPLIT_W + FENCE_X) / 2, y: BOT + 38 },
+  "paddock-8": { n: 8, x: (WEST + SPLIT_W) / 2, y: BOT + 38 },
 };
-// Each single paddock's number.
-const PADDOCK_NUMS = [
-  [1, (WEST + SPLIT_W) / 2, TOP - 12], [2, (SPLIT_W + FENCE_X) / 2 + 8, TOP - 12],
-  [3, (FENCE_X + SPLIT_E) / 2, TOP - 12], [4, (SPLIT_E + EAST) / 2, TOP - 12],
-  [5, EAST - 22, 660], [6, (FENCE_X + SPLIT_E) / 2, (BOT + SQUARE_Y) / 2 + 6],
-  [7, (SPLIT_W + FENCE_X) / 2, 660], [8, (WEST + SPLIT_W) / 2, 660],
-];
 // Fence lines inside the paddock rows; everything but 2|3 is electric.
 const FENCES = [
   { pts: [[FENCE_X, 14], [FENCE_X, TOP - 4]] },
@@ -142,9 +148,6 @@ export default function PaddockMap({
         {FENCES.map((f, i) => (
           <polyline key={i} points={pts(f.pts)} className={"pm-fence" + (f.electric ? " electric" : "")} />
         ))}
-        {PADDOCK_NUMS.map(([n, x, y]) => (
-          <text key={n} x={x} y={y} textAnchor="middle" className="pm-pad-num">{n}</text>
-        ))}
 
         {/* barn */}
         <polygon points={pts(BARN)} className="pm-barn" />
@@ -174,14 +177,13 @@ export default function PaddockMap({
           <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} className="pm-door" />
         ))}
 
-        {/* paddock labels + who's in them; the halo keeps them clear of the inner fences */}
+        {/* paddock numbers + who's in them; the halo keeps names clear of the fences */}
         {Object.entries(PADDOCK_LABEL).map(([id, p]) => (
           <g key={id} onClick={() => place(id)} className="pm-haloed"
             style={{ "--halo": isTarget(id) ? TARGET_FILL : PADDOCK_FILL[id] }}>
-            <text x={p.x} y={p.y} textAnchor="middle" className="pm-pad-name">{p.name}</text>
-            <text x={p.x} y={p.y + 22} textAnchor="middle" className="pm-pad-corner">{p.corner}</text>
+            <text x={p.x} y={p.y} textAnchor="middle" className="pm-pad-name">{p.n}</text>
             {horsesAt(id).map((h, i) => (
-              <HorseTag key={h} h={h} x={p.nx ?? p.x} y={(p.ny ?? p.y + 56) + i * 27}
+              <HorseTag key={h} h={h} small x={p.x} y={p.y + (p.tight ? 22 : 28) + i * (p.tight ? 19 : 22)}
                 selected={selected === h} onPick={onPick} />
             ))}
           </g>

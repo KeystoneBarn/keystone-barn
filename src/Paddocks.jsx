@@ -8,18 +8,18 @@ const API = (typeof import.meta !== "undefined" && import.meta.env && import.met
 const LS_KEY = "kb-horse-locations";
 
 const ALL_LOCATIONS = [
-  ...PADDOCKS.map((p) => ({ id: "pad-" + p.id, name: p.name, type: "paddock", corner: p.corner })),
+  ...PADDOCKS.map((p) => ({ id: "paddock-" + p.id, name: p.name, type: "paddock", corner: p.corner })),
   ...ZONES.map((z) => ({ id: "zone-" + z.name, name: z.name, type: z.type })),
 ];
 
 // Fallback homes if the ClickUp profiles can't be read.
 const INITIAL_ASSIGNMENTS = {};
 PADDOCKS.forEach((p) => {
-  p.horses.forEach((h) => { INITIAL_ASSIGNMENTS[h] = "pad-" + p.id; });
+  p.horses.forEach((h) => { INITIAL_ASSIGNMENTS[h] = "paddock-" + p.id; });
 });
 
-// Saved spots that no longer exist (e.g. "pad-2" from before the Oct 2026
-// eight-paddock fence) fall back to the horse's home paddock.
+// Saved spots that no longer exist (e.g. "pad-2" or "pad-3-4" from the older
+// paddock layouts) fall back to the horse's home paddock.
 const KNOWN_IDS = new Set(ALL_LOCATIONS.map((l) => l.id));
 const clean = (a) => {
   const out = { ...INITIAL_ASSIGNMENTS };
@@ -110,6 +110,8 @@ export default function Paddocks() {
 
   const horses = Object.keys(HORSE_COLOR);
   const horsesAt = (locId) => horses.filter((h) => assignments[h] === locId);
+  // New horses with no profile and no saved spot yet: list them so they can be placed.
+  const unplaced = horses.filter((h) => !assignments[h]);
 
   return (
     <div className="pad-wrap">
@@ -125,6 +127,24 @@ export default function Paddocks() {
           <span className="move-swatch" style={{ background: HORSE_COLOR[selected] }} />
           Moving <strong>{selected}</strong> — tap a location below
           <button className="move-cancel" onClick={() => setSelected(null)}>×</button>
+        </div>
+      )}
+
+      {unplaced.length > 0 && (
+        <div className="loc-unplaced">
+          <span className="loc-unplaced-k">Not placed yet</span>
+          {unplaced.map((h) => (
+            <button
+              key={h}
+              className="bk-idx-btn"
+              data-on={selected === h ? "1" : "0"}
+              style={{ "--hc": HORSE_COLOR[h] }}
+              onClick={() => setSelected(selected === h ? null : h)}
+            >
+              <span className="bk-idx-dot" style={{ background: HORSE_COLOR[h] }} />
+              {h}
+            </button>
+          ))}
         </div>
       )}
 

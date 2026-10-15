@@ -627,6 +627,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
   letter-spacing: 0.14em; color: #566067; text-transform: uppercase;
 }
 .loc-horses { display: flex; flex-wrap: wrap; gap: 5px; }
+.loc-unplaced { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 12px 0 4px; }
+.loc-unplaced-k {
+  font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 12px;
+  letter-spacing: 0.14em; color: #566067; text-transform: uppercase; margin-right: 4px;
+}
 .loc-empty { font-size: 12.5px; color: #566067; font-style: italic; }
 .loc-drop {
   font-family: "Archivo Narrow", sans-serif; font-size: 12px; font-weight: 600;

@@ -52,9 +52,9 @@ function ageFrom(dob) {
 
 function locationLabel(id) {
   if (!id) return null;
-  if (id.startsWith("pad-")) {
-    const p = PADDOCKS.find((x) => "pad-" + x.id === id);
-    return p ? `${p.name} ${p.corner}` : null;   // a stale id from an old paddock layout
+  if (id.startsWith("pad")) {
+    const p = PADDOCKS.find((x) => "paddock-" + x.id === id);
+    return p ? p.name : null;   // a stale id from an old paddock layout
   }
   return id.replace(/^zone-/, "");
 }
