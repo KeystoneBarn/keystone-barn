@@ -6,7 +6,7 @@ import {
 import { useFeedBuckets } from "./useFeedBuckets";
 import { useWeights } from "./useWeights";
 import { useProducts } from "./useProducts";
-import { HORSE_COLOR, locationIdFor } from "./data";
+import { HORSE_COLOR, PADDOCKS, locationIdFor } from "./data";
 import PaddockMap from "./PaddockMap";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
@@ -15,7 +15,11 @@ const API = (typeof import.meta !== "undefined" && import.meta.env && import.met
 
 // Where each horse is fed, from the Eats At line on its ClickUp profile. A
 // named spot (Stall 3, N Porch) is drawn there; "Paddock" / "Outside" means
-// the horse eats in the paddock it lives in (its Lives In line).
+// the horse eats in the paddock it lives in (its Lives In line). A horse with
+// no profile yet is drawn in its built-in home paddock.
+const HOME = {};
+PADDOCKS.forEach((p) => p.horses.forEach((h) => { HOME[h] = "paddock-" + p.id; }));
+
 function EatsMap() {
   const [where, setWhere] = useState(null);
   useEffect(() => {
@@ -23,7 +27,7 @@ function EatsMap() {
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!d?.horses) return;
-        const out = {};
+        const out = { ...HOME };
         for (const [h, v] of Object.entries(d.horses)) {
           const p = v.profile || {};
           const id = locationIdFor(p["Eats At"]) || locationIdFor(p["Lives In"]);
