@@ -40,10 +40,9 @@ function load() {
       settled = Object.keys(weighedOn).length ? { weights, weighedOn, live: true } : FALLBACK;
       return settled;
     })
-    .catch(() => {
-      settled = FALLBACK;
-      return settled;
-    })
+    // Don't remember a failure (e.g. a 502 mid-deploy): the next page that
+    // asks tries again instead of sticking with the bundled weights.
+    .catch(() => FALLBACK)
     .finally(() => { inflight = null; });
   return inflight;
 }
