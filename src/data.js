@@ -596,13 +596,14 @@ export const HORSE_COLOR = {
 // `horses` is only the fallback home when ClickUp profiles can't be read.
 export const PADDOCKS = [
   { id: "1", name: "Paddock 1", corner: "NW", horses: ["Qu"] },
-  { id: "2", name: "Paddock 2", corner: "N", horses: [] },
-  { id: "3", name: "Paddock 3", corner: "N", horses: ["Mickey", "Avelin", "Dahlia"] },
-  { id: "4", name: "Paddock 4", corner: "NE", horses: [] },
-  { id: "5", name: "Paddock 5", corner: "SE", horses: ["Hugo", "Linka", "Tammy"] },
+  { id: "2", name: "Paddock 2", corner: "N", horses: ["Ratatouille"] },
+  { id: "3", name: "Paddock 3", corner: "N", horses: ["DeNozzo"] },
+  { id: "4", name: "Paddock 4", corner: "NE", horses: ["Dahlia"] },
+  // Hugo, Tammy and Linka share 5 & 6 as one herd; they show on 5.
+  { id: "5", name: "Paddock 5", corner: "SE", horses: ["Hugo", "Tammy", "Linka"] },
   { id: "6", name: "Paddock 6", corner: "S", horses: [] },
-  { id: "7", name: "Paddock 7", corner: "S", horses: ["Stendahl", "Ulyssa"] },
-  { id: "8", name: "Paddock 8", corner: "SW", horses: [] },
+  { id: "7", name: "Paddock 7", corner: "S", horses: ["Mickey", "Avelin"] },
+  { id: "8", name: "Paddock 8", corner: "SW", horses: ["Stendahl", "Ulyssa"] },
 ];
 
 export const ZONES = [
