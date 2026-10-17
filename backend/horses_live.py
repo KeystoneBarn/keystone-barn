@@ -61,6 +61,11 @@ def _horse(task):
     return raw.rstrip("🐴🐶🐱🐐🐓").strip() or None
 
 
+def _cap(name):
+    """'qu' -> 'Qu', but 'DeNozzo' stays 'DeNozzo' (str.capitalize() would lower the N)."""
+    return name[:1].upper() + name[1:]
+
+
 def _name_horse(task):
     """'Avelin: Insulin' / 'Avelin weight: 990 lb' -> 'Avelin' when the dropdown is blank."""
     m = re.match(r"^\s*(\w+)", task.get("name") or "")
@@ -163,7 +168,7 @@ class _HorsesCache:
                 m = PROFILE_NAME.match(t.get("name") or "")
                 if not m:
                     continue
-                rec(m.group(1).capitalize())["profile"] = parse_profile(t.get("markdown_description"))
+                rec(_cap(m.group(1)))["profile"] = parse_profile(t.get("markdown_description"))
 
             for t in _get_all(session, NOTE_WEIGHT):
                 horse = _horse(t) or _name_horse(t)
