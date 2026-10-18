@@ -958,6 +958,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   vertical-align: 1px; white-space: nowrap;
 }
 .bb-horse i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.bb-kind { color: #fff; letter-spacing: 0.03em; }
 
 /* team notes */
 .bb-notes { display: grid; gap: 18px; grid-template-columns: 1fr; margin-bottom: 26px; }

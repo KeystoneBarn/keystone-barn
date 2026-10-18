@@ -46,6 +46,33 @@ function Horse({ name }) {
   );
 }
 
+// Appointments get a "who's coming" chip instead of a horse chip: one vet or
+// farrier visit often covers several horses, and the Animal dropdown is blank.
+// The kind comes from the title ("Vet Appt: …", "Farrier Appt: …", "Chiro …").
+const APPT_KINDS = [
+  { re: /\b(chiro|bodywork|dr\.?\s*hal)\b/i, label: "Chiro", icon: "🙌", color: "#2f7d6d" },
+  { re: /\b(dental|dentist|teeth)\b/i, label: "Dental", icon: "🦷", color: "#7a4a9c" },
+  { re: /\bfarrier\b/i, label: "Farrier", icon: "🧲", color: "#3a5aa8" },
+  { re: /\bvet\b/i, label: "Vet", icon: "🩺", color: "#a33a2a" },
+];
+function apptKind(it) {
+  const isAppt = /appointment/i.test(it.type || "");
+  if (!isAppt && it.horse) return null;   // a med reminder etc. keeps its horse chip
+  const k = APPT_KINDS.find((a) => a.re.test(it.title || ""));
+  if (k) return k;
+  return isAppt ? { label: "Appt", icon: "📋", color: "#5b6236" } : null;
+}
+// "Vet Appt: Hugo & Qu" -> "Hugo & Qu" (the chip already says Vet)
+const apptTitle = (t) => t.replace(/^\s*[\w.]+(\s+\w+)?\s+appt\s*:\s*/i, "");
+
+function Kind({ kind }) {
+  return (
+    <span className="bb-horse bb-kind" style={{ background: kind.color }}>
+      <span aria-hidden="true">{kind.icon}</span>{kind.label}
+    </span>
+  );
+}
+
 function Pin({ color = "#b3261e" }) {
   return <span className="bb-pin" style={{ background: color }} aria-hidden="true" />;
 }
@@ -201,12 +228,15 @@ export default function Board() {
                 {d.today ? "Today" : fmtDay(d.k)}
                 {d.overdue && <span className="bb-flag">Overdue</span>}
               </div>
-              {d.items.map((it) => (
-                <div key={it.id} className="bb-item">
-                  <Horse name={it.horse} />
-                  <span>{it.title}</span>
-                </div>
-              ))}
+              {d.items.map((it) => {
+                const kind = apptKind(it);
+                return (
+                  <div key={it.id} className="bb-item">
+                    {kind ? <Kind kind={kind} /> : <Horse name={it.horse} />}
+                    <span>{kind ? apptTitle(it.title) : it.title}</span>
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
