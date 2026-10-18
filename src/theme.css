@@ -743,6 +743,23 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .exp-diagram img { width: 100%; height: 110px; object-fit: contain; }
 .exp-diagram span { font-size: 12.5px; font-weight: 700; text-align: center; }
 .exp-ebo { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-3); }
+
+/* exercise photos + focus */
+.exp-ex { display: flex; gap: 10px; align-items: flex-start; }
+.exp-ex-img { flex: none; width: 96px; height: 64px; object-fit: cover; border-radius: 4px; border: 1px solid var(--rule-2); }
+.exp-ex-focus { margin: 4px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.exp-ex-focus span { font-weight: 700; color: var(--ink-3); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.06em; }
+.exp-xgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.exp-xcard { border: 1px solid var(--rule-2); border-radius: 6px; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+.exp-xcard img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+.exp-xcard-noimg {
+  aspect-ratio: 3 / 2; display: grid; place-items: center; background: var(--rule-2);
+  font-size: 12px; color: var(--ink-3); font-style: italic;
+}
+.exp-xcard-body { padding: 8px 10px 10px; }
+.exp-xcard-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.exp-xcard-body p { margin: 0 0 4px; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.exp-xcard-reps { font-size: 12px !important; color: var(--ink-3) !important; }
 .exp-table { border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
 .exp-table-row { display: flex; border-bottom: 1px solid var(--rule-2); }
 .exp-table-row:last-child { border-bottom: 0; }

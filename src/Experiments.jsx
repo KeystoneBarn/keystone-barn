@@ -4,6 +4,7 @@ import {
   mergeLivePrograms,
 } from "./experimentsData";
 import { useExperiments } from "./useExperiments";
+import { findExercise } from "./exerciseLibrary";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
   ? "http://localhost:8000"
@@ -78,6 +79,61 @@ function programProgress(program) {
   };
 }
 
+// A plan day: the GPW coaching note, plus the pattern's photo and focus from
+// the exercise reference when we have them.
+function DayExercise({ day, style }) {
+  const ex = findExercise(day.name, day.mode);
+  return (
+    <div className="exp-ex" style={style}>
+      {ex?.img && <img className="exp-ex-img" src={ex.img} alt={`${day.name} (${day.mode})`} loading="lazy" />}
+      <div>
+        <p className="exp-day-detail" style={{ marginTop: 0 }}><strong>{day.name}.</strong> {day.detail}</p>
+        {ex && <p className="exp-ex-focus"><span>Works:</span> {ex.focus}</p>}
+      </div>
+    </div>
+  );
+}
+
+// One pattern: photo, name and gait, what it works, suggested reps.
+function ExerciseCard({ name, gait, img, focus, reps }) {
+  return (
+    <div className="exp-xcard">
+      {img
+        ? <a href={img} target="_blank" rel="noreferrer" title="Open full size"><img src={img} alt={`${name} (${gait})`} loading="lazy" /></a>
+        : <div className="exp-xcard-noimg">No photo</div>}
+      <div className="exp-xcard-body">
+        <div className="exp-xcard-name">{name}{gait ? ` (${gait})` : ""}</div>
+        {focus && <p>{focus}</p>}
+        {reps && <p className="exp-xcard-reps">{reps}</p>}
+      </div>
+    </div>
+  );
+}
+
+// Every pattern a GPW grid uses, once each, in the order they first appear.
+function PlanExercises({ weeks }) {
+  const seen = new Map();   // one card per pattern ("Walk" and "Walk & Trot" days share it)
+  weeks.forEach((w) => w.days.forEach((d) => {
+    if (d.rest || !d.name) return;
+    const key = findExercise(d.name, d.mode) || `${d.name}|${d.mode}`;
+    if (!seen.has(key)) seen.set(key, d);
+  }));
+  if (!seen.size) return null;
+  return (
+    <div className="exp-details">
+      <div className="exp-sec">
+        <div className="exp-sec-h">Exercises in this plan</div>
+        <div className="exp-xgrid">
+          {[...seen.values()].map((d) => {
+            const ex = findExercise(d.name, d.mode);
+            return <ExerciseCard key={d.name + d.mode} name={d.name} gait={d.mode} img={ex?.img} focus={ex?.focus} reps={ex?.reps} />;
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TodayCard({ progress, program }) {
   if (!program.weeks.length || progress.complete) return null;
   const { today, next } = progress;
@@ -91,9 +147,7 @@ function TodayCard({ progress, program }) {
         {today && !today.rest && today.mode && <span className="exp-day-mode">{today.mode}</span>}
       </div>
       <div className="exp-day-body">
-        {today && !today.rest && (
-          <p className="exp-day-detail" style={{ marginTop: 0 }}><strong>{today.name}.</strong> {today.detail}</p>
-        )}
+        {today && !today.rest && <DayExercise day={today} />}
         {today?.rest && (
           <p className="exp-day-detail" style={{ marginTop: 0, fontStyle: "italic", color: "var(--ink-3)" }}>Rest day</p>
         )}
@@ -169,7 +223,7 @@ function WeekCard({ week, expanded, onToggle, todayName, isCurrentWeek }) {
                   </div>
                 ) : (
                   <div className="exp-day-body">
-                    <p className="exp-day-detail"><strong>{d.name}.</strong> {d.detail}</p>
+                    <DayExercise day={d} />
                   </div>
                 )}
               </div>
@@ -247,13 +301,14 @@ function ProgramDetails({ program }) {
       {program.diagrams.length > 0 && (
         <div className="exp-sec">
           <div className="exp-sec-h">Exercise reference</div>
-          <div className="exp-diagrams">
-            {program.diagrams.map((d) => (
-              <a key={d.src} className="exp-diagram" href={API + d.src} target="_blank" rel="noreferrer" title="Open full size">
-                <img src={API + d.src} alt={d.title} loading="lazy" />
-                <span>{d.title}</span>
-              </a>
-            ))}
+          <div className="exp-xgrid">
+            {program.diagrams.map((d) => {
+              const ex = findExercise(d.title);
+              return (
+                <ExerciseCard key={d.src} img={API + d.src}
+                  name={ex?.name || d.title} gait={ex?.gait} focus={ex?.focus} reps={ex?.reps} />
+              );
+            })}
           </div>
         </div>
       )}
@@ -302,6 +357,7 @@ function ProgramCard({ program }) {
               isCurrentWeek={progress.currentWeek === w.num}
             />
           ))}
+          <PlanExercises weeks={program.weeks} />
         </div>
       ) : program.details?.length > 0 || program.diagrams?.length > 0 ? (
         <ProgramDetails program={program} />
