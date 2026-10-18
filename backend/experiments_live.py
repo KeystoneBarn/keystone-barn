@@ -142,6 +142,12 @@ MD_LINK = re.compile(r"\[([^\]]*)\]\((?:[^()]|\([^)]*\))*\)")
 BARE_URL = re.compile(r"https?://[^\s)]+")
 SKIP_SECTIONS = {"hypothesis"}
 EBO = re.compile(r"\bEBO\b|equine\s*bodywork\s*online", re.I)
+# "This is adapted enrichment, not the EBO … program" isn't an EBO program.
+NOT_EBO = re.compile(r"\bnot\s+(?:an?\s+|the\s+)?(?:EBO|equine\s*bodywork\s*online)\b", re.I)
+
+
+def _is_ebo(md):
+    return bool(EBO.search(NOT_EBO.sub("", md or "")))
 
 
 def _clean_md(text):
@@ -310,7 +316,7 @@ class _ExperimentsCache:
                     md = task.get("markdown_description") or task.get("description") or ""
                     e["details"] = _details(md)
                     e["diagrams"] = _diagrams(session, task)
-                    e["ebo"] = bool(EBO.search(md))
+                    e["ebo"] = _is_ebo(md)
                     e["plan"] = _plan_for(session, task)
                     e["focus"], e["log"] = _focus_and_log(
                         _comments_for(session, e["id"]),
