@@ -4,7 +4,7 @@ import {
   mergeLivePrograms,
 } from "./experimentsData";
 import { useExperiments } from "./useExperiments";
-import { findExercise } from "./exerciseLibrary";
+import { findExercise, photoFor } from "./exerciseLibrary";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
   ? "http://localhost:8000"
@@ -118,7 +118,10 @@ function WorkoutDay({ day, workouts, style }) {
   const titles = [...new Set(workouts.map((w) => w.title))];
   const done = workouts.every((w) => w.done);
   const images = [];
-  workouts.forEach((w) => w.images.forEach((i) => { if (!images.some((x) => x.src === i.src)) images.push(i); }));
+  workouts.forEach((w) => w.images.forEach((i) => {
+    const src = i.src ? API + i.src : photoFor(i.title);
+    if (src && !images.some((x) => x.src === src)) images.push({ src, title: i.title });
+  }));
   const many = new Set(workouts.map((w) => w.horse)).size > 1;
   const Lines = ({ field, label }) => byText(workouts, field).map((g, i, all) => (
     <p className="exp-ex-focus" key={field + i}>
@@ -135,8 +138,8 @@ function WorkoutDay({ day, workouts, style }) {
       {images.length > 0 && (
         <div className="exp-wimgs">
           {images.map((i) => (
-            <a key={i.src} href={API + i.src} target="_blank" rel="noreferrer" title="Open full size">
-              <img src={API + i.src} alt={i.title} loading="lazy" />
+            <a key={i.src} href={i.src} target="_blank" rel="noreferrer" title="Open full size">
+              <img src={i.src} alt={i.title} loading="lazy" />
               <span>{i.title}</span>
             </a>
           ))}

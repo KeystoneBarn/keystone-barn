@@ -202,11 +202,14 @@ MD_IMAGE = re.compile(r"!\[[^\]]*\]\((https?://[^)\s]+)\)")
 WORKOUT_NAME = re.compile(r"^\s*\w+\s*:\s*W(\d+)\s+(.+?)\s*$", re.I)
 SENTENCE = re.compile(r"(?<=[.!?])\s+")
 _img_index = {}   # remote url -> local src
-IMAGE_ERRORS = {}  # file name -> short reason (diagnostics; no urls)
 
 
 def _download(session, url, path):
-    img = session.get(url, timeout=HTTP_TIMEOUT)
+    import requests
+    # A signed attachment link rejects the API token header; try it bare first.
+    img = requests.get(url, timeout=HTTP_TIMEOUT)
+    if img.status_code in (401, 403):
+        img = session.get(url, timeout=HTTP_TIMEOUT)
     if img.status_code >= 400:
         raise ValueError(f"HTTP {img.status_code}")
     if not (img.headers.get("content-type") or "").startswith("image/"):
@@ -254,8 +257,8 @@ def _cache_remote_image(session, url, task_id=None):
                     exc = exc2
             if not ok:
                 log.warning("workout image %s failed: %s", url, exc)
-                IMAGE_ERRORS[m.group(2)] = f"{type(exc).__name__}: {str(exc).split(' for url')[0][:120]}"
-                return None
+                title = re.sub(r"\.\w+$", "", requests_unquote(m.group(2)))
+                return {"src": None, "title": re.sub(r"[-_]+", " ", title).strip()}
     title = re.sub(r"\.\w+$", "", m.group(2))
     _img_index[url] = {"src": f"/api/experiment-image/{fname}", "title": re.sub(r"[-_]+", " ", title).strip()}
     return _img_index[url]
@@ -545,5 +548,4 @@ def experiments_payload():
         "fetched_at": snap["fetched_at"],
         "age_seconds": snap["age_seconds"],
         "programs": snap["programs"],
-        "image_errors": dict(list(IMAGE_ERRORS.items())[:10]),
     }

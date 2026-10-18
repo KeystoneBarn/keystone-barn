@@ -122,3 +122,13 @@ export function findExercise(name, gait) {
     || same.find((e) => e.gait === "Walk")
     || same[0];
 }
+
+// A workout image's file name ("half_circle_inside", "even_raised_trot") ->
+// the matching reference photo, for images ClickUp won't release.
+const SHORT = { "half circle inside": "half circle inside raised", "half circle outside": "half circle outside raised",
+  "uneven high": "uneven high walk", "even uneven combo": "even uneven combo walk", circle: "circle walk" };
+export function photoFor(title) {
+  let n = norm(title);
+  n = SHORT[n] || n;
+  return findExercise(n)?.img || findExercise(n + " walk")?.img || null;
+}
