@@ -236,11 +236,20 @@ def _cache_remote_image(session, url, task_id=None):
             if task_id:
                 try:
                     want = requests_unquote(m.group(2)).lower()
-                    for a in _task_detail(session, task_id).get("attachments") or []:
-                        if (a.get("title") or "").lower() == want:
-                            _download(session, a.get("url") or a.get("url_w_query"), path)
+                    match = [a for a in _task_detail(session, task_id).get("attachments") or []
+                             if (a.get("title") or "").lower() == want]
+                    if not match:
+                        raise ValueError("no attachment named " + want)
+                    # Private attachments: the signed url_w_query works, the bare url 401s.
+                    for link in (match[0].get("url_w_query"), match[0].get("url")):
+                        if not link:
+                            continue
+                        try:
+                            _download(session, link, path)
                             ok = True
                             break
+                        except Exception as exc3:
+                            exc = exc3
                 except Exception as exc2:
                     exc = exc2
             if not ok:
