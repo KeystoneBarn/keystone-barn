@@ -117,10 +117,13 @@ function DayExercise({ day, workouts, style }) {
 function WorkoutDay({ day, workouts, style }) {
   const titles = [...new Set(workouts.map((w) => w.title))];
   const done = workouts.every((w) => w.done);
+  // Each horse's subtask has its own copy of a picture ("even", "Even Walk"):
+  // show each pattern once.
+  const stem = (t) => (t || "").toLowerCase().replace(/[^a-z]+/g, " ").replace(/\b(walk|png|jpg)\b/g, "").trim();
   const images = [];
   workouts.forEach((w) => w.images.forEach((i) => {
     const src = i.src ? API + i.src : photoFor(i.title);
-    if (src && !images.some((x) => x.src === src)) images.push({ src, title: i.title });
+    if (src && !images.some((x) => x.src === src || stem(x.title) === stem(i.title))) images.push({ src, title: i.title });
   }));
   const many = new Set(workouts.map((w) => w.horse)).size > 1;
   const Lines = ({ field, label }) => byText(workouts, field).map((g, i, all) => (
