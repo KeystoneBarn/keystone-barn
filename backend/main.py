@@ -145,6 +145,16 @@ def get_feeding():
     return feed_live.feed_payload()
 
 
+@app.get("/api/experiment-image/{fname}")
+def get_experiment_image(fname: str):
+    """An experiment's exercise diagram, from the local cache (never hotlinked)."""
+    path = experiments_live.image_path(fname)
+    if not path:
+        raise HTTPException(status_code=404, detail="no cached image")
+    media_type = mimetypes.guess_type(path)[0] or "image/png"
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
+
+
 @app.get("/api/experiments")
 def get_experiments():
     """Live active-program shell from the Experiments list.

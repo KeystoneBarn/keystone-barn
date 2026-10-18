@@ -5,6 +5,11 @@ import {
 } from "./experimentsData";
 import { useExperiments } from "./useExperiments";
 
+const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
+  ? "http://localhost:8000"
+  : "";
+const EBO_URL = "https://www.equinebodyworkonline.com/";
+
 const WEEK_COLORS = ["#2563eb", "#16a34a", "#ca8a04", "#9333ea"];
 const weekColor = (num) => WEEK_COLORS[(num - 1) % WEEK_COLORS.length];
 const DAY_MS = 86400000;
@@ -206,6 +211,61 @@ function SessionLog({ log }) {
   );
 }
 
+// "**Bold:** rest" -> <strong>Bold:</strong> rest
+function Rich({ text }) {
+  return text.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
+    /^\*\*[^*]+\*\*$/.test(part) ? <strong key={i}>{part.slice(2, -2)}</strong> : part);
+}
+
+// The protocol as written on the ClickUp task, for programs without a GPW
+// day-by-day grid: schedule, setup, stop rules, what to log. Bullets stay
+// bullets; "Week 2: Even; Clover; …" lines read as a small schedule.
+function ProgramDetails({ program }) {
+  return (
+    <div className="exp-details">
+      {program.details.map((sec, i) => {
+        const bullets = sec.lines.filter((l) => /^[*-]\s+/.test(l));
+        const prose = sec.lines.filter((l) => !/^[*-]\s+/.test(l));
+        return (
+          <div className="exp-sec" key={sec.title + i}>
+            {sec.title && <div className="exp-sec-h">{sec.title}</div>}
+            {prose.map((l, j) => {
+              const wk = /^(week\s+\d+)\s*:\s*(.+)$/i.exec(l);
+              return wk ? (
+                <div className="exp-sched" key={j}>
+                  <span className="exp-sched-wk">{wk[1]}</span>
+                  <span><Rich text={wk[2]} /></span>
+                </div>
+              ) : <p key={j}><Rich text={l} /></p>;
+            })}
+            {bullets.length > 0 && (
+              <ul>{bullets.map((l, j) => <li key={j}><Rich text={l.replace(/^[*-]\s+/, "")} /></li>)}</ul>
+            )}
+          </div>
+        );
+      })}
+      {program.diagrams.length > 0 && (
+        <div className="exp-sec">
+          <div className="exp-sec-h">Exercise reference</div>
+          <div className="exp-diagrams">
+            {program.diagrams.map((d) => (
+              <a key={d.src} className="exp-diagram" href={API + d.src} target="_blank" rel="noreferrer" title="Open full size">
+                <img src={API + d.src} alt={d.title} loading="lazy" />
+                <span>{d.title}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+      {program.ebo && (
+        <p className="exp-ebo">
+          Exercises from <a href={EBO_URL} target="_blank" rel="noreferrer">Equine Bodywork Online ↗</a>
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ProgramCard({ program }) {
   const progress = programProgress(program);
   const [openWeek, setOpenWeek] = useState(progress.currentWeek);
@@ -243,13 +303,12 @@ function ProgramCard({ program }) {
             />
           ))}
         </div>
+      ) : program.details?.length > 0 || program.diagrams?.length > 0 ? (
+        <ProgramDetails program={program} />
       ) : (
         <div style={{ padding: "0 14px 14px" }}>
           <p className="prose" style={{ margin: 0, fontSize: 13.5, fontStyle: "italic", color: "var(--ink-3)" }}>
             Day-by-day plan not yet added for this program.
-            {program.url && (
-              <> <a href={program.url} target="_blank" rel="noreferrer">View in ClickUp →</a></>
-            )}
           </p>
         </div>
       )}

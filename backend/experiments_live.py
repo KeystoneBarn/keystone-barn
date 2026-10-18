@@ -40,7 +40,7 @@ import re
 import threading
 import time
 
-from clickup_live import BASE, HTTP_TIMEOUT, TOKEN, _dropdown_name, _raw_value, _session
+from clickup_live import BASE, HTTP_TIMEOUT, IMAGE_CACHE_DIR, TOKEN, _dropdown_name, _raw_value, _session
 from gpw_plan import parse_plan
 
 log = logging.getLogger("experiments_live")
@@ -101,11 +101,19 @@ LOG_LIMIT = 8
 _plan_cache = {}
 
 
-def _plan_for(session, task_id):
-    resp = session.get(f"{BASE}/task/{task_id}", timeout=HTTP_TIMEOUT)
+def _task_detail(session, task_id):
+    resp = session.get(
+        f"{BASE}/task/{task_id}",
+        params={"include_markdown_description": "true"},
+        timeout=HTTP_TIMEOUT,
+    )
     resp.raise_for_status()
+    return resp.json()
+
+
+def _plan_for(session, task):
     candidates = [
-        a for a in resp.json().get("attachments") or []
+        a for a in task.get("attachments") or []
         if (a.get("extension") or "").lower() == "pdf"
         and PLAN_TITLE.search(a.get("title") or "")
         and not EMAIL_TITLE.search(a.get("title") or "")
@@ -119,11 +127,85 @@ def _plan_for(session, task_id):
                 pdf.raise_for_status()
                 _plan_cache[att["id"]] = parse_plan(pdf.content)
             except Exception as exc:
-                log.warning("plan pdf %s on %s failed: %s", att.get("title"), task_id, exc)
+                log.warning("plan pdf %s on %s failed: %s", att.get("title"), task.get("id"), exc)
                 continue
         if _plan_cache[att["id"]]:
             return _plan_cache[att["id"]]
     return None
+
+
+# --- the written protocol, for programs without a GPW grid ---------------
+# Staff read the site, not ClickUp, so the task's own description is shown
+# (minus the Hypothesis, which the card already has) with every link reduced
+# to its text: nothing on the site points back into ClickUp.
+MD_LINK = re.compile(r"\[([^\]]*)\]\((?:[^()]|\([^)]*\))*\)")
+BARE_URL = re.compile(r"https?://[^\s)]+")
+SKIP_SECTIONS = {"hypothesis"}
+EBO = re.compile(r"\bEBO\b|equine\s*bodywork\s*online", re.I)
+
+
+def _clean_md(text):
+    # [label](url) -> label; a link whose label is itself a URL goes entirely
+    text = MD_LINK.sub(lambda m: "" if BARE_URL.match(m.group(1)) else m.group(1), text or "")
+    text = BARE_URL.sub("", text)
+    text = re.sub(r"\(\s*\)", "", text)            # "( )" left where a link was
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    return re.sub(r"[ \t]+([.,;:])", r"\1", text)
+
+
+def _details(markdown):
+    """'## Heading' sections -> [{title, lines}], links stripped."""
+    sections, cur = [], None
+    for raw in _clean_md(markdown).splitlines():
+        line = raw.rstrip()
+        m = re.match(r"^\s*#{1,4}\s+(.+)$", line)
+        if m:
+            cur = {"title": m.group(1).strip(), "lines": []}
+            sections.append(cur)
+            continue
+        if not line.strip():
+            continue
+        if cur is None:
+            cur = {"title": "", "lines": []}
+            sections.append(cur)
+        cur["lines"].append(line.strip())
+    return [x for x in sections if x["lines"] and x["title"].lower() not in SKIP_SECTIONS]
+
+
+# Exercise diagrams (PNG/JPG attachments), cached locally and served from
+# /api/experiment-image/<file> — never hotlinked to ClickUp. Attachments are
+# immutable (a new image is a new id), so each downloads once.
+IMG_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
+
+
+def image_path(fname):
+    if not re.fullmatch(r"exp-[0-9a-f-]{36}\.(png|jpe?g|gif|webp)", fname or ""):
+        return None
+    path = os.path.join(IMAGE_CACHE_DIR, fname)
+    return path if os.path.exists(path) else None
+
+
+def _diagrams(session, task):
+    out = []
+    atts = [a for a in task.get("attachments") or [] if (a.get("extension") or "").lower() in IMG_EXT]
+    atts.sort(key=lambda a: a.get("title") or "")
+    for a in atts:
+        ext = a["extension"].lower()
+        fname = f"exp-{a['id'].split('.')[0]}.{ext}"
+        path = os.path.join(IMAGE_CACHE_DIR, fname)
+        if not os.path.exists(path):
+            try:
+                img = session.get(a.get("url") or a.get("url_w_query"), timeout=HTTP_TIMEOUT)
+                img.raise_for_status()
+                os.makedirs(IMAGE_CACHE_DIR, exist_ok=True)
+                with open(path, "wb") as f:
+                    f.write(img.content)
+            except Exception as exc:
+                log.warning("experiment image %s failed: %s", a.get("title"), exc)
+                continue
+        title = re.sub(r"\.\w+$", "", a.get("title") or "")
+        out.append({"title": re.sub(r"[-_]+", " ", title).strip(), "src": f"/api/experiment-image/{fname}"})
+    return out
 
 
 def _parse_focus(text):
@@ -183,7 +265,6 @@ def _to_entry(task):
         "hypothesis": (_raw_value(task, F_HYPOTHESIS) or "").strip(),
         "start_date": task.get("start_date"),
         "due_date": task.get("due_date"),
-        "url": task.get("url"),
         "updated": task.get("date_updated"),
         "id": task.get("id"),
     }
@@ -225,7 +306,12 @@ class _ExperimentsCache:
             entries = [e for e in (_to_entry(t) for t in tasks) if e]
             for e in entries:
                 try:
-                    e["plan"] = _plan_for(session, e["id"])
+                    task = _task_detail(session, e["id"])
+                    md = task.get("markdown_description") or task.get("description") or ""
+                    e["details"] = _details(md)
+                    e["diagrams"] = _diagrams(session, task)
+                    e["ebo"] = bool(EBO.search(md))
+                    e["plan"] = _plan_for(session, task)
                     e["focus"], e["log"] = _focus_and_log(
                         _comments_for(session, e["id"]),
                         (e["plan"] or {}).get("title"), e["horse"], e["start_date"],
@@ -233,6 +319,9 @@ class _ExperimentsCache:
                 except Exception as exc:
                     log.warning("experiment detail for %s failed: %s", e["id"], exc)
                     e.setdefault("plan", None)
+                    e.setdefault("details", [])
+                    e.setdefault("diagrams", [])
+                    e.setdefault("ebo", False)
                     e["focus"], e["log"] = None, []
 
             # Group tasks that share a Target Symptom into one program — that
@@ -247,23 +336,28 @@ class _ExperimentsCache:
                     "hypothesis": e["hypothesis"],
                     "start_date": e["start_date"],
                     "due_date": e["due_date"],
-                    "url": e["url"],
+                    "details": [],
+                    "diagrams": [],
+                    "ebo": False,
                     "plan": None,
                     "focus": None,
                     "log": [],
                 })
                 g["horses"].append(e["horse"])
                 g["plan"] = g["plan"] or e["plan"]
+                g["diagrams"] = g["diagrams"] or e["diagrams"]
+                g["ebo"] = g["ebo"] or e["ebo"]
                 g["focus"] = g["focus"] or e["focus"]
                 g["log"].extend(e["log"])
-                # Prefer the most recently updated task's hypothesis/dates/url —
+                # Prefer the most recently updated task's hypothesis/dates/protocol —
                 # they're near-identical per horse, but this keeps one
                 # consistent choice instead of "whichever came back first".
                 if (e["updated"] or "0") > (g.get("_updated") or "0"):
                     g["hypothesis"] = e["hypothesis"]
                     g["start_date"] = e["start_date"]
                     g["due_date"] = e["due_date"]
-                    g["url"] = e["url"]
+                    if e["details"]:
+                        g["details"] = e["details"]
                     g["_updated"] = e["updated"]
 
             programs = []

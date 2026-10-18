@@ -40,13 +40,13 @@ function CareRow({ row, label, color }) {
       </span>
       <span className="cr-when">
         {row.last
-          ? <a href={row.last.url} target="_blank" rel="noreferrer">{row.lastText}</a>
+          ? <span>{row.lastText}</span>
           : <span className="cr-none">No record</span>}
         {row.dueText && <span className="cr-due">{row.dueText}</span>}
       </span>
       <span className="cr-next">
         {row.next && (
-          <a href={row.next.url} target="_blank" rel="noreferrer">Next {row.nextText}</a>
+          <span>Next {row.nextText}</span>
         )}
       </span>
     </li>

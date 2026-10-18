@@ -722,6 +722,27 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .exp-note-text { flex: 1; font-size: 13.5px; color: var(--ink-2); }
 
 .exp-cheat { padding: 0 14px 14px; }
+
+/* written protocol (programs without a GPW grid) */
+.exp-details { padding: 0 14px 14px; }
+.exp-sec { border-top: 1px solid var(--rule-2); padding: 10px 0 4px; }
+.exp-sec-h {
+  font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 12px;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px;
+}
+.exp-sec p, .exp-sec li { font-size: 14px; line-height: 1.5; color: var(--ink-2); margin: 0 0 6px; }
+.exp-sec ul { margin: 0 0 6px; padding-left: 20px; }
+.exp-sched { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--rule-2); font-size: 14px; }
+.exp-sched:last-child { border-bottom: 0; }
+.exp-sched-wk { flex: none; width: 64px; font-weight: 700; color: var(--ink); }
+.exp-diagrams { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.exp-diagram {
+  display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--ink);
+  border: 1px solid var(--rule-2); border-radius: 6px; background: #fff; padding: 6px;
+}
+.exp-diagram img { width: 100%; height: 110px; object-fit: contain; }
+.exp-diagram span { font-size: 12.5px; font-weight: 700; text-align: center; }
+.exp-ebo { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-3); }
 .exp-table { border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
 .exp-table-row { display: flex; border-bottom: 1px solid var(--rule-2); }
 .exp-table-row:last-child { border-bottom: 0; }

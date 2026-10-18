@@ -117,7 +117,6 @@ class _CareCache:
                     base = {
                         "id": t.get("id"),
                         "name": t.get("name"),
-                        "url": t.get("url") or f"https://app.clickup.com/t/{t.get('id')}",
                         "date": _day(t["due_date"]),
                         "open": _is_open(t),
                     }
