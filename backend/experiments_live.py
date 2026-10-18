@@ -39,6 +39,7 @@ import os
 import re
 import threading
 import time
+from urllib.parse import unquote as requests_unquote
 
 from clickup_live import BASE, HTTP_TIMEOUT, IMAGE_CACHE_DIR, TOKEN, _dropdown_name, _raw_value, _session
 from gpw_plan import parse_plan
@@ -203,7 +204,20 @@ SENTENCE = re.compile(r"(?<=[.!?])\s+")
 _img_index = {}   # remote url -> local src
 
 
-def _cache_remote_image(session, url):
+def _download(session, url, path):
+    img = session.get(url, timeout=HTTP_TIMEOUT)
+    img.raise_for_status()
+    if not (img.headers.get("content-type") or "").startswith("image/"):
+        raise ValueError(f"not an image ({img.headers.get('content-type')})")
+    os.makedirs(IMAGE_CACHE_DIR, exist_ok=True)
+    with open(path, "wb") as f:
+        f.write(img.content)
+
+
+def _cache_remote_image(session, url, task_id=None):
+    """An image embedded in a workout description. On a private-attachments
+    workspace the embedded link isn't fetchable, so fall back to the task's
+    own attachment of the same file name (whose url is)."""
     if url in _img_index:
         return _img_index[url]
     m = re.search(r"/([0-9a-f-]{36})/([^/?#]+)$", url)
@@ -214,14 +228,22 @@ def _cache_remote_image(session, url):
     path = os.path.join(IMAGE_CACHE_DIR, fname)
     if not os.path.exists(path):
         try:
-            img = session.get(url, timeout=HTTP_TIMEOUT)
-            img.raise_for_status()
-            os.makedirs(IMAGE_CACHE_DIR, exist_ok=True)
-            with open(path, "wb") as f:
-                f.write(img.content)
+            _download(session, url, path)
         except Exception as exc:
-            log.warning("workout image %s failed: %s", url, exc)
-            return None
+            ok = False
+            if task_id:
+                try:
+                    want = requests_unquote(m.group(2)).lower()
+                    for a in _task_detail(session, task_id).get("attachments") or []:
+                        if (a.get("title") or "").lower() == want:
+                            _download(session, a.get("url") or a.get("url_w_query"), path)
+                            ok = True
+                            break
+                except Exception as exc2:
+                    exc = exc2
+            if not ok:
+                log.warning("workout image %s failed: %s", url, exc)
+                return None
     title = re.sub(r"\.\w+$", "", m.group(2))
     _img_index[url] = {"src": f"/api/experiment-image/{fname}", "title": re.sub(r"[-_]+", " ", title).strip()}
     return _img_index[url]
@@ -260,7 +282,7 @@ def _workouts(session, task_id, horse):
             continue
         m = WORKOUT_NAME.match(t.get("name") or "")
         md = t.get("markdown_description") or t.get("description") or ""
-        images = [i for i in (_cache_remote_image(session, u) for u in MD_IMAGE.findall(md)) if i]
+        images = [i for i in (_cache_remote_image(session, u, t.get("id")) for u in MD_IMAGE.findall(md)) if i]
         how, focus, log_line = _workout_text(MD_IMAGE.sub("", md))
         out.append({
             "horse": horse,
