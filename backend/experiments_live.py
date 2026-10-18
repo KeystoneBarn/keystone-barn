@@ -202,11 +202,13 @@ MD_IMAGE = re.compile(r"!\[[^\]]*\]\((https?://[^)\s]+)\)")
 WORKOUT_NAME = re.compile(r"^\s*\w+\s*:\s*W(\d+)\s+(.+?)\s*$", re.I)
 SENTENCE = re.compile(r"(?<=[.!?])\s+")
 _img_index = {}   # remote url -> local src
+IMAGE_ERRORS = {}  # file name -> short reason (diagnostics; no urls)
 
 
 def _download(session, url, path):
     img = session.get(url, timeout=HTTP_TIMEOUT)
-    img.raise_for_status()
+    if img.status_code >= 400:
+        raise ValueError(f"HTTP {img.status_code}")
     if not (img.headers.get("content-type") or "").startswith("image/"):
         raise ValueError(f"not an image ({img.headers.get('content-type')})")
     os.makedirs(IMAGE_CACHE_DIR, exist_ok=True)
@@ -243,6 +245,7 @@ def _cache_remote_image(session, url, task_id=None):
                     exc = exc2
             if not ok:
                 log.warning("workout image %s failed: %s", url, exc)
+                IMAGE_ERRORS[m.group(2)] = f"{type(exc).__name__}: {str(exc).split(' for url')[0][:120]}"
                 return None
     title = re.sub(r"\.\w+$", "", m.group(2))
     _img_index[url] = {"src": f"/api/experiment-image/{fname}", "title": re.sub(r"[-_]+", " ", title).strip()}
@@ -533,4 +536,5 @@ def experiments_payload():
         "fetched_at": snap["fetched_at"],
         "age_seconds": snap["age_seconds"],
         "programs": snap["programs"],
+        "image_errors": dict(list(IMAGE_ERRORS.items())[:10]),
     }
