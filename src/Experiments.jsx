@@ -305,7 +305,7 @@ function ProgramDetails({ program }) {
             {program.diagrams.map((d) => {
               const ex = findExercise(d.title);
               return (
-                <ExerciseCard key={d.src} img={API + d.src}
+                <ExerciseCard key={d.src} img={ex?.img || API + d.src}
                   name={ex?.name || d.title} gait={ex?.gait} focus={ex?.focus} reps={ex?.reps} />
               );
             })}
