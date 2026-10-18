@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   STATIC_PROGRAMS, TIMELINE, COMING_NEXT,
   mergeLivePrograms,
@@ -33,7 +33,24 @@ function planAnchor(program) {
 
 function dayAt(program, index) {
   const week = program.weeks[Math.floor(index / 7)];
-  return week ? { week: week.num, ...week.days[index % 7] } : null;
+  if (!week) return null;
+  const anchor = planAnchor(program);
+  const date = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + index);
+  return { week: week.num, date, ...week.days[index % 7] };
+}
+
+const dateKey = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+
+// Same text for several horses shows once with their names; differences show per horse.
+function byText(workouts, field) {
+  const groups = [];
+  workouts.forEach((w) => {
+    if (!w[field]) return;
+    const g = groups.find((x) => x.text === w[field]);
+    if (g) g.horses.push(w.horse);
+    else groups.push({ text: w[field], horses: [w.horse] });
+  });
+  return groups;
 }
 
 function programProgress(program) {
@@ -79,9 +96,12 @@ function programProgress(program) {
   };
 }
 
-// A plan day: the GPW coaching note, plus the pattern's photo and focus from
-// the exercise reference when we have them.
-function DayExercise({ day, style }) {
+// A plan day. With dated workout subtasks in ClickUp ("Hugo: W1 Even Walk"):
+// their name, component images, Focus and what to log, grouped across horses.
+// Otherwise the GPW coaching note plus the pattern's photo and focus from the
+// exercise reference.
+function DayExercise({ day, workouts, style }) {
+  if (workouts?.length) return <WorkoutDay day={day} workouts={workouts} style={style} />;
   const ex = findExercise(day.name, day.mode);
   return (
     <div className="exp-ex" style={style}>
@@ -90,6 +110,80 @@ function DayExercise({ day, style }) {
         <p className="exp-day-detail" style={{ marginTop: 0 }}><strong>{day.name}.</strong> {day.detail}</p>
         {ex && <p className="exp-ex-focus"><span>Works:</span> {ex.focus}</p>}
       </div>
+    </div>
+  );
+}
+
+function WorkoutDay({ day, workouts, style }) {
+  const titles = [...new Set(workouts.map((w) => w.title))];
+  const done = workouts.every((w) => w.done);
+  const images = [];
+  workouts.forEach((w) => w.images.forEach((i) => { if (!images.some((x) => x.src === i.src)) images.push(i); }));
+  const many = new Set(workouts.map((w) => w.horse)).size > 1;
+  const Lines = ({ field, label }) => byText(workouts, field).map((g, i, all) => (
+    <p className="exp-ex-focus" key={field + i}>
+      <span>{label}{all.length > 1 || !many ? "" : ""}:</span>{" "}
+      {all.length > 1 && <strong>{g.horses.join(", ")}: </strong>}{g.text}
+    </p>
+  ));
+  return (
+    <div style={style}>
+      <p className="exp-day-detail" style={{ marginTop: 0 }}>
+        <strong>{titles.join(" / ")}{day?.detail ? "." : ""}</strong> {day?.detail}
+        {done && <span className="exp-done"> ✓ done</span>}
+      </p>
+      {images.length > 0 && (
+        <div className="exp-wimgs">
+          {images.map((i) => (
+            <a key={i.src} href={API + i.src} target="_blank" rel="noreferrer" title="Open full size">
+              <img src={API + i.src} alt={i.title} loading="lazy" />
+              <span>{i.title}</span>
+            </a>
+          ))}
+        </div>
+      )}
+      <Lines field="how" label="How" />
+      <Lines field="focus" label="Focus" />
+      <Lines field="log" label="Record" />
+    </div>
+  );
+}
+
+const fmtMD = (ms) => { const d = new Date(ms); return `${d.getMonth() + 1}/${d.getDate()}`; };
+
+// Week by week, the way the workouts are listed in ClickUp: each named workout
+// once (e.g. "Circle Walk"), with Tammy's and Mickey's notes merged where
+// they match.
+function WeeklyWorkouts({ workouts }) {
+  const weeks = {};
+  workouts.forEach((w) => { (weeks[w.week || 0] = weeks[w.week || 0] || []).push(w); });
+  return (
+    <div className="exp-sec">
+      <div className="exp-sec-h">Workouts</div>
+      {Object.keys(weeks).map(Number).sort((a, b) => a - b).map((n) => {
+        const list = weeks[n];
+        const titles = [];
+        list.forEach((w) => { if (!titles.includes(w.title)) titles.push(w.title); });
+        // Optional sessions last within the week
+        titles.sort((a, b) => /optional/i.test(a) - /optional/i.test(b));
+        const from = Math.min(...list.map((w) => w.start || w.date));
+        const to = Math.max(...list.map((w) => w.date));
+        return (
+          <div className="exp-wweek" key={n} style={{ "--wc": weekColor(n || 1) }}>
+            <div className="exp-wweek-h">
+              <span className="exp-week-badge" style={{ background: weekColor(n || 1) }}>{n ? `Week ${n}` : "Rotation"}</span>
+              {n > 0 && <span className="exp-wweek-dates">{fmtMD(from)}{to !== from ? `–${fmtMD(to)}` : ""}</span>}
+            </div>
+            {titles.map((t) => (
+              <div className="exp-day" key={t}>
+                <div className="exp-day-body">
+                  <WorkoutDay workouts={list.filter((w) => w.title === t)} />
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -134,7 +228,7 @@ function PlanExercises({ weeks }) {
   );
 }
 
-function TodayCard({ progress, program }) {
+function TodayCard({ progress, program, workoutsOn }) {
   if (!program.weeks.length || progress.complete) return null;
   const { today, next } = progress;
   const color = weekColor(today?.week || 1);
@@ -147,7 +241,7 @@ function TodayCard({ progress, program }) {
         {today && !today.rest && today.mode && <span className="exp-day-mode">{today.mode}</span>}
       </div>
       <div className="exp-day-body">
-        {today && !today.rest && <DayExercise day={today} />}
+        {today && !today.rest && <DayExercise day={today} workouts={workoutsOn(today.date)} />}
         {today?.rest && (
           <p className="exp-day-detail" style={{ marginTop: 0, fontStyle: "italic", color: "var(--ink-3)" }}>Rest day</p>
         )}
@@ -197,7 +291,7 @@ function ComingNext({ onGuide }) {
   );
 }
 
-function WeekCard({ week, expanded, onToggle, todayName, isCurrentWeek }) {
+function WeekCard({ week, weekIndex, program, workoutsOn, expanded, onToggle, todayName, isCurrentWeek }) {
   const color = weekColor(week.num);
   return (
     <div className="exp-week" style={{ "--wc": color }}>
@@ -209,12 +303,13 @@ function WeekCard({ week, expanded, onToggle, todayName, isCurrentWeek }) {
 
       {expanded && (
         <div className="exp-week-body">
-          {week.days.map((d) => {
+          {week.days.map((d, di) => {
             const isToday = isCurrentWeek && todayName === d.weekday;
+            const date = dayAt(program, weekIndex * 7 + di)?.date;
             return (
               <div className="exp-day" key={d.weekday} style={isToday ? { borderColor: color, borderWidth: 2 } : undefined}>
                 <div className="exp-day-head">
-                  <span className="exp-day-num">{d.weekday}{isToday ? " · Today" : ""}</span>
+                  <span className="exp-day-num">{d.weekday}{date ? ` ${date.getMonth() + 1}/${date.getDate()}` : ""}{isToday ? " · Today" : ""}</span>
                   {!d.rest && d.mode && <span className="exp-day-mode">{d.mode}</span>}
                 </div>
                 {d.rest ? (
@@ -223,7 +318,7 @@ function WeekCard({ week, expanded, onToggle, todayName, isCurrentWeek }) {
                   </div>
                 ) : (
                   <div className="exp-day-body">
-                    <DayExercise day={d} />
+                    <DayExercise day={d} workouts={date && workoutsOn(date)} />
                   </div>
                 )}
               </div>
@@ -265,6 +360,57 @@ function SessionLog({ log }) {
   );
 }
 
+// Each horse's task carries its own protocol (Hugo's stiffness caveats,
+// Dahlia's repeat-round goals). One shared version shows plainly; otherwise
+// pick a horse.
+function Sections({ sections }) {
+  return sections.map((sec, i) => {
+    const bullets = sec.lines.filter((l) => /^[*-]\s+/.test(l));
+    const prose = sec.lines.filter((l) => !/^[*-]\s+/.test(l));
+    return (
+      <div className="exp-sec" key={sec.title + i}>
+        {sec.title && <div className="exp-sec-h">{sec.title}</div>}
+        {prose.map((l, j) => {
+          const wk = /^(week\s+\d+)\s*:\s*(.+)$/i.exec(l);
+          return wk ? (
+            <div className="exp-sched" key={j}>
+              <span className="exp-sched-wk">{wk[1]}</span>
+              <span><Rich text={wk[2]} /></span>
+            </div>
+          ) : <p key={j}><Rich text={l} /></p>;
+        })}
+        {bullets.length > 0 && (
+          <ul>{bullets.map((l, j) => <li key={j}><Rich text={l.replace(/^[*-]\s+/, "")} /></li>)}</ul>
+        )}
+      </div>
+    );
+  });
+}
+
+function HorseProtocols({ items }) {
+  const list = [...(items || [])].sort((a, b) => a.horse.localeCompare(b.horse));
+  const [pick, setPick] = useState(null);
+  if (!list.length) return null;
+  const distinct = new Set(list.map((x) => JSON.stringify(x.sections))).size;
+  const cur = list.find((x) => x.horse === pick) || list[0];
+  return (
+    <div className="exp-details" style={{ padding: 0 }}>
+      <div className="exp-sec">
+        <div className="exp-sec-h">Protocol{distinct > 1 ? " by horse" : ""}</div>
+        {distinct > 1 && (
+          <div className="exp-horses" style={{ padding: "0 0 6px" }}>
+            {list.map((x) => (
+              <button key={x.horse} className="bk-idx-btn" data-on={x.horse === cur.horse ? "1" : "0"}
+                onClick={() => setPick(x.horse)}>{x.horse}</button>
+            ))}
+          </div>
+        )}
+      </div>
+      <Sections sections={cur.sections} />
+    </div>
+  );
+}
+
 // "**Bold:** rest" -> <strong>Bold:</strong> rest
 function Rich({ text }) {
   return text.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
@@ -275,9 +421,11 @@ function Rich({ text }) {
 // day-by-day grid: schedule, setup, stop rules, what to log. Bullets stay
 // bullets; "Week 2: Even; Clover; …" lines read as a small schedule.
 function ProgramDetails({ program }) {
+  const hasWorkouts = program.workouts?.length > 0;
+  const details = hasWorkouts ? program.details.filter((x) => !/^schedule$/i.test(x.title)) : program.details;
   return (
     <div className="exp-details">
-      {program.details.map((sec, i) => {
+      {details.map((sec, i) => {
         const bullets = sec.lines.filter((l) => /^[*-]\s+/.test(l));
         const prose = sec.lines.filter((l) => !/^[*-]\s+/.test(l));
         return (
@@ -298,6 +446,7 @@ function ProgramDetails({ program }) {
           </div>
         );
       })}
+      {hasWorkouts && <WeeklyWorkouts workouts={program.workouts} />}
       {program.diagrams.length > 0 && (
         <div className="exp-sec">
           <div className="exp-sec-h">Exercise reference</div>
@@ -324,6 +473,16 @@ function ProgramDetails({ program }) {
 function ProgramCard({ program }) {
   const progress = programProgress(program);
   const [openWeek, setOpenWeek] = useState(progress.currentWeek);
+  const byDate = useMemo(() => {
+    const m = {};
+    (program.workouts || []).forEach((w) => {
+      const k = dateKey(new Date(w.date));
+      (m[k] = m[k] || []).push(w);
+    });
+    Object.values(m).forEach((l) => l.sort((a, b) => a.horse.localeCompare(b.horse)));
+    return m;
+  }, [program.workouts]);
+  const workoutsOn = (d) => (d ? byDate[dateKey(d)] : null);
 
   return (
     <div className="exp-card" style={{ marginBottom: 16 }}>
@@ -343,23 +502,27 @@ function ProgramCard({ program }) {
           <span className="exp-horse-chip" key={h}>{h}</span>
         ))}
       </div>
-      <TodayCard progress={progress} program={program} />
+      <TodayCard progress={progress} program={program} workoutsOn={workoutsOn} />
       {program.focus?.length > 0 && <WeekFocus focus={program.focus} currentWeek={progress.currentWeek} />}
       {program.weeks.length > 0 ? (
         <div className="exp-weeks" style={{ padding: "0 14px 14px" }}>
-          {program.weeks.map((w) => (
+          {program.weeks.map((w, wi) => (
             <WeekCard
               key={w.num}
               week={w}
+              weekIndex={wi}
+              program={program}
+              workoutsOn={workoutsOn}
               expanded={openWeek === w.num}
               onToggle={() => setOpenWeek(openWeek === w.num ? null : w.num)}
               todayName={progress.todayName}
               isCurrentWeek={progress.currentWeek === w.num}
             />
           ))}
+          <HorseProtocols items={program.horseDetails} />
           <PlanExercises weeks={program.weeks} />
         </div>
-      ) : program.details?.length > 0 || program.diagrams?.length > 0 ? (
+      ) : program.details?.length > 0 || program.diagrams?.length > 0 || program.workouts?.length > 0 ? (
         <ProgramDetails program={program} />
       ) : (
         <div style={{ padding: "0 14px 14px" }}>

@@ -186,6 +186,8 @@ export function mergeLivePrograms(staticPrograms, livePrograms, live) {
       title: titleCase(p.target_symptom),
       source: known?.source || null,
       details: p.details || [],
+      horseDetails: p.horse_details || [],
+      workouts: p.workouts || [],
       diagrams: p.diagrams || [],
       ebo: !!p.ebo,
       horses: p.horses,

@@ -193,6 +193,90 @@ def image_path(fname):
     return path if os.path.exists(path) else None
 
 
+# --- dated workout subtasks ("Hugo: W1 Even Walk", due = the day) ----------
+# Each carries the day's Focus, what to log, and component images embedded in
+# its description. One list call per experiment; images cache by file id and
+# are shared across horses, so they download once.
+MD_IMAGE = re.compile(r"!\[[^\]]*\]\((https?://[^)\s]+)\)")
+WORKOUT_NAME = re.compile(r"^\s*\w+\s*:\s*W(\d+)\s+(.+?)\s*$", re.I)
+SENTENCE = re.compile(r"(?<=[.!?])\s+")
+_img_index = {}   # remote url -> local src
+
+
+def _cache_remote_image(session, url):
+    if url in _img_index:
+        return _img_index[url]
+    m = re.search(r"/([0-9a-f-]{36})/([^/?#]+)$", url)
+    ext = (m.group(2).rsplit(".", 1)[-1] if m else "").lower()
+    if not m or ext not in IMG_EXT:
+        return None
+    fname = f"exp-{m.group(1)}.{ext}"
+    path = os.path.join(IMAGE_CACHE_DIR, fname)
+    if not os.path.exists(path):
+        try:
+            img = session.get(url, timeout=HTTP_TIMEOUT)
+            img.raise_for_status()
+            os.makedirs(IMAGE_CACHE_DIR, exist_ok=True)
+            with open(path, "wb") as f:
+                f.write(img.content)
+        except Exception as exc:
+            log.warning("workout image %s failed: %s", url, exc)
+            return None
+    title = re.sub(r"\.\w+$", "", m.group(2))
+    _img_index[url] = {"src": f"/api/experiment-image/{fname}", "title": re.sub(r"[-_]+", " ", title).strip()}
+    return _img_index[url]
+
+
+def _workout_text(md):
+    """-> (how, focus, record). Two ways workouts are written in ClickUp:
+    '## Workout / ## Focus / ## Record' sections, or one paragraph with a
+    'Focus: …' sentence and a 'Log …' sentence (the rest is how-to)."""
+    secs = {x["title"].lower(): " ".join(x["lines"]) for x in _details(md) if x["title"]}
+    if secs:
+        pick = lambda *keys: next((secs[k] for k in keys if k in secs), None)
+        return pick("workout", "setup"), pick("focus"), pick("record", "log")
+    text = " ".join(_clean_md(md).split())
+    sentences = [x.strip() for x in SENTENCE.split(text) if x.strip()]
+    focus = next((x for x in sentences if x.lower().startswith("focus:")), None)
+    log_line = next((x for x in sentences if x.lower().startswith("log ")), None)
+    how = " ".join(x for x in sentences if x not in (focus, log_line)) or None
+    if log_line:   # "Log setup, passes…" under a Record heading -> "Setup, passes…"
+        log_line = re.sub(r"^log\s+", "", log_line, flags=re.I)
+        log_line = log_line[:1].upper() + log_line[1:]
+    return how, (focus.split(":", 1)[1].strip() if focus else None), log_line
+
+
+def _workouts(session, task_id, horse):
+    resp = session.get(
+        f"{BASE}/list/{EXPERIMENTS_LIST_ID}/task",
+        params={"parent": task_id, "subtasks": "true", "include_closed": "true",
+                "include_markdown_description": "true"},
+        timeout=HTTP_TIMEOUT,
+    )
+    resp.raise_for_status()
+    out = []
+    for t in resp.json().get("tasks") or []:
+        if t.get("parent") != task_id or not t.get("due_date"):
+            continue
+        m = WORKOUT_NAME.match(t.get("name") or "")
+        md = t.get("markdown_description") or t.get("description") or ""
+        images = [i for i in (_cache_remote_image(session, u) for u in MD_IMAGE.findall(md)) if i]
+        how, focus, log_line = _workout_text(MD_IMAGE.sub("", md))
+        out.append({
+            "horse": horse,
+            "date": int(t["due_date"]),
+            "start": int(t["start_date"]) if t.get("start_date") else None,
+            "week": int(m.group(1)) if m else None,
+            "title": m.group(2) if m else re.sub(r"^\s*\w+\s*:\s*", "", t.get("name") or ""),
+            "how": how,
+            "focus": focus,
+            "log": log_line,
+            "images": images,
+            "done": _status(t) in ("complete", "completed", "done", "closed"),
+        })
+    return out
+
+
 def _diagrams(session, task):
     out = []
     atts = [a for a in task.get("attachments") or [] if (a.get("extension") or "").lower() in IMG_EXT]
@@ -317,6 +401,7 @@ class _ExperimentsCache:
                     task = _task_detail(session, e["id"])
                     md = task.get("markdown_description") or task.get("description") or ""
                     e["details"] = _details(md)
+                    e["workouts"] = _workouts(session, e["id"], e["horse"])
                     e["diagrams"] = _diagrams(session, task)
                     e["ebo"] = _is_ebo(md)
                     e["plan"] = _plan_for(session, task)
@@ -328,6 +413,7 @@ class _ExperimentsCache:
                     log.warning("experiment detail for %s failed: %s", e["id"], exc)
                     e.setdefault("plan", None)
                     e.setdefault("details", [])
+                    e.setdefault("workouts", [])
                     e.setdefault("diagrams", [])
                     e.setdefault("ebo", False)
                     e["focus"], e["log"] = None, []
@@ -345,6 +431,8 @@ class _ExperimentsCache:
                     "start_date": e["start_date"],
                     "due_date": e["due_date"],
                     "details": [],
+                    "horse_details": [],
+                    "workouts": [],
                     "diagrams": [],
                     "ebo": False,
                     "plan": None,
@@ -354,6 +442,9 @@ class _ExperimentsCache:
                 g["horses"].append(e["horse"])
                 g["plan"] = g["plan"] or e["plan"]
                 g["diagrams"] = g["diagrams"] or e["diagrams"]
+                g["workouts"].extend(e.get("workouts") or [])
+                if e.get("details"):
+                    g["horse_details"].append({"horse": e["horse"], "sections": e["details"]})
                 g["ebo"] = g["ebo"] or e["ebo"]
                 g["focus"] = g["focus"] or e["focus"]
                 g["log"].extend(e["log"])
