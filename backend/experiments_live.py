@@ -140,7 +140,9 @@ def _plan_for(session, task):
 # to its text: nothing on the site points back into ClickUp.
 MD_LINK = re.compile(r"\[([^\]]*)\]\((?:[^()]|\([^)]*\))*\)")
 BARE_URL = re.compile(r"https?://[^\s)]+")
-SKIP_SECTIONS = {"hypothesis"}
+# Hypothesis is already on the card; Sources only names PDFs that live in
+# ClickUp (the EBO link stands in for them).
+SKIP_SECTIONS = {"hypothesis", "sources", "source"}
 EBO = re.compile(r"\bEBO\b|equine\s*bodywork\s*online", re.I)
 # "This is adapted enrichment, not the EBO … program" isn't an EBO program.
 NOT_EBO = re.compile(r"\bnot\s+(?:an?\s+|the\s+)?(?:EBO|equine\s*bodywork\s*online)\b", re.I)
