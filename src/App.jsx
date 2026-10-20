@@ -63,6 +63,7 @@ const buildTabs = ({ products, herd, tack, experiments }) => [
 const THERAPIES = [
   { id: "redlight", label: "Red Light", icon: "🔴" },
   { id: "surefoot", label: "Sure Foot", icon: "🦶" },
+  { id: "bemer", label: "Bemer", icon: "🧲" },
 ];
 
 export default function App() {

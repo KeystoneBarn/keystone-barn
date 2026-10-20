@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import redlightRaw from "./guides/redlight.html?raw";
 import surefootRaw from "./guides/surefoot.html?raw";
+import bemerRaw from "./guides/bemer.html?raw";
 
 /*
   The two field guides ship as complete standalone HTML documents (own reset, own
@@ -45,6 +46,7 @@ function buildDoc(raw, { swapFonts = false, extraCss = "" } = {}) {
 
 const DOCS = {
   redlight: buildDoc(redlightRaw),
+  bemer: buildDoc(bemerRaw),
   surefoot: buildDoc(surefootRaw, { swapFonts: true, extraCss: SUREFOOT_EXTRA_CSS }),
 };
 
