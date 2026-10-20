@@ -7,8 +7,10 @@ what each horse needs on each day, from three ClickUp lists in 🐴 Horses —
     ("Chiro: Herd", "Hugo: IV Legend loading dose 2 of 4")
   - a task with start AND due date   -> a daily course, one task on every day
     ("Qu: Banamine paste … daily", "Qu: Stall rest & wrapped")
-  - a series parent (open dated subtasks, "Ulyssa: Adequan series" with
-    "Dose 1…7") is hidden; each dose subtask is a task on its date
+  - a parent named "… series" ("Ulyssa: Adequan series" with "Dose 1…7")
+    is hidden; each dose subtask is a task on its date
+  - dated subtasks of a course are their own tasks too ("Qu: Stall rest &
+    wrapped" with "Qu: Change wrap" on the 20th and 21st)
   - records, not jobs, are left out (observations, illness/injury notes,
     labs, vitals, weights, feed/hay) as are meds with 🪣 AM/PM set (the feed
     bucket handles those)
@@ -212,21 +214,14 @@ def build(tasks, workouts=(), horses=None, today=None, course_comments=None, tra
         note_type = _dropdown_name(t, F_NOTE_TYPE)
         if note_type in SKIP_TYPES or _dropdown_name(t, F_AMPM):
             continue
-        parent = by_id.get(t.get("parent"))
-        if parent is not None and is_course(parent, children):
-            continue  # a dose Meghann logged by hand, folded into its course below
-        if not t.get("due_date") or (not parent and children.get(t["id"]) and not is_course(t, children)):
-            continue  # undated, or a series parent
+        if not t.get("due_date") or (not t.get("parent") and is_series(t, children)):
+            continue  # undated, or a series parent (its doses are the tasks)
         if is_course(t, children):
-            logged = {}
-            for c in children.get(t["id"], []):
-                if _is_done(c):
-                    logged.setdefault(_day(c.get("due_date") or c.get("date_closed")), True)
             ticks = course_ticks(course_comments.get(t["id"]))
             d, end = _day(t["start_date"]), _day(t["due_date"])
             while d <= end:
                 tick = ticks.get(d)
-                done = bool(tick) or d in logged
+                done = bool(tick)
                 if done or not _is_done(t):
                     add(t, d, mode="course", task_id=t["id"], list_id=HEALTH_LIST_ID, done=done,
                         done_by=tick["by"] if tick else None, course=True)
@@ -272,13 +267,18 @@ def build(tasks, workouts=(), horses=None, today=None, course_comments=None, tra
     return items, horses
 
 
+def is_series(t, children):
+    """'Ulyssa: Adequan series' with dated dose subtasks: the doses are the tasks."""
+    return bool(children.get(t["id"])) and bool(re.search(r"\bseries\b", t.get("name") or "", re.I))
+
+
 def is_course(t, children):
+    """A top-level task running start→due (not a series): one task every day."""
     if t.get("parent") or not t.get("start_date") or not t.get("due_date"):
         return False
     if _day(t["start_date"]) >= _day(t["due_date"]):
         return False
-    # Pre-scheduled open subtasks make it a series (each dose is its own task).
-    return not any(not _is_done(c) for c in children.get(t["id"], []))
+    return not is_series(t, children)
 
 
 def training_item(t, d, hs):

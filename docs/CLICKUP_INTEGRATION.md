@@ -96,7 +96,8 @@ one-off jobs left undone from before that week), Day, By horse, Approve.
 |---|---|
 | A task on one day | Any task with a **due date** only (`Chiro: Herd`, `Hugo: IV Legend loading dose 2 of 4`) |
 | A task on **every day** of a course | A top-level task with **start AND due date** (`Qu: Stall rest & wrapped`, `Qu: Banamine paste … daily`) |
-| Each dose of a series | A parent with **open dated subtasks** (`Ulyssa: Adequan series` → `Dose 1…7`): the parent is hidden, each subtask is a task on its date |
+| Each dose of a series | A parent **named "… series"** with dated subtasks (`Ulyssa: Adequan series` → `Dose 1…7`): the parent is hidden, each subtask is a task on its date |
+| Jobs inside a course | Dated subtasks of any other parent are their own tasks too (`Qu: Stall rest & wrapped` every day, plus its `Qu: Change wrap` subtasks on their days) |
 | Which horse row | `🐾 Animal` dropdown; if blank, horse names found in the task name (`Farrier: Hugo, Qu & Ratatouille`). No horse → the "Barn" row (one-off barn chores go here) |
 | Color | Note Type: 💊Treatment / 💉Injection / 🥼Surgery = Treatment, 💉Vaccination, 🪱Dewormer, 🧲Farrier; everything else = Care & appointments |
 | Instructions (Day view) | The task description, line by line (links and "From …" lines dropped) |
@@ -126,8 +127,8 @@ Approve / Reject / Approve all. On approval:
   comment on its experiment task, which the Experiments tab shows in the
   session log.
 * a day of a daily course → a **comment** on the course
-  (`✓ Oct 20, 2026 — done by Sydney.` + note), not a new subtask. Doses you
-  log by hand as completed subtasks still count as done.
+  (`✓ Oct 20, 2026 — done by Sydney.` + note), not a new subtask. (A dated
+  subtask you add under a course shows as its own task instead.)
 * logged session → a completed task in the 🏇 Training Log.
 
 Unticking an approved item (also approved by you) reopens the task or deletes

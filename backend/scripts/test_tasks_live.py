@@ -40,7 +40,7 @@ TASKS = [
     task("banamine", "Qu: Banamine paste 1000 lb dose daily", "Qu", "💊Treatment", "2026-10-20", "2026-10-21", "in progress",
          desc="From  (Dr. Jon, 10/19/2026)\n1,000 lb dose of paste on Tue 10/20 and Wed 10/21, post-Renovo\nNo other NSAIDs in conjunction"),
     task("stallrest", "Qu: Stall rest & wrapped", "Qu", None, "2026-10-17", "2026-10-20", "in progress"),
-    task("wrap1", "Qu: Change wrap", "Qu", None, None, "2026-10-19"),
+    task("wrap1", "Qu: Change wrap", "Qu", None, None, "2026-10-19", parent="stallrest"),
     task("wrap0", "Qu: Change wrap", "Qu", None, None, "2026-10-16"),
     task("wound", "Mickey: Vetasan or Desitin on wound", "Mickey", "💊Treatment", "2026-10-18", "2026-10-20", "in progress"),
     task("wound-log", "Mickey: Vetasan – Oct 18", "Mickey", "💊Treatment", None, "2026-10-18", "complete", parent="wound"),
@@ -82,10 +82,10 @@ def main():
     assert b["note"][0].startswith("1,000 lb dose"), b["note"]
     assert len(by["stallrest"]) == 4 and by["stallrest"][0]["kind"] == "other"
 
-    # A dose Meghann logged by hand as a subtask still ticks its day (and can't be unticked on the site)
-    wound = {i["date"]: i for i in by["wound"]}
-    assert wound["2026-10-18"]["done"] and wound["2026-10-18"]["comment_ids"] == [] and not wound["2026-10-19"]["done"]
-    assert "wound-log" not in by
+    # A course with a dated subtask (stall rest + change wrap) shows both: the course every day, the subtask on its day
+    assert len(by["stallrest"]) == 4 and by["wrap1"][0]["date"] == "2026-10-19" and by["wrap1"][0]["mode"] == "close"
+    # A completed dated subtask of a course is its own done task; course days tick only from site comments
+    assert by["wound-log"][0]["done"] and not any(i["done"] for i in by["wound"])
 
     # Series: the parent hides, each dose is its own task
     assert "uly-series" not in by and by["uly-7"][0]["date"] == "2026-10-21" and by["uly-6"][0]["done"]
