@@ -300,6 +300,8 @@ def _workouts(session, task_id, horse):
         images = [i for i in (_cache_remote_image(session, u, t.get("id")) for u in MD_IMAGE.findall(md)) if i]
         how, focus, log_line = _workout_text(MD_IMAGE.sub("", md))
         out.append({
+            "id": t.get("id"),
+            "parent": task_id,
             "horse": horse,
             "date": int(t["due_date"]),
             "start": int(t["start_date"]) if t.get("start_date") else None,

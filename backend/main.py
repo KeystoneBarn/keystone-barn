@@ -10,7 +10,7 @@ import json
 import mimetypes
 import os
 from datetime import datetime, timezone
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,6 +26,8 @@ import protocols_live
 import tack_live
 import contacts_live
 import care_live
+import tasks_live
+import approvals
 
 app = FastAPI(title="Horse Locations")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -56,6 +58,7 @@ def _start_clickup_feed():
     tack_live.start()
     contacts_live.start()
     care_live.start()
+    tasks_live.start()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "zones.db")
 
@@ -423,6 +426,81 @@ def get_care():
 def get_horses():
     """Per-horse profile, weight history and latest endocrine labs from the Health Log."""
     return horses_live.horses_payload()
+
+
+@app.get("/api/tasks")
+def get_tasks():
+    """Barn task list by horse and day (Health Log, pole work, Training Log), with
+    staff actions still awaiting Meghann's approval shown on top."""
+    return approvals.overlay(tasks_live.tasks_payload())
+
+
+class CheckBody(BaseModel):
+    key: str
+    done: bool
+    by: Optional[str] = None
+    note: Optional[str] = None
+
+
+@app.post("/api/tasks/check")
+def check_task(body: CheckBody):
+    """Tick/untick a task. Queued for approval; ClickUp changes only when approved."""
+    try:
+        return approvals.submit_check(body.key, body.done, body.by, body.note)
+    except LookupError:
+        raise HTTPException(404, "That task is no longer on the list. Refresh the page.")
+
+
+class SessionBody(BaseModel):
+    horse: str
+    activity: str
+    date: Optional[str] = None
+    minutes: Optional[int] = None
+    note: Optional[str] = None
+    by: Optional[str] = None
+
+
+@app.post("/api/training/log")
+def log_training(body: SessionBody):
+    """Log a ride/drive/lunge/groundwork session. Queued for approval, then goes to the 🏇 Training Log."""
+    try:
+        return approvals.submit_session(body.horse, body.activity, body.date, body.minutes, body.note, body.by)
+    except (LookupError, ValueError) as exc:
+        raise HTTPException(400, str(exc))
+
+
+def _require_pin(pin):
+    if not approvals.PIN:
+        raise HTTPException(503, "Approvals aren't switched on: set APPROVER_PIN on Render.")
+    if not approvals.pin_ok(pin):
+        raise HTTPException(403, "Wrong PIN.")
+
+
+@app.get("/api/approvals")
+def get_approvals(x_approver_pin: Optional[str] = Header(None)):
+    _require_pin(x_approver_pin)
+    return {"pending": approvals.list_pending()}
+
+
+@app.post("/api/approvals/{pid}/approve")
+def approve_action(pid: int, x_approver_pin: Optional[str] = Header(None)):
+    _require_pin(x_approver_pin)
+    try:
+        approvals.approve(pid)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc))
+    except PermissionError as exc:
+        raise HTTPException(409, str(exc))
+    except Exception as exc:
+        raise HTTPException(502, f"Couldn't save to ClickUp: {exc}")
+    return {"ok": True}
+
+
+@app.post("/api/approvals/{pid}/reject")
+def reject_action(pid: int, x_approver_pin: Optional[str] = Header(None)):
+    _require_pin(x_approver_pin)
+    approvals.reject(pid)
+    return {"ok": True}
 
 
 class NoteBody(BaseModel):

@@ -84,6 +84,55 @@ Place names the maps understand: `Paddock 1`–`Paddock 4`, `Stall 1`–`Stall 4
 `N Porch`, `S Porch`, `Track 1`–`Track 3`, `Obstacle Pasture`, `Hill Pasture`,
 `Pond Pasture`, `Outdoor Arena`, `Round Pen`.
 
+### ✅ Tasks tab (Health Log + Experiments workouts + Training Log) → Tasks
+
+The barn's daily to-do list by horse (replaces EquineM Tasks). Checked every
+~5 minutes. Views: Week (horses × days, with a red ◀ n when a horse has
+one-off jobs left undone from before that week), Day, By horse, Approve.
+
+**🐴 Horse Health Log — health care only:**
+
+| Site shows | Comes from |
+|---|---|
+| A task on one day | Any task with a **due date** only (`Chiro: Herd`, `Hugo: IV Legend loading dose 2 of 4`) |
+| A task on **every day** of a course | A top-level task with **start AND due date** (`Qu: Stall rest & wrapped`, `Qu: Banamine paste … daily`) |
+| Each dose of a series | A parent with **open dated subtasks** (`Ulyssa: Adequan series` → `Dose 1…7`): the parent is hidden, each subtask is a task on its date |
+| Which horse row | `🐾 Animal` dropdown; if blank, horse names found in the task name (`Farrier: Hugo, Qu & Ratatouille`). No horse → the "Barn" row (one-off barn chores go here) |
+| Color | Note Type: 💊Treatment / 💉Injection / 🥼Surgery = Treatment, 💉Vaccination, 🪱Dewormer, 🧲Farrier; everything else = Care & appointments |
+| Instructions (Day view) | The task description, line by line (links and "From …" lines dropped) |
+| Left off | 👀Observation, 😎Behavior, 🤒Illness, 🤕Injury, 🌸In Heat, 🌾Feed, 🌾Hay, 🩸Labs, ❤️‍🩹Vitals, 🏠Environmental, ⚖️Weight, and anything with **🪣 AM/PM** set (that's in the feed bucket) |
+
+**🧬 Experiments:** the dated pole-work workout subtasks (purple, "Pole work").
+
+**🏇 Training Log (All Horses)** (list 901717915141, in 🐴 Horses): rides,
+driving, lunging, groundwork, trail, strength — anything that isn't health
+care, kept out of the Health Log. One task per session named
+`<Horse>: <Activity>`, 🐾 Animal set (it's a folder field, shared with the
+Health Log, so the two can be compared by horse and date), due date = the
+day. An **open** task with a due date is a planned session (recurring is
+fine) and shows up to be checked off; "Log a session" on the site creates a
+completed one with `**Minutes:** n`, the notes, and who logged it.
+
+**Nothing staff do changes ClickUp until Meghann approves it.** Ticking a
+box (with an optional note) or logging a session is saved in the site's own
+database as *awaiting approval* and shows on the site straight away. On the
+**Approve** view (PIN = `APPROVER_PIN` env var on Render; without it nothing
+can be approved) each one shows who, what, which day and the note, with
+Approve / Reject / Approve all. On approval:
+
+* one-day task (Health Log, Experiments, Training) → set to `complete`,
+  plus a comment "Checked off on the Keystone Barn site by <name>. Note: …".
+  A pole-work workout also gets a `M/D: Hugo W1 Even Walk done (Sydney). <note>`
+  comment on its experiment task, which the Experiments tab shows in the
+  session log.
+* a day of a daily course → a **comment** on the course
+  (`✓ Oct 20, 2026 — done by Sydney.` + note), not a new subtask. Doses you
+  log by hand as completed subtasks still count as done.
+* logged session → a completed task in the 🏇 Training Log.
+
+Unticking an approved item (also approved by you) reopens the task or deletes
+the site's own comment.
+
 ### 🚨 Protocols (list 901717326306) → Products page, when a symptom button is tapped
 
 One task per symptom group, shown above that group's products (this replaced
@@ -180,6 +229,10 @@ The app is **Vite + React**, served with its API from one Render service at
 | `GET /api/feeding` | `{ live, by_horse: { Horse: { am: [...], pm: [...], meds: [{ when, product, qty, unit, amount, task_id, course, doses_given, last_dose }] } }, active_task_ids[] }` |
 | `GET /api/experiments` | live experiment programs |
 | `GET /api/protocols` | `{ live, protocols: { "Colic": { severity, vet, summary, img, ladder: [{tier, label, items[]}], sections: [{title, blocks}] } } }` |
+| `GET /api/tasks` | `{ live, today, horses[], activities[], pending_count, approvals_enabled, items: [{ key, date, horses[], title, kind, type, note[], done, done_by, mode, pending }] }` |
+| `POST /api/tasks/check` | `{ key, done, by, note }` → queued for approval |
+| `POST /api/training/log` | `{ horse, activity, date, minutes, note, by }` → queued for approval |
+| `GET /api/approvals`, `POST /api/approvals/{id}/approve\|reject` | header `X-Approver-Pin`; approve writes to ClickUp |
 | `GET /api/board` | `{ upcoming: [{ horse, title, due }], watch: [{ horse, title, alert }] }` |
 | `GET /api/horses` | `{ horses: { Horse: { profile: {Label: value}, weights: [{date, lb}], labs: [{test, value, unit, ref, flag, date}] } } }` |
 | `GET /api/contacts` | `{ live, contacts: [{ role, name, person, phone, detail, address, url }] }` |

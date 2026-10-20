@@ -38,6 +38,7 @@ import TackBoard from "./TackBoard";
 import Experiments from "./Experiments";
 import GuidePage from "./GuidePage";
 import Care from "./Care";
+import Tasks from "./Tasks";
 
 
 
@@ -45,19 +46,26 @@ import Care from "./Care";
 // can't drift from what's on the tab.
 const buildTabs = ({ products, herd, tack, experiments }) => [
   { id: "board", label: "Board", icon: "📌" },
-  { id: "products", label: "Products", count: products, icon: "🧴" },
+  { id: "tasks", label: "Tasks", icon: "✅" },
+  { id: "experiments", label: "Experiments", count: experiments, icon: "🧪" },
+  { id: "care", label: "Care", icon: "🩺" },
   { id: "horses", label: "Horses", count: herd, icon: "🐎" },
   { id: "buckets", label: "Feed Buckets", count: herd, icon: "🌾" },
-  { id: "tack", label: "Tack Board", count: tack, icon: "🐴" },
-  { id: "experiments", label: "Experiments", count: experiments, icon: "🧪" },
   { id: "paddocks", label: "Paddocks", count: herd, icon: "📍" },
+  { id: "tack", label: "Tack Board", count: tack, icon: "🐴" },
+  { id: "therapies", label: "Therapies", icon: "🌿" },
+  { id: "products", label: "Products", count: products, icon: "🧴" },
+];
+
+// Therapy guides live under one Therapies tab so the nav stays short.
+const THERAPIES = [
   { id: "redlight", label: "Red Light", icon: "🔴" },
   { id: "surefoot", label: "Sure Foot", icon: "🦶" },
-  { id: "care", label: "Care", icon: "🩺" },
 ];
 
 export default function App() {
   const [tab, setTab] = useState("board");
+  const [therapy, setTherapy] = useState("redlight");
   const [query, setQuery] = useState("");
   const [cats, setCats] = useState([]);
   const [sxSel, setSxSel] = useState([]);
@@ -110,6 +118,7 @@ export default function App() {
 
       <main className="wrap">
         {tab === "board" && <Board />}
+        {tab === "tasks" && <Tasks />}
         {tab === "products" && (
           <Products
             query={query} setQuery={setQuery}
@@ -121,11 +130,21 @@ export default function App() {
         {tab === "buckets" && <Buckets />}
         {tab === "tack" && <TackBoard />}
         {tab === "experiments" && (
-          <Experiments onGuide={(g) => setTab(g === "surefoot.html" ? "surefoot" : "redlight")} />
+          <Experiments onGuide={(g) => { setTherapy(g === "surefoot.html" ? "surefoot" : "redlight"); setTab("therapies"); }} />
         )}
         {tab === "paddocks" && <Paddocks />}
-        {tab === "redlight" && <GuidePage guide="redlight" />}
-        {tab === "surefoot" && <GuidePage guide="surefoot" />}
+        {tab === "therapies" && (
+          <>
+            <div className="chips chips-row">
+              {THERAPIES.map((t) => (
+                <button key={t.id} className="chip" data-on={therapy === t.id ? "1" : "0"} onClick={() => setTherapy(t.id)}>
+                  <span className="chip-emoji">{t.icon}</span>{t.label}
+                </button>
+              ))}
+            </div>
+            <GuidePage key={therapy} guide={therapy} />
+          </>
+        )}
         {tab === "care" && <Care />}
       </main>
 
