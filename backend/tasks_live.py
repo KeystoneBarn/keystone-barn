@@ -56,7 +56,10 @@ DONE_STATUSES = ("complete", "completed", "closed", "done")
 # "✓ Oct 20, 2026 — done by Sydney." on a course task = that day is done.
 COURSE_TICK = re.compile(r"^✓ (\w{3} \d{1,2}, \d{4}) — done(?: by ([^.\n]+))?\.")
 
-ACTIVITIES = ["Ride", "Trail ride", "Drive", "Lunge", "Groundwork", "Strength", "Hand walk", "Other"]
+# Grouped like the whiteboard's boxes: rides (red), ground (green), body (blue).
+ACTIVITIES = ["Ride", "Lesson", "Trainer ride", "Trail ride",
+              "Track", "Drive", "Lunge", "Groundwork", "Strength", "Hand walk",
+              "Red light", "Bemer", "Deep groom", "Bath", "Other"]
 
 # Note types that are records, not jobs for the day.
 SKIP_TYPES = {

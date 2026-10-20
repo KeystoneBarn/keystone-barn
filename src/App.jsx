@@ -39,6 +39,7 @@ import Experiments from "./Experiments";
 import GuidePage from "./GuidePage";
 import Care from "./Care";
 import Tasks from "./Tasks";
+import Whiteboard from "./Whiteboard";
 
 
 
@@ -47,6 +48,7 @@ import Tasks from "./Tasks";
 const buildTabs = ({ products, herd, tack, experiments }) => [
   { id: "board", label: "Board", icon: "📌" },
   { id: "tasks", label: "Tasks", icon: "✅" },
+  { id: "whiteboard", label: "Whiteboard", icon: "🗒️" },
   { id: "experiments", label: "Experiments", count: experiments, icon: "🧪" },
   { id: "care", label: "Care", icon: "🩺" },
   { id: "horses", label: "Horses", count: herd, icon: "🐎" },
@@ -119,6 +121,7 @@ export default function App() {
       <main className="wrap">
         {tab === "board" && <Board />}
         {tab === "tasks" && <Tasks />}
+        {tab === "whiteboard" && <Whiteboard />}
         {tab === "products" && (
           <Products
             query={query} setQuery={setQuery}

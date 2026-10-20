@@ -134,6 +134,26 @@ Approve / Reject / Approve all. On approval:
 Unticking an approved item (also approved by you) reopens the task or deletes
 the site's own comment.
 
+### 🗒️ Whiteboard tab → the barn whiteboard, digital
+
+Same items, same approval queue as the Tasks tab, drawn like the whiteboard
+in the barn: Herd/Barn + one column per horse (board order), Sun–Sat, and
+four boxes per horse per day — red Rides, green Ground, blue Body (Training
+Log sessions sorted by name: ride/lesson/trainer/trail → Rides; red light,
+Bemer, groom, bath → Body; everything else, plus pole-work workouts →
+Ground) and orange Health (everything due from the Health Log).
+Tapping an empty Rides/Ground/Body box opens "Log a session" for that horse
+and day. Optional lines on each horse's `<Horse>: Profile` task feed the top
+of the board:
+
+* `**Board Note:** …` → the line on the horse's card (age, latest scale
+  weight, paddock and active treatments fill in on their own)
+* `**Goal:** Side passing` → the goal row (otherwise the horse's newest
+  experiment is shown)
+* `**Weekly Plan:** 3 Ride, 2 Ground, 1 Body` → the "this week" dots
+
+The side panel is the Board tab's sticky notes (squawks, shopping).
+
 ### 🚨 Protocols (list 901717326306) → Products page, when a symptom button is tapped
 
 One task per symptom group, shown above that group's products (this replaced

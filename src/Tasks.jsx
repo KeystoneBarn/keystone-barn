@@ -129,26 +129,17 @@ function Legend() {
   );
 }
 
-export default function Tasks() {
+export { Check, iso, parse, addDays, fmt, BARN };
+
+// Shared by Tasks and Whiteboard: the live task data plus ticking (with the
+// notes box) and logging sessions, both queued for Meghann's approval.
+export function useTaskActions() {
   const [data, setData, error, reload] = useTasks();
-  const today = data?.today || iso(new Date());
-  const [view, setView] = useState(() => (typeof window !== "undefined" && window.innerWidth < 760 ? "day" : "week"));
-  const [day, setDay] = useState(null);
-  const [horse, setHorse] = useState("");
   const [busy, setBusy] = useState(null);
   const [msg, setMsg] = useState(null);
   const [who, setWho] = useState(() => { try { return localStorage.getItem("bb-author") || ""; } catch { return ""; } });
-
-  const cur = day || today;
-  const items = data?.items || [];
-  const rows = useMemo(() => {
-    const hs = data?.horses || Object.keys(HORSE_COLOR);
-    return items.some((i) => !i.horses.length) ? [BARN, ...hs] : hs;
-  }, [data, items]);
-  const horsesOf = (i) => (i.horses.length ? i.horses : [BARN]);
-
-  const [sheet, setSheet] = useState(null);   // { item } while the notes box is open
-  const [logging, setLogging] = useState(false);
+  const [sheet, setSheet] = useState(null);       // { item } while the notes box is open
+  const [logging, setLogging] = useState(null);   // { horse, date, only } while the session form is open
 
   // Ticking asks for an optional note first; unticking is immediate.
   const toggle = (item) => (item.done ? save(item, false, null) : setSheet({ item }));
@@ -192,13 +183,49 @@ export default function Tasks() {
     }
     const item = await r.json();
     setData((prev) => prev && ({ ...prev, items: [...prev.items, item], pending_count: (prev.pending_count || 0) + 1 }));
-    setLogging(false);
+    setLogging(null);
   };
 
   const saveWho = (v) => {
     setWho(v);
     try { localStorage.setItem("bb-author", v); } catch { /* private mode */ }
   };
+
+  const today = data?.today || iso(new Date());
+  const sheets = (
+    <>
+      {sheet && <NoteSheet item={sheet.item} onCancel={() => setSheet(null)} onSave={(note) => save(sheet.item, true, note)} />}
+      {logging && (
+        <SessionSheet
+          horses={(data?.horses || []).filter((h) => h !== BARN)}
+          activities={logging.only || data?.activities || []}
+          day={logging.date || today}
+          today={today}
+          preset={logging.horse || ""}
+          onCancel={() => setLogging(null)}
+          onSave={logSession}
+        />
+      )}
+      {msg && <div className="tk-msg" role="alert">{msg} <button onClick={() => { setMsg(null); reload(); }}>OK</button></div>}
+    </>
+  );
+
+  return { data, setData, error, reload, today, busy, who, saveWho, toggle, setLogging, sheets };
+}
+
+export default function Tasks() {
+  const { data, error, reload, today, busy, who, saveWho, toggle, setLogging, sheets } = useTaskActions();
+  const [view, setView] = useState(() => (typeof window !== "undefined" && window.innerWidth < 760 ? "day" : "week"));
+  const [day, setDay] = useState(null);
+  const [horse, setHorse] = useState("");
+
+  const cur = day || today;
+  const items = data?.items || [];
+  const rows = useMemo(() => {
+    const hs = data?.horses || Object.keys(HORSE_COLOR);
+    return items.some((i) => !i.horses.length) ? [BARN, ...hs] : hs;
+  }, [data, items]);
+  const horsesOf = (i) => (i.horses.length ? i.horses : [BARN]);
 
   const step = view === "week" ? 7 : 1;
   const weekStart = monday(cur);
@@ -246,23 +273,10 @@ export default function Tasks() {
             {rows.map((h) => <option key={h} value={h}>{h === BARN ? "Barn / herd" : h}</option>)}
           </select>
         )}
-        {data?.live && <button className="tk-log-btn" onClick={() => setLogging(true)}>＋ Log a session</button>}
+        {data?.live && <button className="tk-log-btn" onClick={() => setLogging({ date: view === "horse" ? today : cur, horse: view === "horse" && horse !== BARN ? horse : "" })}>＋ Log a session</button>}
       </div>
 
-      {sheet && <NoteSheet item={sheet.item} onCancel={() => setSheet(null)} onSave={(note) => save(sheet.item, true, note)} />}
-      {logging && (
-        <SessionSheet
-          horses={(data?.horses || []).filter((h) => h !== BARN)}
-          activities={data?.activities || []}
-          day={view === "horse" ? today : cur}
-          today={today}
-          preset={view === "horse" && horse !== BARN ? horse : ""}
-          onCancel={() => setLogging(false)}
-          onSave={logSession}
-        />
-      )}
-
-      {msg && <div className="tk-msg" role="alert">{msg} <button onClick={() => { setMsg(null); reload(); }}>OK</button></div>}
+      {sheets}
 
       {view === "week" && (
         <div className="tk-grid-wrap">
