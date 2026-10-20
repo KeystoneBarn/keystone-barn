@@ -397,6 +397,15 @@ class _TasksCache:
     def loop(self):
         while True:
             self.refresh()
+            # Right after a restart the experiments haven't loaded yet, so the
+            # first list has no pole workouts. Rebuild as soon as they arrive
+            # instead of waiting a full refresh cycle.
+            waited = 0
+            while not experiments_live.experiments_payload().get("live") and waited < 300:
+                time.sleep(15)
+                waited += 15
+            if waited:
+                self.refresh()
             time.sleep(max(60, REFRESH_SECONDS))
 
     def find(self, key):
