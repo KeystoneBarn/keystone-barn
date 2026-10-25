@@ -479,6 +479,8 @@ class _ExperimentsCache:
                     "log": [],
                 })
                 g["horses"].append(e["horse"])
+                g.setdefault("_starts", []).append(e["start_date"])
+                g.setdefault("_dues", []).append(e["due_date"])
                 g["plan"] = g["plan"] or e["plan"]
                 g["diagrams"] = g["diagrams"] or e["diagrams"]
                 g["workouts"].extend(e.get("workouts") or [])
@@ -501,6 +503,14 @@ class _ExperimentsCache:
             programs = []
             for g in grouped.values():
                 g.pop("_updated", None)
+                # Horses that join late get their own catch-up start date; the
+                # program runs from the first horse's start to the last one's end.
+                starts = [int(d) for d in g.pop("_starts") if d]
+                dues = [int(d) for d in g.pop("_dues") if d]
+                if starts:
+                    g["start_date"] = str(min(starts))
+                if dues:
+                    g["due_date"] = str(max(dues))
                 g["horses"] = sorted(g["horses"])
                 # One note posted on each horse's task shows once, with all of them.
                 merged = {}
