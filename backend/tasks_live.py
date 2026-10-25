@@ -449,7 +449,7 @@ def check(key, done, by=None, note=None):
     """Tick or untick one item. Returns the updated public item."""
     item = CACHE.find(key)
     if not item:
-        raise LookupError("unknown task")
+        return _check_gone(key, done, by, note)
     by, note = _clean(by, 40), _clean(note, 1000)
     d = date.fromisoformat(item["date"])
     session = _session()
@@ -490,6 +490,27 @@ def check(key, done, by=None, note=None):
         if item["mode"] == "close" and not done and (item.get("status") or "") in DONE_STATUSES:
             item["status"] = ""
     return _public(item)
+
+
+def _check_gone(key, done, by=None, note=None):
+    """A tick approved after the task left the list (completed or moved in ClickUp
+    since staff ticked it). Still record it: a dated comment on the task."""
+    task_id, _, day = key.partition(":")
+    try:
+        d = date.fromisoformat(day)
+    except ValueError:
+        raise LookupError("unknown task")
+    if not done:
+        return {"key": key, "done": False}   # unticking something that's gone: nothing to undo
+    session = _session()
+    resp = session.get(f"{BASE}/task/{task_id}", timeout=HTTP_TIMEOUT)
+    if resp.status_code in (401, 404):
+        raise LookupError("That task was deleted in ClickUp.")
+    resp.raise_for_status()
+    by, note = _clean(by, 40), _clean(note, 1000)
+    text = f"✓ {_long(d)} — done{' by ' + by if by else ''}." + (f"\nNote: {note}" if note else "")
+    _comment(session, task_id, text)
+    return {"key": key, "done": True}
 
 
 def log_session(horse, activity, day=None, minutes=None, note=None, by=None):
