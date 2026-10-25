@@ -146,7 +146,7 @@ function StallCard({ name, data, bucket, locations, board }) {
   const mates = saved ? Object.keys(locations).filter((h) => h !== name && locations[h] === saved) : [];
 
   const watch = (board?.watch || []).filter((w) => w.horse === name);
-  const upcoming = (board?.upcoming || []).filter((u) => u.horse === name);
+  const upcoming = (board?.upcoming || []).filter((u) => (u.horses?.length ? u.horses : [u.horse]).includes(name));
 
   const amItems = bucket ? [...bucket.am, ...bucket.oralMeds] : [];
   const pmItems = bucket ? bucket.pm : [];

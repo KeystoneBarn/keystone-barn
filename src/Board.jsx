@@ -4,7 +4,9 @@
   - Team notes: anyone with the link can pin or pull one (no login, same as
     Paddocks). Stored by the backend in SQLite.
   - Coming Up: open ClickUp Horse Health Log tasks with a due date in the next
-    four weeks — vet/farrier visits, IM Prascend, weigh-ins, protocol phases.
+    four weeks — appointments, treatments, vaccines, dewormers, labs, shows —
+    plus experiment start/end dates. The backend folds the same task for
+    several horses on one day into a single row with every horse on it.
   - Watch List: open Health Log tasks with the Alert field set.
 
   Coming Up / Watch List are read-only here; they change in ClickUp.
@@ -55,7 +57,11 @@ const APPT_KINDS = [
   { re: /\bfarrier\b/i, label: "Farrier", icon: "🧲", color: "#3a5aa8" },
   { re: /\bvet\b/i, label: "Vet", icon: "🩺", color: "#a33a2a" },
 ];
+const EXPERIMENT = { label: "Experiment", icon: "👩🏼‍🔬", color: "#6a5fa8" };
+const SHOW = { label: "Show", icon: "💃", color: "#2f7d74" };
 function apptKind(it) {
+  if (/experiment/i.test(it.type || "")) return EXPERIMENT;
+  if (/show/i.test(it.type || "")) return SHOW;
   const isAppt = /appointment/i.test(it.type || "");
   if (!isAppt && it.horse) return null;   // a med reminder etc. keeps its horse chip
   const k = APPT_KINDS.find((a) => a.re.test(it.title || ""));
@@ -230,10 +236,17 @@ export default function Board() {
               </div>
               {d.items.map((it) => {
                 const kind = apptKind(it);
+                const horses = it.horses?.length ? it.horses : it.horse ? [it.horse] : [];
+                const chipRow = horses.length > 1 || (kind && horses.length > 0);
                 return (
                   <div key={it.id} className="bb-item">
-                    {kind ? <Kind kind={kind} /> : <Horse name={it.horse} />}
-                    <span>{kind ? apptTitle(it.title) : it.title}</span>
+                    {kind ? <Kind kind={kind} /> : !chipRow && <Horse name={horses[0]} />}
+                    <span>{kind ? apptTitle(it.title).replace(/^experiment\s+(\w)/i, (_, c) => c.toUpperCase()) : it.title}</span>
+                    {chipRow && (
+                      <div style={{ marginTop: 3 }}>
+                        {horses.map((h) => <Horse key={h} name={h} />)}
+                      </div>
+                    )}
                   </div>
                 );
               })}

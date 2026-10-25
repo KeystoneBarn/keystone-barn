@@ -4,12 +4,16 @@ Live "Coming Up" and "Watch List" for the Barn Board landing tab.
 Both come from the ClickUp "🐴 Horse Health Log" list (901715510360), the
 same list feed_live.py reads for Feed Buckets:
 
-* Coming Up — every open task with a due date from a few days ago through
-  the next few weeks. Vet and farrier visits, IM Prascend doses, the last
-  Adequan shot, a hand-walk phase change: anything Meghann puts in the log
-  with a due date shows up on the board, and drops off when it's closed.
-  Overdue items stay on (flagged) for a few days so a missed dose is
-  visible rather than silently gone.
+* Coming Up — open tasks with a due date from a few days ago through the
+  next few weeks, limited to the Note Types in COMING_UP_TYPES
+  (appointments, treatments, injections, vaccines, dewormers, labs, farrier,
+  dental, imaging, surgery, shows). Per-horse records an automation copies
+  off an appointment (🙌🏼BodyWork for the chiro visit) stay off. The same
+  task on the same day for several horses ("Fecal egg count" × 11) becomes
+  one line with every horse on it. Drops off when closed; overdue items stay
+  on (flagged) for a few days so a missed dose is visible rather than
+  silently gone. Experiment start and end dates (from experiments_live) are
+  added as their own lines.
 * Watch List — every open task with the "Alert" dropdown set
   (Mild / Moderate / Severe). Clearing Alert or closing the task takes it off.
 
@@ -22,7 +26,10 @@ import logging
 import os
 import threading
 import time
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
+import experiments_live
 from clickup_live import BASE, HTTP_TIMEOUT, TOKEN, _dropdown_name, _session
 from feed_live import F_ANIMAL, F_NOTE_TYPE, HEALTH_LIST_ID
 
@@ -35,6 +42,14 @@ DAYS_AHEAD = 28    # how far "Coming Up" looks ahead
 F_ALERT = "bd1153d1-7eb5-4142-a173-9c6a52829992"
 ALERT_RANK = {"Severe": 0, "Moderate": 1, "Mild": 2}
 DAY_MS = 86_400_000
+BARN_TZ = ZoneInfo("America/Chicago")
+
+# 📋 Animal Note Type values that belong on Coming Up. Anything else in the
+# log (BodyWork records, observations, weights, feed…) stays off the board.
+COMING_UP_TYPES = {
+    "🏥Appointment", "💊Treatment", "💉Injection", "💉Vaccination", "🪱Dewormer",
+    "🩸Labs", "🧲Farrier", "🦷Dental", "🩻Imaging", "🥼Surgery", "💃 Show",
+}
 
 
 def _horse(task):
@@ -43,10 +58,12 @@ def _horse(task):
 
 
 def _title(task, horse):
-    """Log tasks are named 'Horse: what' — drop the prefix, the board shows the horse as a chip."""
+    """Log tasks are named 'Horse: what' or 'Horse What: …' — drop the horse, the board shows it as a chip."""
     name = (task.get("name") or "").strip()
-    if horse and name.lower().startswith(horse.lower() + ":"):
-        name = name[len(horse) + 1:].strip()
+    if horse and name.lower().startswith(horse.lower()):
+        rest = name[len(horse):]
+        if rest[:1] in (":", " "):
+            name = rest.lstrip(": ").strip() or name
     return name
 
 
@@ -78,8 +95,60 @@ def _item(task):
         "title": _title(task, horse),
         "type": _dropdown_name(task, F_NOTE_TYPE),
         "status": (task.get("status") or {}).get("status"),
-        "url": task.get("url"),
     }
+
+
+def _day(ms):
+    return datetime.fromtimestamp(int(ms) / 1000, BARN_TZ).date()
+
+
+def _upcoming(tasks):
+    """Coming Up rows: allowed types only, one row per (day, type, task) with every horse on it."""
+    rows = {}
+    for t in tasks:
+        if not t.get("due_date"):
+            continue
+        it = _item(t)
+        if it["type"] not in COMING_UP_TYPES:
+            continue
+        due = int(t["due_date"])
+        key = (_day(due), it["type"], it["title"].lower())
+        row = rows.get(key)
+        if row is None:
+            row = rows[key] = dict(it, due=due, horses=[])
+        row["due"] = min(row["due"], due)
+        if it["horse"] and it["horse"] not in row["horses"]:
+            row["horses"].append(it["horse"])
+    out = []
+    for row in rows.values():
+        row["horses"].sort()
+        row["horse"] = row["horses"][0] if len(row["horses"]) == 1 else None
+        out.append(row)
+    out.sort(key=lambda i: (i["due"], i["title"]))
+    return out
+
+
+def _experiment_dates(programs, now_ms):
+    """'Experiment starts / ends' rows for experiments with a date from today through DAYS_AHEAD."""
+    today = _day(now_ms)
+    last = _day(now_ms + DAYS_AHEAD * DAY_MS)
+    out = []
+    for p in programs:
+        for field, label in (("start_date", "starts"), ("due_date", "ends")):
+            ms = p.get(field)
+            if not ms or not (today <= _day(ms) <= last):
+                continue
+            horses = sorted(p.get("horses") or [])
+            out.append({
+                "id": f"exp-{field}-{p['target_symptom']}",
+                "horse": horses[0] if len(horses) == 1 else None,
+                "horses": horses,
+                "title": f"Experiment {label}: {p['target_symptom']}",
+                "type": "👩🏼‍🔬Experiment",
+                "status": None,
+                "due": int(ms),
+            })
+    return out
 
 
 class _BoardCache:
@@ -114,14 +183,7 @@ class _BoardCache:
                 "order_by": "due_date",
                 "reverse": "true",
             })
-            upcoming = []
-            for t in due:
-                if not t.get("due_date"):
-                    continue
-                it = _item(t)
-                it["due"] = int(t["due_date"])
-                upcoming.append(it)
-            upcoming.sort(key=lambda i: i["due"])
+            upcoming = _upcoming(due)
 
             alerted = _get_all(session, {
                 "custom_fields": json.dumps([{"field_id": F_ALERT, "operator": "IS NOT NULL"}]),
@@ -164,4 +226,8 @@ def start():
 
 
 def board_payload():
-    return BOARD.snapshot()
+    snap = BOARD.snapshot()
+    # Experiments refresh on their own loop, so their dates are merged in per request.
+    exp = _experiment_dates(experiments_live.CACHE.snapshot().get("programs") or [], int(time.time() * 1000))
+    snap["upcoming"] = sorted(snap["upcoming"] + exp, key=lambda i: (i["due"], i["title"]))
+    return snap
