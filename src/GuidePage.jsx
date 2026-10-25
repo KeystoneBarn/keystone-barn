@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import redlightRaw from "./guides/redlight.html?raw";
 import surefootRaw from "./guides/surefoot.html?raw";
 import bemerRaw from "./guides/bemer.html?raw";
+import pemfRaw from "./guides/pemf.html?raw";
+import pemfPdf from "./guides/pemf-instructions.pdf?url";
 
 /*
   The two field guides ship as complete standalone HTML documents (own reset, own
@@ -47,6 +49,8 @@ function buildDoc(raw, { swapFonts = false, extraCss = "" } = {}) {
 const DOCS = {
   redlight: buildDoc(redlightRaw),
   bemer: buildDoc(bemerRaw),
+  // Dr. Hal's handwritten sheet ships with the build, so the link never points into ClickUp.
+  pemf: buildDoc(pemfRaw.replace("{{PEMF_PDF}}", pemfPdf)),
   surefoot: buildDoc(surefootRaw, { swapFonts: true, extraCss: SUREFOOT_EXTRA_CSS }),
 };
 
