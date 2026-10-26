@@ -10,7 +10,7 @@
   Anything missing (no token, ClickUp down) just leaves that section off.
 */
 import { useEffect, useMemo, useState } from "react";
-import { HORSE_COLOR, PADDOCKS, locationIdFor } from "./data";
+import { BUCKET_SIZE, HORSE_COLOR, PADDOCKS, locationIdFor } from "./data";
 import { isHorseCareContact, telHref, useContacts } from "./useContacts";
 import { BUCKET_PRODUCTS, STATIC_BUCKETS, WEIGHTS, hayFor, mergeLiveBuckets } from "./bucketData";
 import { useFeedBuckets } from "./useFeedBuckets";
@@ -131,7 +131,8 @@ function StallCard({ name, data, bucket, locations, board }) {
   const color = HORSE_COLOR[name] || "#7a5230";
 
   const age = ageFrom(prof.DOB);
-  const eyebrow = [prof.Sex, prof.Breed, prof.Color, age != null ? `${age} yrs` : null].filter(Boolean);
+  const eyebrow = [prof.Sex, prof.Breed, prof.Color, age != null ? `${age} yrs` : null,
+    BUCKET_SIZE[name] ? `${BUCKET_SIZE[name]} bucket` : null].filter(Boolean);
   const conditions = (prof.Conditions || "").split(",").map((c) => c.trim()).filter((c) => c && !/^none$/i.test(c));
 
   const last = weights[weights.length - 1];

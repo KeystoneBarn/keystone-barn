@@ -6,7 +6,7 @@ import {
 import { useFeedBuckets } from "./useFeedBuckets";
 import { useWeights } from "./useWeights";
 import { useProducts } from "./useProducts";
-import { HORSE_COLOR, PADDOCKS, locationIdFor } from "./data";
+import { BUCKET_SIZE, HORSE_COLOR, PADDOCKS, locationIdFor } from "./data";
 import PaddockMap from "./PaddockMap";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
@@ -118,7 +118,9 @@ function BucketCard({ bucket, liveImgByName, weights }) {
       <header className="bk-head">
         <span className="bk-swatch" style={{ background: color }} />
         <h3 className="bk-name">{bucket.horse}</h3>
-        <span className="bk-count">{count} items daily</span>
+        <span className="bk-count">
+          {BUCKET_SIZE[bucket.horse] ? `${BUCKET_SIZE[bucket.horse]} bucket · ` : ""}{count} items daily
+        </span>
       </header>
       <div className="bk-hay">
         <span className="bk-hay-icon">🌾</span>
