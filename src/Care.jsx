@@ -7,6 +7,7 @@
 */
 import { useEffect, useMemo, useState } from "react";
 import { HORSE_COLOR } from "./data";
+import { useWeights } from "./useWeights";
 import { CARE_CATEGORIES, STATUS_LABEL, byMostOverdue, careRowsFor } from "./careConfig";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
@@ -30,7 +31,7 @@ export function useCare() {
   return { records: data?.records || {}, live: !!data?.live };
 }
 
-function CareRow({ row, label, color }) {
+function CareRow({ row, label, color, lb }) {
   return (
     <li className="cr-row" data-status={row.status}>
       <span className="cr-dot" title={STATUS_LABEL[row.status]} />
@@ -39,6 +40,7 @@ function CareRow({ row, label, color }) {
         {label}
       </span>
       <span className="cr-when">
+        {lb && <strong>{lb.toLocaleString()} lb</strong>}
         {row.last
           ? <span>{row.lastText}</span>
           : <span className="cr-none">No record</span>}
@@ -75,6 +77,7 @@ export function CareSection({ horse }) {
 // Care tab: by category, every horse, most overdue first.
 export default function Care() {
   const { records, live } = useCare();
+  const { weights, live: weightsLive } = useWeights();
   const [cat, setCat] = useState(CARE_CATEGORIES[0].key);
   const cfg = CARE_CATEGORIES.find((c) => c.key === cat);
 
@@ -97,8 +100,7 @@ export default function Care() {
         <h2 style={{ margin: 0, fontSize: 26, letterSpacing: "-0.03em", fontWeight: 700 }}>Care</h2>
         <p className="prose" style={{ margin: "8px 0 0" }}>
           When each horse last had it done, most overdue first. Green is on track, amber is
-          coming due, red is overdue, grey means there's no record in ClickUp yet. Tap a date
-          to open its ClickUp record.
+          coming due, red is overdue, grey means there's no record in ClickUp yet.
         </p>
       </div>
 
@@ -119,7 +121,8 @@ export default function Care() {
           {g.title && <h3 className="sec-h">{g.title}</h3>}
           <ul className="cr-list cr-big">
             {g.rows.map((r) => (
-              <CareRow key={r.horse} row={r} label={r.horse} color={HORSE_COLOR[r.horse]} />
+              <CareRow key={r.horse} row={r} label={r.horse} color={HORSE_COLOR[r.horse]}
+                lb={cat === "weight" && weightsLive ? weights[r.horse] : null} />
             ))}
           </ul>
         </section>
