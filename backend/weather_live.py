@@ -31,12 +31,19 @@ BARN_TZ = ZoneInfo("America/Chicago")
 F_VALUE = "6511e003-7efe-4fac-8804-4fa68c1c6da6"
 F_MEASURE = "0f4191a9-3ff6-411e-b710-5010097edc33"
 
-# Measurement Type -> payload key
+# Measurement Type -> payload key. Wren doesn't post wind yet (2026-10-29);
+# once a "Wind" (mph) or "Wind Chill" (°F) measurement shows up, the site
+# uses it for the blanket pick with no code change.
 KINDS = {
     "low temp": "low",
     "high temp": "high",
     "precipitation": "precip_in",
     "humidity": "humidity",
+    "wind": "wind_mph",
+    "wind speed": "wind_mph",
+    "wind gust": "gust_mph",
+    "wind gusts": "gust_mph",
+    "wind chill": "wind_chill",
 }
 
 NAME = re.compile(r"^\s*(\d{1,2})/(\d{1,2})\s+(.+?):\s*(.+?)\s*$")

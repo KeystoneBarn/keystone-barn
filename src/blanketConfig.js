@@ -6,8 +6,10 @@
   range ("approximately 10°F to 46°F" in the description). Tonight's low comes
   from the 🌤️ Daily Wx Log (/api/board `weather`).
 
-  The pick: the blanket whose range covers tonight's "feels like" low (the low,
-  WET_PENALTY colder when rain or snow is likely). Several fit → the one whose
+  The pick: the blanket whose range covers tonight's "feels like" low: the
+  wind chill when it's windy (Wren's posted Wind Chill, else worked out from
+  the low and the wind speed with the National Weather Service formula), then
+  WET_PENALTY colder when rain or snow is likely. Several fit → the one whose
   range is centred nearest. Warmer than every range → no blanket. Otherwise
   (between ranges, or colder than all) → the nearest range, flagged when it's
   colder than that blanket is rated for.
@@ -49,9 +51,21 @@ export function isWet(weather) {
   return (weather.precip_pct ?? 0) >= WET_CHANCE || (weather.precip_in ?? 0) >= WET_INCHES;
 }
 
-export function feelsLike(weather) {
+// NWS wind chill: defined for 50°F and below with wind over 3 mph.
+export function windChill(weather) {
   if (weather?.low == null) return null;
-  return weather.low - (isWet(weather) ? WET_PENALTY : 0);
+  const t = weather.low;
+  if (weather.wind_chill != null) return Math.min(t, weather.wind_chill);
+  const v = weather.wind_mph;
+  if (v == null || v <= 3 || t > 50) return t;
+  const f = v ** 0.16;
+  return Math.round(35.74 + 0.6215 * t - 35.75 * f + 0.4275 * t * f);
+}
+
+export function feelsLike(weather) {
+  const chill = windChill(weather);
+  if (chill == null) return null;
+  return chill - (isWet(weather) ? WET_PENALTY : 0);
 }
 
 export function blanketsFor(horse, blankets) {
@@ -92,8 +106,12 @@ export const GUIDELINES = [
     body: "Each blanket has its maker's temperature range. The site picks the one that covers tonight's low from the morning weather log. Blankets go on at evening feed.",
   },
   {
+    title: "Wind counts as colder",
+    body: "On a windy night the site picks by the wind chill, not the low. If they're tucked in the shelter out of the wind, one step lighter is fine.",
+  },
+  {
     title: "Wet counts as colder",
-    body: `Rain or snow likely? Treat it as ${WET_PENALTY}°F colder. Same for a windy night if they won't use the shelter. Only waterproof turnouts go out in the wet.`,
+    body: `Rain or snow likely? Treat it as ${WET_PENALTY}°F colder on top of any wind chill. Only waterproof turnouts go out in the wet.`,
   },
   {
     title: "Never blanket a wet or sweaty horse",

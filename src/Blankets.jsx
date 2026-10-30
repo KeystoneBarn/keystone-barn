@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import "./blankets.css";
 import { HORSE_COLOR } from "./data";
 import { useTack } from "./useTack";
-import { GUIDELINES, feelsLike, isWet, lineup, rangeOf, weightLabel } from "./blanketConfig";
+import { GUIDELINES, feelsLike, isWet, lineup, rangeOf, weightLabel, windChill } from "./blanketConfig";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
   ? "http://localhost:8000"
@@ -65,7 +65,16 @@ function tonightText(weather) {
   const bits = [`Low ${Math.round(weather.low)}°F`];
   if (weather.high != null) bits.push(`high ${Math.round(weather.high)}°F`);
   if (weather.precip_pct != null) bits.push(`${Math.round(weather.precip_pct)}% rain/snow`);
+  if (weather.wind_mph != null) bits.push(`wind ${Math.round(weather.wind_mph)} mph${weather.gust_mph != null ? `, gusts ${Math.round(weather.gust_mph)}` : ""}`);
   return bits.join(" · ");
+}
+
+// "Feels like 24°F (wind chill, wet)" when wind or wet changes the pick
+function feelsText(weather) {
+  const t = feelsLike(weather);
+  if (t == null || t === weather.low) return null;
+  const why = [windChill(weather) < weather.low ? "wind chill" : null, isWet(weather) ? "wet" : null].filter(Boolean);
+  return `Picking for ${Math.round(t)}°F (${why.join(", ")})`;
 }
 
 export function BlanketAlert({ onOpen }) {
@@ -79,7 +88,7 @@ export function BlanketAlert({ onOpen }) {
       <span className="bl-alert-icon" aria-hidden="true">🧥</span>
       <span className="bl-alert-body">
         <strong>Blanket tonight</strong>
-        <span className="bl-alert-sub">{tonightText(weather)}</span>
+        <span className="bl-alert-sub">{[tonightText(weather), feelsText(weather)].filter(Boolean).join(" · ")}</span>
         <span className="bl-alert-horses">
           {on.map((r) => (
             <span key={r.horse} className="bl-chip">
@@ -97,7 +106,6 @@ export default function Blankets() {
   const { blankets, live } = useTack();
   const weather = useWeather();
   const rows = lineup(blankets, weather);
-  const t = feelsLike(weather);
   const withBlankets = new Set(rows.map((r) => r.horse));
   const natural = HORSES.filter((h) => !withBlankets.has(h));
   const on = rows.filter((r) => r.blanket).length;
@@ -117,7 +125,7 @@ export default function Blankets() {
         <div>
           <div className="bl-k">Tonight{weather && !weather.is_today ? ` (from ${fmtDay(weather.date)}, today's not posted yet)` : ""}</div>
           <div className="bl-v">{tonightText(weather) || "Weather isn't available right now."}</div>
-          {isWet(weather) && <div className="bl-s">Wet night: picking for {t}°F</div>}
+          {feelsText(weather) && <div className="bl-s">{feelsText(weather)}</div>}
         </div>
         {weather?.low != null && rows.length > 0 && (
           <div className="bl-count">{on ? `${on} to blanket` : "No blankets tonight"}</div>

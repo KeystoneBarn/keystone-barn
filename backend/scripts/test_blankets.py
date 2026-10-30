@@ -75,4 +75,10 @@ w = wl.build(tasks, "2026-10-30")   # before Wren posts: yesterday's numbers, fl
 assert w["date"] == "2026-10-29" and w["is_today"] is False, w
 w = wl.build(tasks[4:], "2026-10-28")
 assert w["precip_pct"] == 100 and w["precip_in"] == 0.35, w
+w = wl.build([
+    wx(D29, "Low Temp", 20, "10/29 Low Temp: 20°F"),
+    wx(D29, "Wind", 15, "10/29 Wind: 15 mph, gusts 25"),
+    wx(D29, "Wind Chill", 6, "10/29 Wind Chill: 6°F"),
+], "2026-10-29")
+assert (w["wind_mph"], w["wind_chill"]) == (15, 6), w
 print("ok")
