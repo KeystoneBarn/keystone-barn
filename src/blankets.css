@@ -1,0 +1,75 @@
+/* Blankets tab, Board blanket alert, blanket lists on Tack Board / Horses. */
+
+.bl-wrap { display: flex; flex-direction: column; gap: 14px; }
+
+.bl-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; flex: none; }
+
+/* tonight */
+.bl-tonight {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center;
+  background: var(--galv-dk); color: #f1f3ec; border-radius: 6px; padding: 14px 16px;
+}
+.bl-temp { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 44px; line-height: 1; }
+.bl-k { font-family: "Archivo Narrow", sans-serif; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; }
+.bl-v { font-size: 17px; font-weight: 600; }
+.bl-s { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+.bl-count {
+  font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 14px;
+  background: var(--iodine); color: #fff; border-radius: 999px; padding: 6px 12px; white-space: nowrap;
+}
+
+/* lineup */
+.bl-lineup { list-style: none; margin: 0; padding: 0; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; }
+.bl-row {
+  display: grid; grid-template-columns: 7.5em 4.5em 1fr; gap: 12px; align-items: center;
+  padding: 12px 14px; border-top: 1px solid var(--rule-2);
+}
+.bl-row:first-child { border-top: 0; }
+.bl-row[data-on="0"] { opacity: 0.7; }
+.bl-horse { display: inline-flex; align-items: center; font-weight: 700; font-size: 17px; }
+.bl-big { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 26px; color: var(--iodine); }
+.bl-row[data-on="0"] .bl-big { color: var(--ink-3); }
+.bl-pick { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bl-meta { font-size: 13px; color: var(--ink-3); }
+.bl-none { font-size: 14px; color: var(--ink-3); }
+.bl-warn { font-size: 13px; color: var(--danger); font-weight: 600; }
+.bl-natural { margin: 0; font-size: 14px; color: var(--ink-2); }
+
+/* guidelines */
+.bl-rules { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 10px; }
+.bl-rules li { padding-left: 4px; }
+.bl-rules strong { display: block; }
+.bl-rules span { font-size: 15px; color: var(--ink-2); }
+
+/* a horse's blankets (cards) */
+.bl-list { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.bl-list li { display: flex; gap: 10px; align-items: baseline; }
+.bl-size { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 20px; color: var(--iodine); min-width: 2.6em; }
+.bl-what { display: flex; flex-direction: column; min-width: 0; }
+
+/* Board alert */
+.bl-alert {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer;
+  margin: 0 0 16px; padding: 12px 14px; border-radius: 6px; font: inherit; color: var(--ink);
+  background: #fff4d6; border: 2px solid #d99a12; box-shadow: var(--shadow);
+}
+.bl-alert:hover { background: #ffefc2; }
+.bl-alert-icon { font-size: 28px; }
+.bl-alert-body { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.bl-alert-body strong { font-size: 17px; }
+.bl-alert-sub { font-size: 13px; color: var(--ink-2); }
+.bl-alert-horses { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px; }
+.bl-chip {
+  display: inline-flex; align-items: center; background: #fff; border: 1px solid var(--rule);
+  border-radius: 999px; padding: 2px 9px; font-size: 14px; font-weight: 600;
+}
+.bl-chip em { font-style: normal; color: var(--iodine); margin-left: 5px; }
+.bl-alert-go { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 13px; color: var(--iodine); white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .bl-tonight { grid-template-columns: auto 1fr; }
+  .bl-count { grid-column: 1 / -1; justify-self: start; }
+  .bl-row { grid-template-columns: 1fr auto; }
+  .bl-pick { grid-column: 1 / -1; }
+  .bl-alert-go { display: none; }
+}

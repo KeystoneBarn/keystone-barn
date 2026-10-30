@@ -254,10 +254,10 @@ The app is **Vite + React**, served with its API from one Render service at
 | `POST /api/tasks/check` | `{ key, done, by, note }` → queued for approval |
 | `POST /api/training/log` | `{ horse, activity, date, minutes, note, by }` → queued for approval |
 | `GET /api/approvals`, `POST /api/approvals/{id}/approve\|reject` | header `X-Approver-Pin`; approve writes to ClickUp |
-| `GET /api/board` | `{ upcoming: [{ horse, title, due }], watch: [{ horse, title, alert }] }` |
+| `GET /api/board` | `{ upcoming: [{ horse, title, due }], watch: [{ horse, title, alert }], weather: { date, low, high, precip_in, precip_pct, is_today } }` (weather from the 🌤️ Daily Wx Log) |
 | `GET /api/horses` | `{ horses: { Horse: { profile: {Label: value}, weights: [{date, lb}], labs: [{test, value, unit, ref, flag, date}] } } }` |
 | `GET /api/contacts` | `{ live, contacts: [{ role, name, person, phone, detail, address, url }] }` |
-| `GET /api/tack` | `{ live, horses: [{ horse, bit, breast_collar, boots, pad, notes, url, saddles: [{ label, saddle, color, pad, rank, note, url }] }] }` |
+| `GET /api/tack` | `{ live, horses: [{ horse, bit, breast_collar, boots, pad, notes, url, saddles: [{ label, saddle, color, pad, rank, note, url }] }], blankets: [{ id, name, brand, size, horses[], fill_g, neck, waterproof, low_f, high_f, notes }] }` (blankets from 🚜 Tack & Equipment) |
 | `GET/PUT /api/locations` | shared Paddocks board: `{ assignments: { Horse: "pad-2" \| "zone-Stall 1" \| … } }` |
 | `GET/POST/DELETE /api/board/notes` | Board sticky notes |
 

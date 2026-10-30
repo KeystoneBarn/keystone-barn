@@ -16,6 +16,8 @@ same list feed_live.py reads for Feed Buckets:
   added as their own lines.
 * Watch List — every open task with the "Alert" dropdown set
   (Mild / Moderate / Severe). Clearing Alert or closing the task takes it off.
+* Weather — today's low/high/precipitation from the 🌤️ Daily Wx Log
+  (weather_live.py), which the site turns into the blanket alert.
 
 Team notes are not here: they're written from the board itself and live in
 the backend's SQLite database (see main.py), so staff can post without a
@@ -30,6 +32,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import experiments_live
+import weather_live
 from clickup_live import BASE, HTTP_TIMEOUT, TOKEN, _dropdown_name, _session
 from feed_live import F_ANIMAL, F_NOTE_TYPE, HEALTH_LIST_ID
 
@@ -223,6 +226,7 @@ def start():
         log.warning("CLICKUP_TOKEN unset — barn board has no Coming Up / Watch List")
         return
     threading.Thread(target=BOARD.loop, name="board-live-refresh", daemon=True).start()
+    weather_live.start()
 
 
 def board_payload():
@@ -230,4 +234,6 @@ def board_payload():
     # Experiments refresh on their own loop, so their dates are merged in per request.
     exp = _experiment_dates(experiments_live.CACHE.snapshot().get("programs") or [], int(time.time() * 1000))
     snap["upcoming"] = sorted(snap["upcoming"] + exp, key=lambda i: (i["due"], i["title"]))
+    # Today's Daily Wx Log numbers, for the blanket alert (weather_live.py).
+    snap["weather"] = weather_live.WX.snapshot()
     return snap

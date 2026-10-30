@@ -22,6 +22,13 @@ List shape (verified against the live list 2026-09-28):
 Dropdown names and colors are resolved from each field's own type_config
 (clickup_live._dropdown_name), so a new saddle, pad or bit added in ClickUp
 shows up without a code change.
+
+Blankets come from the "🚜 Tack & Equipment" list (901716108644): any active
+task whose Item Type is "Blanket", or whose name says blanket / sheet / rug /
+turnout / cooler (the first ones, 2026-10-29, are Item Type "Other"). Each
+carries `Size`, `Brand`, the `Horses` labels and a description with
+"Fill: 200g" and the maker's band, "approximately 10°F to 46°F". The site
+picks tonight's blanket per horse from those bands (src/blanketConfig.js).
 """
 import logging
 import os
@@ -34,6 +41,7 @@ from clickup_live import BASE, HTTP_TIMEOUT, TOKEN, _dropdown_name, _field, _opt
 log = logging.getLogger("tack_live")
 
 TACK_LIST_ID = os.environ.get("CLICKUP_TACK_LIST", "901717141323")
+EQUIPMENT_LIST_ID = os.environ.get("CLICKUP_EQUIPMENT_LIST", "901716108644")
 REFRESH_SECONDS = int(os.environ.get("CLICKUP_TACK_REFRESH_SECONDS", "300"))
 
 # --- field ids on the Tack Board list (verified against the live schema) ---
@@ -46,7 +54,18 @@ F_FIT_NOTES = "00ca4a43-3bfc-4ee1-bbfb-44df3d732a41"
 F_RANK = "982e1aff-d821-4cb1-ab04-91cdfc692541"
 F_ANIMAL = "5d51bbad-2a7b-4179-94d8-b9440b8f4922"
 
+# --- field ids on the Tack & Equipment list (blankets) ---
+F_ITEM_TYPE = "a0b725a3-5e5b-4f94-9db3-cf8ad3ca6f64"
+F_SIZE = "f6ec9ad0-f121-4642-8bed-60637cd4e72b"
+F_BRAND = "3e9125e5-464c-4938-b769-1fc53b3bb057"
+F_HORSES = "556dcded-9e5e-4856-b504-c9973222bc93"
+
 TRAILING_NOTE = re.compile(r"^(.*?)\s*\(([^()]*)\)\s*$")
+BLANKET_WORD = re.compile(r"\b(blanket|sheet|rug|turnout|cooler)s?\b", re.I)
+FILL_LINE = re.compile(r"fill:\s*(\d+)\s*g", re.I)
+GRAMS = re.compile(r"\b(\d{2,4})\s*g\b", re.I)
+BAND = re.compile(r"(-?\d+)\s*°?\s*F\s*(?:to|–|—|-)\s*(-?\d+)\s*°?\s*F", re.I)
+SIZE_LINE = re.compile(r"blanket size:\s*(\d+(?:\.\d+)?)", re.I)
 
 
 def _status(task):
@@ -176,10 +195,97 @@ def build(tasks):
     return out
 
 
+def _labels(task, field_id):
+    """Label field -> option names (the value is a list of option ids)."""
+    f = _field(task, field_id)
+    ids = (f or {}).get("value") or []
+    names = {o.get("id"): (o.get("label") or o.get("name")) for o in _options(f)}
+    out = []
+    for v in ids:
+        if isinstance(v, dict):
+            out.append(v.get("label") or v.get("name"))
+        else:
+            out.append(names.get(v))
+    return [n for n in out if n]
+
+
+def is_blanket(task):
+    if (_dropdown_name(task, F_ITEM_TYPE) or "").lower() == "blanket":
+        return True
+    return bool(BLANKET_WORD.search(task.get("name") or ""))
+
+
+def _clean_blanket_name(name, horses):
+    """'Bucas … 200g with neck piece (84", Qu)' -> 'Bucas … 200g with neck piece'."""
+    m = TRAILING_NOTE.match(name or "")
+    if m and m.group(1):
+        inside = m.group(2)
+        if '"' in inside or any(h.lower() in inside.lower() for h in horses):
+            return m.group(1).strip()
+    return (name or "").strip()
+
+
+def to_blanket(task):
+    desc = task.get("markdown_description") or task.get("text_content") or task.get("description") or ""
+    name = task.get("name") or ""
+    horses = _labels(task, F_HORSES)
+    if not horses:
+        h = _horse_name(task) if _dropdown_name(task, F_ANIMAL) else None
+        horses = [h] if h else []
+    fill = FILL_LINE.search(desc) or GRAMS.search(name)
+    fill_g = int(fill.group(1)) if fill else (0 if re.search(r"\bsheet\b", name, re.I) else None)
+    band = BAND.search(desc) or BAND.search(name)
+    size = _text(task, F_SIZE)
+    if not size:
+        m = SIZE_LINE.search(desc)
+        size = f'{m.group(1)}"' if m else None
+    low, high = (sorted([int(band.group(1)), int(band.group(2))]) if band else (None, None))
+    return {
+        "id": task.get("id"),
+        "name": _clean_blanket_name(name, horses),
+        "brand": _text(task, F_BRAND),
+        "size": size,
+        "horses": horses,
+        "fill_g": fill_g,
+        "neck": bool(re.search(r"\bneck\b|\bhood\b", name, re.I)),
+        "waterproof": bool(re.search(r"waterproof|turnout", name + " " + desc, re.I)),
+        "low_f": low,
+        "high_f": high,
+        "notes": _text(task, F_FIT_NOTES),
+    }
+
+
+def build_blankets(tasks):
+    out = [to_blanket(t) for t in tasks if _status(t) == "active" and is_blanket(t)]
+    out.sort(key=lambda b: (b["horses"][0].lower() if b["horses"] else "~", b["fill_g"] or 0))
+    return out
+
+
+def _fetch_blankets(session):
+    tasks, page = [], 0
+    while True:
+        resp = session.get(
+            f"{BASE}/list/{EQUIPMENT_LIST_ID}/task",
+            params={"include_markdown_description": "true", "page": page},
+            timeout=HTTP_TIMEOUT,
+        )
+        resp.raise_for_status()
+        payload = resp.json()
+        batch = payload.get("tasks") or []
+        tasks.extend(batch)
+        if payload.get("last_page", True) or not batch:
+            break
+        page += 1
+        if page > 20:
+            break
+    return build_blankets(tasks)
+
+
 class _TackCache:
     def __init__(self):
         self.lock = threading.Lock()
         self.horses = []
+        self.blankets = []
         self.fetched_at = 0.0
         self.error = None
         self.refreshing = False
@@ -195,6 +301,7 @@ class _TackCache:
                 "age_seconds": round(time.time() - self.fetched_at, 1) if self.fetched_at else None,
                 "error": self.error,
                 "horses": [dict(h, saddles=[dict(s) for s in h["saddles"]]) for h in self.horses],
+                "blankets": [dict(b) for b in self.blankets],
             }
 
     def refresh(self):
@@ -207,9 +314,17 @@ class _TackCache:
                 return
             self.refreshing = True
         try:
-            horses = build(_fetch_tasks(_session()))
+            session = _session()
+            horses = build(_fetch_tasks(session))
+            try:
+                blankets = _fetch_blankets(session)
+            except Exception as exc:  # a blanket hiccup shouldn't blank the saddles
+                log.warning("blanket refresh failed: %s", exc)
+                with self.lock:
+                    blankets = self.blankets
             with self.lock:
                 self.horses = horses
+                self.blankets = blankets
                 self.fetched_at = time.time()
                 self.error = None
             log.info("tack refresh ok: %d horses", len(horses))
@@ -247,4 +362,5 @@ def tack_payload():
         "fetched_at": snap["fetched_at"],
         "age_seconds": snap["age_seconds"],
         "horses": snap["horses"],
+        "blankets": snap["blankets"],
     }

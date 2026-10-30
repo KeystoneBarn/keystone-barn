@@ -2,6 +2,7 @@ import { useState } from "react";
 import { SADDLE_COLORS } from "./tackData";
 import { HORSE_COLOR } from "./data";
 import { useTack } from "./useTack";
+import { BlanketList } from "./Blankets";
 
 function saddleColor(s) {
   const key = ((s.saddle || "") + " " + (s.label || "")).toLowerCase();
@@ -9,7 +10,7 @@ function saddleColor(s) {
   return hit ? hit[1] : s.color || "#7a7a7a";
 }
 
-function TackCard({ t }) {
+function TackCard({ t, blankets }) {
   const color = HORSE_COLOR[t.horse] || "#46535c";
   return (
     <article className="tk-card" style={{ "--hc": color }}>
@@ -52,6 +53,13 @@ function TackCard({ t }) {
         </div>
       )}
 
+      {blankets.length > 0 && (
+        <div className="tk-section">
+          <div className="field-label">Blanket{blankets.length === 1 ? "" : "s"}</div>
+          <BlanketList blankets={blankets} />
+        </div>
+      )}
+
       {t.notes && (
         <div className="tk-section">
           <div className="field-label">Fit Notes</div>
@@ -64,7 +72,7 @@ function TackCard({ t }) {
 
 export default function TackBoard() {
   const [selected, setSelected] = useState(null);
-  const { horses: tack } = useTack();
+  const { horses: tack, blankets } = useTack();
   const horses = tack.map((t) => t.horse);
   const visible = selected ? tack.filter((t) => t.horse === selected) : tack;
 
@@ -93,7 +101,9 @@ export default function TackBoard() {
       </div>
 
       <div className="bk-grid">
-        {visible.map((t) => <TackCard key={t.horse} t={t} />)}
+        {visible.map((t) => (
+          <TackCard key={t.horse} t={t} blankets={blankets.filter((b) => b.horses.includes(t.horse))} />
+        ))}
       </div>
     </div>
   );

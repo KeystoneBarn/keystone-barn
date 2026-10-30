@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { HORSE_COLOR } from "./data";
 import { telHref, useContacts } from "./useContacts";
+import { BlanketAlert } from "./Blankets";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
   ? "http://localhost:8000"
@@ -179,7 +180,7 @@ function TeamNote({ n, i, onRemove }) {
   );
 }
 
-export default function Board() {
+export default function Board({ onBlankets }) {
   const [notesData, reloadNotes] = useJSON("/api/board/notes", NOTE_POLL_MS);
   const [board] = useJSON("/api/board", BOARD_POLL_MS);
   const notes = notesData?.notes || [];
@@ -215,6 +216,8 @@ export default function Board() {
         <h2>🐴 The Barn Board</h2>
         <div className="bb-sub">{updated ? `Updated ${updated}` : "Loading from ClickUp…"}</div>
       </header>
+
+      <BlanketAlert onOpen={onBlankets} />
 
       <div className="bb-notes">
         {notes.map((n, i) => <TeamNote key={n.id} n={n} i={i} onRemove={remove} />)}

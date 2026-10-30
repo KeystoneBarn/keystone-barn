@@ -15,6 +15,8 @@ import { isHorseCareContact, telHref, useContacts } from "./useContacts";
 import { BUCKET_PRODUCTS, STATIC_BUCKETS, WEIGHTS, hayFor, mergeLiveBuckets } from "./bucketData";
 import { useFeedBuckets } from "./useFeedBuckets";
 import { CareSection } from "./Care";
+import { useTack } from "./useTack";
+import { BlanketList } from "./Blankets";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
   ? "http://localhost:8000"
@@ -125,6 +127,8 @@ function BucketList({ items, empty }) {
 
 function StallCard({ name, data, bucket, locations, board }) {
   const { contacts } = useContacts();
+  const { blankets: allBlankets } = useTack();
+  const blankets = allBlankets.filter((b) => b.horses.includes(name));
   const prof = data?.profile || {};
   const weights = data?.weights || [];
   const labs = data?.labs || [];
@@ -205,6 +209,12 @@ function StallCard({ name, data, bucket, locations, board }) {
               {lb && <div className="hx-s">≈ {hayFor(name, { [name]: lb }).daily} lb/day</div>}
             </div>
           )}
+          {blankets.length > 0 && (
+            <div>
+              <div className="hx-k">Blanket size</div>
+              <div className="hx-v">{[...new Set(blankets.map((b) => b.size).filter(Boolean))].join(" / ") || "—"}</div>
+            </div>
+          )}
           {prof.Height && (
             <div>
               <div className="hx-k">Height</div>
@@ -251,6 +261,13 @@ function StallCard({ name, data, bucket, locations, board }) {
               <div className="hx-sh">☾ Dinner bucket</div>
               <BucketList items={pmItems} empty="Hay only." />
             </div>
+          </div>
+        )}
+
+        {blankets.length > 0 && (
+          <div className="hx-section">
+            <div className="hx-sh">🧥 Blanket{blankets.length === 1 ? "" : "s"}</div>
+            <BlanketList blankets={blankets} />
           </div>
         )}
 

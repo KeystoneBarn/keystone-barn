@@ -38,6 +38,7 @@ import TackBoard from "./TackBoard";
 import Experiments from "./Experiments";
 import GuidePage from "./GuidePage";
 import Care from "./Care";
+import Blankets from "./Blankets";
 
 
 
@@ -45,6 +46,7 @@ import Care from "./Care";
 // can't drift from what's on the tab.
 const buildTabs = ({ products, herd, tack, experiments }) => [
   { id: "board", label: "Board", icon: "📌" },
+  { id: "blankets", label: "Blankets", icon: "🧥" },
   { id: "experiments", label: "Experiments", count: experiments, icon: "🧪" },
   { id: "care", label: "Care", icon: "🩺" },
   { id: "horses", label: "Horses", count: herd, icon: "🐎" },
@@ -117,7 +119,8 @@ export default function App() {
       </nav>
 
       <main className="wrap">
-        {tab === "board" && <Board />}
+        {tab === "board" && <Board onBlankets={() => setTab("blankets")} />}
+        {tab === "blankets" && <Blankets />}
         {tab === "products" && (
           <Products
             query={query} setQuery={setQuery}

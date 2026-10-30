@@ -2,6 +2,7 @@
   One shared read of the live Tack Board from /api/tack (the ClickUp
   🧢 Tack Board list). Same fallback philosophy as useExperiments(): no live
   data, keep showing the copy compiled into the bundle.
+  `blankets` (from 🚜 Tack & Equipment) has no bundled copy: empty when offline.
 */
 import { useEffect, useState } from "react";
 import { TACK_FALLBACK } from "./tackData";
@@ -10,7 +11,7 @@ const API = (typeof import.meta !== "undefined" && import.meta.env && import.met
   ? "http://localhost:8000"
   : "";
 
-const FALLBACK = { horses: TACK_FALLBACK, live: false, fetchedAt: null };
+const FALLBACK = { horses: TACK_FALLBACK, blankets: [], live: false, fetchedAt: null };
 
 let inflight = null;
 let settled = null;
@@ -22,7 +23,7 @@ function load() {
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status))))
     .then((data) => {
       if (data && data.live && Array.isArray(data.horses) && data.horses.length) {
-        settled = { horses: data.horses, live: true, fetchedAt: data.fetched_at };
+        settled = { horses: data.horses, blankets: data.blankets || [], live: true, fetchedAt: data.fetched_at };
       } else {
         settled = FALLBACK;
       }
