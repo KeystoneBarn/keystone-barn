@@ -11,6 +11,9 @@
   Log (not just Feed entries) — bucketData.js's mergeLiveBuckets() uses it to
   drop a hand-maintained course the moment its ClickUp task is marked
   complete, without needing the course's day-by-day detail to be live too.
+
+  records is every "in progress" and "to do" bucket record with its dates, for
+  the Prep next week view (src/weekPrep.js). null when not live.
 */
 import { useEffect, useState } from "react";
 
@@ -18,7 +21,7 @@ const API = (typeof import.meta !== "undefined" && import.meta.env && import.met
   ? "http://localhost:8000"
   : "";
 
-const FALLBACK = { byHorse: {}, activeTaskIds: null, live: false, fetchedAt: null };
+const FALLBACK = { byHorse: {}, activeTaskIds: null, records: null, live: false, fetchedAt: null };
 
 let inflight = null;
 let settled = null;
@@ -33,6 +36,7 @@ function load() {
         settled = {
           byHorse: data.by_horse,
           activeTaskIds: new Set(data.active_task_ids || []),
+          records: data.records || null,
           live: true,
           fetchedAt: data.fetched_at,
         };

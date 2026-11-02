@@ -1,0 +1,91 @@
+/* Feed Buckets → Prep next week (src/PrepWeek.jsx). Reuses the bk-* card styles. */
+
+.fp-views { display: flex; gap: 7px; margin: 14px 0 4px; }
+.fp-views .bk-idx-btn { font-size: 14px; padding: 8px 16px; }
+
+.fp-wrap { display: flex; flex-direction: column; gap: 16px; padding-top: 12px; }
+.fp-none { font-size: 13.5px; margin: 0; }
+
+/* week picker */
+.fp-picker {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  background: var(--panel); border: 1px solid var(--rule); border-radius: 3px;
+  padding: 10px 12px; box-shadow: var(--shadow);
+}
+.fp-step {
+  width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--rule);
+  background: var(--limewash); font-size: 20px; line-height: 1; color: var(--ink); cursor: pointer;
+}
+.fp-dates { display: flex; flex-direction: column; min-width: 0; }
+.fp-dates strong { font-size: 18px; letter-spacing: -0.02em; }
+.fp-tag {
+  font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 11.5px;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--galv);
+}
+.fp-date-input {
+  margin-left: auto; font: inherit; font-size: 13px; padding: 6px 8px;
+  border: 1px solid var(--rule); border-radius: 3px; background: #fff; color: var(--ink);
+}
+
+/* badges */
+.fp-badge {
+  display: inline-block; font-family: "Archivo Narrow", sans-serif; font-weight: 700;
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  background: var(--iodine); color: #fff; border-radius: 999px; padding: 2px 8px; white-space: nowrap;
+}
+.fp-when {
+  display: inline-block; font-family: "Archivo Narrow", sans-serif; font-weight: 700;
+  font-size: 11.5px; letter-spacing: 0.06em; border-radius: 3px; padding: 1px 6px;
+  background: #e9e3c9; color: #5a4d12;
+}
+.fp-when[data-w="PM"] { background: #2f3a4a; color: #fff; }
+
+/* changes */
+.fp-changes {
+  background: #fbf3e8; border: 1px solid #e3c9a8; border-left: 5px solid var(--iodine);
+  border-radius: 3px; padding: 14px 14px 10px;
+}
+.fp-h { margin: 0 0 10px; font-size: 20px; letter-spacing: -0.02em; }
+.fp-change-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+@media (min-width: 820px) { .fp-change-list { grid-template-columns: 1fr 1fr; } }
+.fp-change {
+  background: var(--panel); border: 1px solid var(--rule-2); border-left: 4px solid var(--hc);
+  border-radius: 3px; padding: 9px 11px;
+}
+.fp-change-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fp-change-horse { font-weight: 700; font-size: 15.5px; }
+.fp-change-prod { font-size: 14px; color: var(--ink-2); }
+.fp-change-amt {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 4px;
+  font-family: "Archivo Narrow", sans-serif; font-size: 17px;
+}
+.fp-old { color: var(--ink-3); text-decoration: line-through; }
+.fp-arrow { color: var(--iodine); font-weight: 700; }
+.fp-new { font-weight: 700; color: var(--ink); }
+.fp-eff { font-size: 14px; color: var(--ink-2); }
+.fp-src { font-size: 12.5px; color: var(--ink-3); margin-top: 3px; }
+
+/* alerts */
+.fp-alerts { display: flex; flex-direction: column; gap: 10px; }
+.fp-alert {
+  border: 1px solid var(--rule); border-left: 5px solid var(--galv); background: var(--panel);
+  border-radius: 3px; padding: 10px 14px; font-size: 13.5px;
+}
+.fp-alert h4 { margin: 0 0 6px; font-size: 15px; }
+.fp-alert p { margin: 0 0 6px; }
+.fp-alert ul { margin: 0; padding-left: 18px; }
+.fp-alert li { margin: 3px 0; }
+.fp-alert[data-k="conflict"] { border-left-color: var(--danger); background: #fbeeee; }
+.fp-alert[data-k="conflict"] h4 { color: var(--danger); }
+.fp-alert[data-k="date"] { border-left-color: var(--iodine); }
+.fp-alert[data-k="minor"] summary { cursor: pointer; color: var(--ink-2); }
+.fp-alert[data-k="minor"] ul { margin-top: 6px; }
+
+/* bucket lines */
+.fp-item { align-items: flex-start; }
+.fp-segs { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; flex: none; max-width: 60%; }
+.fp-seg { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: baseline; gap: 4px 8px; text-align: right; }
+.fp-seg-amt { font-family: "Archivo Narrow", sans-serif; font-weight: 700; font-size: 15px; color: var(--ink); }
+.fp-seg-dates { font-family: "Archivo Narrow", sans-serif; font-size: 12.5px; color: var(--ink-2); }
+.fp-seg[data-conflict="1"] .fp-seg-amt { color: var(--danger); }
+.fp-segs .fp-seg + .fp-seg { border-top: 1px dashed var(--rule); padding-top: 5px; }

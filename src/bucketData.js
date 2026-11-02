@@ -1,4 +1,5 @@
 import { IMG } from "./images";
+import { compareBucket } from "./bucketOrder";
 
 // Feed bucket data: sourced from the Horse Health Log 🌾Feed and 💊Treatment (oral meds) tasks with status "in progress"
 // Updated 2026-08-31: split into AM / PM / oral meds, weights from the 8/31 weigh-in.
@@ -201,8 +202,12 @@ function liveMed(m, staticMeds) {
   };
 }
 
+const isMedItem = (i) => BUCKET_PRODUCTS[i.product]?.type === "med";
+const inOrder = (items) => [...items].sort((a, b) => compareBucket(a, b, isMedItem));
+const ordered = (b) => ({ ...b, am: inOrder(b.am), pm: inOrder(b.pm), oralMeds: inOrder(b.oralMeds) });
+
 export function mergeLiveBuckets(staticBuckets, byHorse, live, activeTaskIds) {
-  if (!live) return staticBuckets;
+  if (!live) return staticBuckets.map(ordered);
   // A horse with live entries but no snapshot (a new arrival) still gets a bucket.
   const known = new Set(staticBuckets.map((b) => b.horse));
   const added = Object.keys(byHorse || {})
@@ -216,12 +221,12 @@ export function mergeLiveBuckets(staticBuckets, byHorse, live, activeTaskIds) {
     if (l && Array.isArray(l.meds)) oralMeds = l.meds.map((m) => liveMed(m, b.oralMeds));
     // Live ClickUp is the whole truth: an empty list means nothing goes in
     // that bucket (e.g. PM feeding dropped Oct 2026), never "use the snapshot".
-    return {
+    return ordered({
       ...b,
       am: l?.am || [],
       pm: l?.pm || [],
       oralMeds,
-    };
+    });
   });
 }
 
@@ -306,8 +311,7 @@ export function computeWeekly(buckets) {
 }
 
 // Herd-wide weekly totals per product — this is the feed mill shopping list.
-// [{ product, full, type, unit, daily, weekly }] sorted feed → supplement → med.
-const TYPE_ORDER = { feed: 0, supplement: 1, med: 2 };
+// [{ product, full, type, unit, daily, weekly }] in the same order as the buckets (bucketOrder.js).
 export function computeFeedMill(buckets) {
   const weekly = computeWeekly(buckets);
   return Object.values(
@@ -331,7 +335,7 @@ export function computeFeedMill(buckets) {
     }, {})
   )
     .map((r) => ({ ...r, daily: +r.daily.toFixed(2), weekly: +r.weekly.toFixed(2) }))
-    .sort((a, b) => (TYPE_ORDER[a.type] - TYPE_ORDER[b.type]) || a.product.localeCompare(b.product));
+    .sort((a, b) => compareBucket(a, b, (r) => r.type === "med"));
 }
 
 // Hay, per horse: daily lbs at 2% of bodyweight, from the latest weigh-in.

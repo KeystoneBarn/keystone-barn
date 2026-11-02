@@ -19,10 +19,19 @@ uncluttered) supply "doses given so far" and the most recent dose.
 
 `active_task_ids` still carries every "in progress" task id across the whole
 Health Log, for anything in the bundle keyed by task id.
+
+Week prep (added 2026-11-01): `records` lists every bucket record that is
+"in progress" OR "to do" with its start/end dates, so the Prep next week view
+can work out what applies on each day of a chosen week. "to do" means planned:
+it is shown, never treated as given, and nothing here writes to ClickUp. A
+record that replaces another says so in its description ("Replaces <name>
+(<task link>)"); the task id from that link is passed as `replaces` and the
+links themselves are stripped, since staff never get sent into ClickUp.
 """
 import json
 import logging
 import os
+import re
 from datetime import datetime, timedelta, timezone
 import threading
 import time
@@ -51,6 +60,17 @@ MED_NOTE_TYPE_ID = "ad3ed7d8-11d9-4290-8c03-1a440dd765de"
 # evening dose (01:00-03:00 UTC) on its own day too.
 BARN_UTC_OFFSET = timedelta(hours=-4)
 SINGULAR = {"lbs": "lb", "scoops": "scoop", "tablets": "tablet", "grams": "gram"}
+FETCH_STATUSES = ["in progress", "to do"]
+ACTIVE_STATUS = "in progress"
+
+MD_LINK = re.compile(r"\[([^\]]*)\]\((?:[^()]|\([^)]*\))*\)")
+BARE_URL = re.compile(r"https?://[^\s)\]]+")
+TASK_LINK = re.compile(r"app\.clickup\.com/t/(?:\d+/)?([a-z0-9]+)", re.I)
+REPLACES = re.compile(r"\breplac(?:es|ing)\b", re.I)
+# "AM: 1 lb … PM: 1.5 lbs" style split written in a description
+SPLIT = {w: re.compile(rf"\b{w}\b[^\d\n]{{0,20}}?(\d+(?:\.\d+)?)", re.I) for w in ("AM", "PM")}
+# 💊Treatment records that are never in a feed bucket even if AM/PM got set
+NOT_BUCKET = re.compile(r"\b(series|inject\w*|IM|IV|topical|appointment|shockwave)\b", re.I)
 
 
 def _horse_name(task):
@@ -72,7 +92,8 @@ def _fetch_feed_tasks(session):
     while True:
         resp = session.get(
             f"{BASE}/list/{HEALTH_LIST_ID}/task",
-            params={"statuses[]": ["in progress"], "subtasks": "false", "page": page},
+            params={"statuses[]": FETCH_STATUSES, "subtasks": "false",
+                    "include_markdown_description": "true", "page": page},
             timeout=HTTP_TIMEOUT,
         )
         resp.raise_for_status()
@@ -82,7 +103,7 @@ def _fetch_feed_tasks(session):
         if payload.get("last_page", True) or not batch:
             break
         page += 1
-        if page > 20:  # hard stop; "in progress" narrows this to a small set
+        if page > 20:  # hard stop; the status filter narrows this to a small set
             break
     return tasks
 
@@ -172,6 +193,73 @@ def _to_med(task, doses):
     return med
 
 
+def _status(task):
+    raw = task.get("status")
+    return ((raw.get("status") if isinstance(raw, dict) else raw) or "").lower()
+
+
+def _clean_md(text):
+    """Description text for the site: links reduced to their label, URLs gone."""
+    text = MD_LINK.sub(lambda m: "" if BARE_URL.match(m.group(1)) else m.group(1), text or "")
+    text = BARE_URL.sub("", text)
+    text = re.sub(r"\(\s*\)", "", text)
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    return re.sub(r"[ \t]+([.,;:])", r"\1", text).strip()
+
+
+def _replaces(markdown):
+    """Task ids this record says it replaces: the first task link after each "Replaces"."""
+    ids = []
+    for m in REPLACES.finditer(markdown or ""):
+        link = TASK_LINK.search(markdown, m.end())
+        if link and link.group(1) not in ids:
+            ids.append(link.group(1))
+    return ids
+
+
+def _split(text):
+    """{'AM': qty, 'PM': qty} when the notes give an amount for both buckets."""
+    found = {}
+    for w, rx in SPLIT.items():
+        m = rx.search(text or "")
+        if m:
+            found[w] = float(m.group(1))
+    return found if len(found) == 2 else None
+
+
+def _to_record(task):
+    """One dated bucket instruction (Feed, or a Treatment given in the bucket)."""
+    note = _dropdown_name(task, F_NOTE_TYPE)
+    if note not in (FEED_NOTE_TYPE, MED_NOTE_TYPE) or task.get("parent"):
+        return None
+    ampm = _dropdown_name(task, F_AMPM)
+    name = task.get("name") or ""
+    if note == MED_NOTE_TYPE and (not ampm or NOT_BUCKET.search(name)):
+        return None
+    markdown = task.get("markdown_description") or task.get("description") or ""
+    notes = _clean_md(markdown)
+    product = _dropdown_name(task, F_PRODUCT)
+    return {
+        "id": task.get("id"),
+        "name": name,
+        "kind": "med" if note == MED_NOTE_TYPE else "feed",
+        "status": _status(task),
+        "planned": _status(task) != ACTIVE_STATUS,
+        "horse": _horse_name(task),
+        "product": product,
+        "hay": bool(product and "hay" in product.lower()) or bool(re.search(r"\bhay\b", name, re.I)),
+        "qty": _qty(task),
+        "unit": _dropdown_name(task, F_UNIT),
+        "when": ampm,
+        "start": _day(task.get("start_date")),
+        "end": _day(task.get("due_date")),
+        "notes": notes,
+        "replaces": _replaces(markdown),
+        "split": _split(notes),
+        "taper": bool(re.search(r"\btaper", notes, re.I)),
+    }
+
+
 def _fetch_dose_subtasks(session):
     """parent id -> completed dose subtasks (oldest first), 💊Treatment only."""
     tasks, page = [], 0
@@ -218,6 +306,7 @@ class _FeedCache:
         self.lock = threading.Lock()
         self.by_horse = {}
         self.active_task_ids = set()
+        self.records = []
         self.fetched_at = 0.0
         self.error = None
         self.refreshing = False
@@ -234,6 +323,7 @@ class _FeedCache:
                 "error": self.error,
                 "by_horse": {h: {"am": list(v["am"]), "pm": list(v["pm"]), "meds": list(v["meds"])} for h, v in self.by_horse.items()},
                 "active_task_ids": sorted(self.active_task_ids),
+                "records": list(self.records),
             }
 
     def refresh(self):
@@ -247,7 +337,10 @@ class _FeedCache:
             self.refreshing = True
         try:
             session = _session()
-            tasks = _fetch_feed_tasks(session)
+            fetched = _fetch_feed_tasks(session)
+            records = [r for r in (_to_record(t) for t in fetched) if r]
+            # Current feeding is still "in progress" only; "to do" is for week prep.
+            tasks = [t for t in fetched if _status(t) == ACTIVE_STATUS]
             try:
                 doses = _fetch_dose_subtasks(session)
             except Exception as exc:
@@ -284,6 +377,7 @@ class _FeedCache:
             with self.lock:
                 self.by_horse = by_horse
                 self.active_task_ids = active_task_ids
+                self.records = records
                 self.fetched_at = time.time()
                 self.error = None
             log.info("feed refresh ok: %d horses, %d active tasks", len(by_horse), len(active_task_ids))
@@ -322,4 +416,5 @@ def feed_payload():
         "age_seconds": snap["age_seconds"],
         "by_horse": snap["by_horse"],
         "active_task_ids": snap["active_task_ids"],
+        "records": snap["records"],
     }

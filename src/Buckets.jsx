@@ -8,6 +8,7 @@ import { useWeights } from "./useWeights";
 import { useProducts } from "./useProducts";
 import { BUCKET_SIZE, HORSE_COLOR, PADDOCKS, locationIdFor } from "./data";
 import PaddockMap from "./PaddockMap";
+import PrepWeek from "./PrepWeek";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
   ? "http://localhost:8000"
@@ -262,7 +263,8 @@ function FeedMill({ feedMill, courses, hay }) {
 
 export default function Buckets() {
   const [selected, setSelected] = useState(null);
-  const { byHorse, live, activeTaskIds } = useFeedBuckets();
+  const [view, setView] = useState("current");
+  const { byHorse, live, activeTaskIds, records } = useFeedBuckets();
   const { products: liveProducts } = useProducts();
 
   const buckets = useMemo(
@@ -299,16 +301,31 @@ export default function Buckets() {
         </p>
       </div>
 
-      <EatsMap />
+      <div className="fp-views" role="tablist">
+        <button className="bk-idx-btn" data-on={view === "current" ? "1" : "0"} onClick={() => setView("current")}>
+          Current feeding
+        </button>
+        <button className="bk-idx-btn" data-on={view === "prep" ? "1" : "0"} onClick={() => setView("prep")}>
+          Prep next week
+        </button>
+      </div>
+
+      {view === "current" && <EatsMap />}
 
       <HorseIndex horses={horses} selected={selected} onSelect={setSelected} />
 
-      <div className="bk-grid">
-        {visible.map((b) => <BucketCard key={b.horse} bucket={b} liveImgByName={liveImgByName} weights={weights} />)}
-        {selected === null && <PmSummary pmSummary={pmSummary} />}
-      </div>
+      {view === "prep" ? (
+        <PrepWeek records={live ? records : null} selected={selected} />
+      ) : (
+        <>
+          <div className="bk-grid">
+            {visible.map((b) => <BucketCard key={b.horse} bucket={b} liveImgByName={liveImgByName} weights={weights} />)}
+            {selected === null && <PmSummary pmSummary={pmSummary} />}
+          </div>
 
-      <FeedMill feedMill={feedMill} courses={courses} hay={hay} />
+          <FeedMill feedMill={feedMill} courses={courses} hay={hay} />
+        </>
+      )}
     </div>
   );
 }

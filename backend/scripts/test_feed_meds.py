@@ -20,11 +20,12 @@ AMPM = [{"id": "ba8087ce", "name": "AM", "orderindex": 0}, {"id": "84343b51", "n
 ANIMAL = [{"id": "5f6de970", "name": "Qu🐴", "orderindex": 1}, {"id": "35c12c6e", "name": "Mickey🐴", "orderindex": 3}]
 
 
-def task(tid, note, product, qty=None, unit=None, ampm=None, animal=None, start=None, due=None):
+def task(tid, note, product, qty=None, unit=None, ampm=None, animal=None, start=None, due=None, status="in progress", md=""):
     def f(fid, opts, v, t="drop_down"):
         return {"id": fid, "type": t, "type_config": {"options": opts} if opts else {}, "value": v}
     return {
         "id": tid, "name": tid, "url": "u/" + tid, "start_date": start, "due_date": due,
+        "status": {"status": status}, "markdown_description": md,
         "custom_fields": [
             f(fl.F_NOTE_TYPE, NOTE, note), f(fl.F_PRODUCT, PRODUCT, product),
             f(fl.F_VALUE, None, qty, "number"), f(fl.F_UNIT, UNIT, unit),
@@ -48,6 +49,22 @@ def main():
     # Feed entries are left to _to_line
     assert fl._to_med(task("feed", 11, 10, "1", 2, 0, 3), {}) is None
     assert fl._day("1788580800000") == "2026-09-05"   # API-created (midnight Eastern) all-day date
+
+    # Week prep records: the real planned TopLine record (read 2026-11-01)
+    md = ("AM bucket: 4 lbs TopLine daily, effective November 2, 2026. Planned ration.\n\n"
+          "Replaces Qu: TopLine 2.5 lbs daily ([https://app.clickup.com/t/86dzjhqf4](https://app.clickup.com/t/86dzjhqf4)), "
+          "ending November 1. Cardinal NWI - 1c 2026 (Oct 8) ([https://app.clickup.com/t/86e3q264z](https://app.clickup.com/t/86e3q264z)).")
+    r = fl._to_record(task("86e3xtzu3", 11, 10, "4", 0, 0, 1, start="1793613600000", status="to do", md=md))
+    assert r["planned"] and r["start"] == "2026-11-02" and r["end"] is None, r
+    assert r["replaces"] == ["86dzjhqf4"], r["replaces"]
+    assert "clickup" not in r["notes"] and r["split"] is None and r["when"] == "AM", r
+    old = fl._to_record(task("86dzjhqf4", 11, 10, "2.5", 0, 0, 1, start="1769594400000", due="1793527200000"))
+    assert not old["planned"] and old["end"] == "2026-11-01", old
+    # Injection series and dose subtasks never become bucket records
+    assert fl._to_record(task("adequan", 5, 20, "5", 3, None, 1)) is None
+    assert fl._to_record({**task("dose", 5, 10, "2", 0, 0, 1), "parent": "x"}) is None
+    split = fl._to_record(task("dig", 11, 10, "2", 0, None, 1, md="Split: AM 1 lb, PM 1 lb."))
+    assert split["split"] == {"AM": 1.0, "PM": 1.0}, split
     print("feed meds ok")
 
 
