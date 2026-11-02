@@ -126,4 +126,17 @@ assert.equal(barnToday(new Date("2026-11-02T04:30:00Z")), "2026-11-01");
   assert.deepEqual(w.totals.map((t) => t.product), w.horses[0].am.map((g) => g.product));
 }
 
+// --- old record already closed, new one already active: the change still shows 1.5 -> 2.5
+{
+  const w = buildWeek([
+    rec({ id: "old", horse: "Avelin", product: "TopLine", qty: 1.5, start: "2026-08-01", end: "2026-11-01", closed: true, status: "complete" }),
+    rec({ id: "new", horse: "Avelin", product: "TopLine", qty: 2.5, start: "2026-11-02", replaces: ["old"] }),
+    // closed with no end date: still never fills a bucket this week
+    rec({ id: "gone", horse: "Avelin", product: "SimpliFly", qty: 1, unit: "scoops", start: "2026-08-01", closed: true, status: "complete" }),
+  ], "2026-11-02");
+  assert.deepEqual(w.changes.map((c) => [c.product, c.from?.qty, c.to?.qty]), [["SimpliFly", 1, undefined], ["TopLine", 1.5, 2.5]]);
+  assert.equal(w.totals.find((t) => t.product === "TopLine").qty, 17.5);
+  assert.ok(!w.totals.some((t) => t.product === "SimpliFly"));
+}
+
 console.log("week prep ok");

@@ -65,6 +65,12 @@ def main():
     assert fl._to_record({**task("dose", 5, 10, "2", 0, 0, 1), "parent": "x"}) is None
     split = fl._to_record(task("dig", 11, 10, "2", 0, None, 1, md="Split: AM 1 lb, PM 1 lb."))
     assert split["split"] == {"AM": 1.0, "PM": 1.0}, split
+    # History in the notes is not a split (Qu's Hoof record, 2026-11-02)
+    hoof = fl._to_record(task("hoof", 11, 10, "2", 0, 0, 1, md=(
+        "Combined AM + PM doses into the AM bucket as part of eliminating evening feeding "
+        "(PM feed dropped as of 10/10/2026). Replaces Qu: ProElite Hoof 1 scoop AM and 1 scoop PM.")))
+    assert hoof["split"] is None, hoof["split"]
+    assert fl._to_record(task("c", 11, 10, "2", 0, 0, 1, status="complete"))["closed"]
     print("feed meds ok")
 
 

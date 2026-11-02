@@ -123,7 +123,10 @@ export function buildWeek(records, monday) {
   const hay = [];
   const byKey = new Map();
 
-  for (const r of records || []) {
+  for (const raw of records || []) {
+    // A closed record is only here as the one a newer record replaces: it can
+    // supply the "was" amount for the day before the week, never a bucket.
+    const r = raw.closed ? { ...raw, end: raw.end && raw.end < before ? raw.end : before } : raw;
     // Only records whose effective period touches this week (or the day before,
     // for the "was" side of a change) matter.
     const inWeek = (!r.start || r.start <= sunday) && (!r.end || r.end >= monday);
@@ -178,15 +181,17 @@ export function buildWeek(records, monday) {
         noStart: !!(s._p.line && !s._p.line.record.start),
         conflict: s._p.conflict || null,
       }));
-    if (!shown.length) continue;
+    if (!shown.length && !prev.line) continue;
 
     shown.filter((s) => s.conflict).forEach((s) => conflicts.push({ horse, when, product, from: s.from, to: s.to, records: s.conflict }));
 
     const kind = lines[0].record.kind;
     const unit = lines.find((l) => l.unit)?.unit || null;
-    const h = horses.get(horse) || { horse, am: [], pm: [] };
-    h[when === "PM" ? "pm" : "am"].push({ product, kind, unit, segments: shown });
-    horses.set(horse, h);
+    if (shown.length) {
+      const h = horses.get(horse) || { horse, am: [], pm: [] };
+      h[when === "PM" ? "pm" : "am"].push({ product, kind, unit, segments: shown });
+      horses.set(horse, h);
+    }
 
     // changes: day before the week -> Monday, then each transition inside it
     const state = (p) => (p.conflict ? { conflict: true } : p.line ? { qty: p.line.qty, unit: p.line.unit, record: p.line.record } : null);

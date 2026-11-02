@@ -67,8 +67,10 @@ MD_LINK = re.compile(r"\[([^\]]*)\]\((?:[^()]|\([^)]*\))*\)")
 BARE_URL = re.compile(r"https?://[^\s)\]]+")
 TASK_LINK = re.compile(r"app\.clickup\.com/t/(?:\d+/)?([a-z0-9]+)", re.I)
 REPLACES = re.compile(r"\breplac(?:es|ing)\b", re.I)
-# "AM: 1 lb … PM: 1.5 lbs" style split written in a description
-SPLIT = {w: re.compile(rf"\b{w}\b[^\d\n]{{0,20}}?(\d+(?:\.\d+)?)", re.I) for w in ("AM", "PM")}
+# "AM: 1 lb … PM: 1.5 lbs" style split written in a description. The amount must
+# follow AM/PM directly and carry a unit, so "PM feed dropped as of 10/10" is not one.
+UNIT_WORD = r"(?:lbs?|pounds?|scoops?|tablets?|tabs?|grams?|g|mL|ml|cc|cups?|oz)\b"
+SPLIT = {w: re.compile(rf"\b{w}\b(?:\s*bucket)?\s*[:=\-–]?\s*(\d+(?:\.\d+)?)\s*{UNIT_WORD}", re.I) for w in ("AM", "PM")}
 # 💊Treatment records that are never in a feed bucket even if AM/PM got set
 NOT_BUCKET = re.compile(r"\b(series|inject\w*|IM|IV|topical|appointment|shockwave)\b", re.I)
 
@@ -244,7 +246,10 @@ def _to_record(task):
         "name": name,
         "kind": "med" if note == MED_NOTE_TYPE else "feed",
         "status": _status(task),
-        "planned": _status(task) != ACTIVE_STATUS,
+        # "to do" = planned. A closed record only gets here as the predecessor a
+        # "Replaces" note points to, for the "was" side of a change.
+        "planned": _status(task) == "to do",
+        "closed": _status(task) not in FETCH_STATUSES,
         "horse": _horse_name(task),
         "product": product,
         "hay": bool(product and "hay" in product.lower()) or bool(re.search(r"\bhay\b", name, re.I)),
@@ -258,6 +263,24 @@ def _to_record(task):
         "split": _split(notes),
         "taper": bool(re.search(r"\btaper", notes, re.I)),
     }
+
+
+def _fetch_replaced(session, records):
+    """Closed records that an open one says it replaces, so a change can show
+    the old amount after the old record has been marked complete."""
+    have = {r["id"] for r in records}
+    out = []
+    for tid in sorted({t for r in records for t in r["replaces"]} - have):
+        try:
+            resp = session.get(f"{BASE}/task/{tid}", params={"include_markdown_description": "true"}, timeout=HTTP_TIMEOUT)
+            resp.raise_for_status()
+            rec = _to_record(resp.json())
+        except Exception as exc:
+            log.warning("replaced record %s not readable: %s", tid, exc)
+            continue
+        if rec:
+            out.append(rec)
+    return out
 
 
 def _fetch_dose_subtasks(session):
@@ -339,6 +362,7 @@ class _FeedCache:
             session = _session()
             fetched = _fetch_feed_tasks(session)
             records = [r for r in (_to_record(t) for t in fetched) if r]
+            records += _fetch_replaced(session, records)
             # Current feeding is still "in progress" only; "to do" is for week prep.
             tasks = [t for t in fetched if _status(t) == ACTIVE_STATUS]
             try:
