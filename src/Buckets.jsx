@@ -21,31 +21,75 @@ const API = (typeof import.meta !== "undefined" && import.meta.env && import.met
 const HOME = {};
 PADDOCKS.forEach((p) => p.horses.forEach((h) => { HOME[h] = "paddock-" + p.id; }));
 
-function EatsMap() {
+// Short name for a hay batch, the way the barn says it: "Cardinal NWI 1st Crop
+// 2026" is WI hay, "Rice Farm MN 1st Crop 2026" is MN hay. A batch that names
+// both (Avelin and Mickey's shared access) gives both.
+function hayNames(batch) {
+  const out = [];
+  if (/\bN?WI\b|cardinal|wisconsin/i.test(batch)) out.push("WI");
+  if (/\bMN\b|rice farm|minnesota/i.test(batch)) out.push("MN");
+  return out.length ? out : [batch];
+}
+
+function EatsMap({ hay }) {
   const [where, setWhere] = useState(null);
+  const [lives, setLives] = useState(null);
   useEffect(() => {
     fetch(API + "/api/horses")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!d?.horses) return;
-        const out = { ...HOME };
+        const eats = { ...HOME };
+        const home = { ...HOME };
         for (const [h, v] of Object.entries(d.horses)) {
           const p = v.profile || {};
-          const id = locationIdFor(p["Eats At"]) || locationIdFor(p["Lives In"]);
-          if (id && h in HORSE_COLOR) out[h] = id;
+          const livesId = locationIdFor(p["Lives In"]);
+          const id = locationIdFor(p["Eats At"]) || livesId;
+          if (id && h in HORSE_COLOR) eats[h] = id;
+          if (livesId && h in HORSE_COLOR) home[h] = livesId;
         }
-        if (Object.keys(out).length) setWhere(out);
+        if (Object.keys(eats).length) setWhere(eats);
+        setLives(home);
       })
       .catch(() => {});
   }, []);
   if (!where) return null;
   const horsesAt = (id) => Object.keys(where).filter((h) => where[h] === id).sort();
+
+  // Hay goes where a horse lives (its paddock's baskets and troughs), from the
+  // open 🌾Hay records in the Health Log.
+  const livesAt = lives || HOME;
+  const hayBySpot = {};
+  const fullNames = {};
+  for (const r of hay || []) {
+    const spot = livesAt[r.horse];
+    if (!spot) continue;
+    for (const n of hayNames(r.batch)) {
+      (hayBySpot[spot] ||= new Set()).add(n);
+      if (n === r.batch) continue;
+      // the batch name for the key: the single-hay record names it plainly
+      if (hayNames(r.batch).length === 1) fullNames[n] = r.batch;
+    }
+  }
+  const hayAt = (id) => (hayBySpot[id] ? [...hayBySpot[id]].sort().reverse().join(" + ") + " hay" : null);
+  const key = Object.entries(fullNames).sort(([a], [b]) => b.localeCompare(a));
+
   return (
-    <PaddockMap
-      readOnly
-      horsesAt={horsesAt}
-      caption="Where each horse eats, from the Eats At line on their ClickUp profile. Horses listed in a paddock eat out in that paddock."
-    />
+    <>
+      <PaddockMap
+        readOnly
+        horsesAt={horsesAt}
+        hayAt={hayAt}
+        caption="Where each horse eats, from the Eats At line on their ClickUp profile. Horses listed in a paddock eat out in that paddock. 🌾 shows the hay for that paddock's baskets and troughs, from each horse's hay record and where they live."
+      />
+      {key.length > 0 && (
+        <p className="fp-hay-key">
+          {key.map(([n, batch], i) => (
+            <span key={n}>{i > 0 && " · "}<b>{n} hay</b> = {batch}</span>
+          ))}
+        </p>
+      )}
+    </>
   );
 }
 
@@ -264,7 +308,7 @@ function FeedMill({ feedMill, courses, hay }) {
 export default function Buckets() {
   const [selected, setSelected] = useState(null);
   const [view, setView] = useState("current");
-  const { byHorse, live, activeTaskIds, records } = useFeedBuckets();
+  const { byHorse, live, activeTaskIds, records, hay: hayRecords } = useFeedBuckets();
   const { products: liveProducts } = useProducts();
 
   const buckets = useMemo(
@@ -310,7 +354,7 @@ export default function Buckets() {
         </button>
       </div>
 
-      {view === "current" && <EatsMap />}
+      {view === "current" && <EatsMap hay={hayRecords} />}
 
       <HorseIndex horses={horses} selected={selected} onSelect={setSelected} />
 

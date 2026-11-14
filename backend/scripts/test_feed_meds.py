@@ -71,6 +71,19 @@ def main():
         "(PM feed dropped as of 10/10/2026). Replaces Qu: ProElite Hoof 1 scoop AM and 1 scoop PM.")))
     assert hoof["split"] is None, hoof["split"]
     assert fl._to_record(task("c", 11, 10, "2", 0, 0, 1, status="complete"))["closed"]
+    # Hay records (🌾Hay note type) -> horse + batch for the paddock map
+    hay_note = [{"id": "5781684c", "name": "🌾Hay", "orderindex": 12}]
+    def hay(tid, name, batch=None, status="in progress"):
+        return {"id": tid, "name": name, "status": {"status": status}, "start_date": "1793264400000", "due_date": None,
+                "custom_fields": [
+                    {"id": fl.F_NOTE_TYPE, "type": "drop_down", "type_config": {"options": hay_note}, "value": 12},
+                    {"id": fl.F_ANIMAL, "type": "drop_down", "type_config": {"options": ANIMAL}, "value": 1},
+                    {"id": fl.F_TEST_PRODUCT, "type": "short_text", "value": batch},
+                ]}
+    h = fl._to_hay(hay("h1", "Qu: Free-choice hay, Cardinal NWI 1st Crop 2026", "Cardinal NWI 1st Crop 2026"))
+    assert h == {"horse": "Qu", "batch": "Cardinal NWI 1st Crop 2026", "start": "2026-10-29", "end": None}, h
+    assert fl._to_hay(hay("h2", "Qu: Free-choice hay, Rice Farm MN 1st Crop 2026"))["batch"] == "Rice Farm MN 1st Crop 2026"
+    assert fl._to_hay(hay("h3", "Qu: Free-choice hay, X", "X", status="complete")) is None
     print("feed meds ok")
 
 

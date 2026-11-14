@@ -14,6 +14,8 @@
 
   records is every "in progress" and "to do" bucket record with its dates, for
   the Prep next week view (src/weekPrep.js). null when not live.
+
+  hay is each horse's current hay batch (open 🌾Hay records), for the map.
 */
 import { useEffect, useState } from "react";
 
@@ -21,7 +23,7 @@ const API = (typeof import.meta !== "undefined" && import.meta.env && import.met
   ? "http://localhost:8000"
   : "";
 
-const FALLBACK = { byHorse: {}, activeTaskIds: null, records: null, live: false, fetchedAt: null };
+const FALLBACK = { byHorse: {}, activeTaskIds: null, records: null, hay: [], live: false, fetchedAt: null };
 
 let inflight = null;
 let settled = null;
@@ -37,6 +39,7 @@ function load() {
           byHorse: data.by_horse,
           activeTaskIds: new Set(data.active_task_ids || []),
           records: data.records || null,
+          hay: data.hay || [],
           live: true,
           fetchedAt: data.fetched_at,
         };

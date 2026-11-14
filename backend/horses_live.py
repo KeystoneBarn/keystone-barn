@@ -32,7 +32,8 @@ log = logging.getLogger("horses_live")
 
 REFRESH_SECONDS = int(os.environ.get("CLICKUP_HORSES_REFRESH_SECONDS", "900"))
 
-NOTE_OTHER = "919f7c5d-26f4-496d-a499-b36fcc85a2cb"    # 📋Other  (profiles)
+NOTE_OTHER = "919f7c5d-26f4-496d-a499-b36fcc85a2cb"    # 📋Other  (profiles, until Nov 2026)
+NOTE_PROFILE = "7568d646-fe03-4ec6-857c-44f2bf732261"  # 🐴Profile (profiles moved here Nov 2026)
 NOTE_WEIGHT = "3754afef-9a1c-4b17-884f-78841d9b104b"   # ⚖️Weight
 NOTE_LABS = "1fe47416-0e23-4651-bad7-0db3440cffb2"     # 🩸Labs
 
@@ -164,7 +165,9 @@ class _HorsesCache:
             def rec(name):
                 return horses.setdefault(name, {"profile": None, "weights": [], "labs": {}})
 
-            for t in _get_all(session, NOTE_OTHER):
+            # Profiles moved from 📋Other to their own 🐴Profile type; read both
+            # so a profile filed either way still counts.
+            for t in _get_all(session, NOTE_OTHER) + _get_all(session, NOTE_PROFILE):
                 m = PROFILE_NAME.match(t.get("name") or "")
                 if not m:
                     continue

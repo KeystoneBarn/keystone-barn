@@ -124,12 +124,20 @@ function HorseTag({ h, x, y, anchor = "middle", selected, onPick, small }) {
   );
 }
 
+// A hay line under a spot's horses ("🌾 MN hay"), for whoever fills the baskets.
+function HayTag({ text, x, y }) {
+  if (!text) return null;
+  return <text x={x} y={y} textAnchor="middle" className="pm-hay">🌾 {text}</text>;
+}
+
 const noop = () => {};
+const none = () => null;
 
 // readOnly: a fixed picture (e.g. the Eats At map) — nothing is tappable.
+// hayAt(id): optional hay label for a paddock or stall (Feed Buckets map).
 export default function PaddockMap({
   horsesAt, selected = null, onPick = noop, onPlace = noop, isTarget = () => false,
-  readOnly = false, caption,
+  readOnly = false, caption, hayAt = none,
 }) {
   const place = (id) => { if (!readOnly && isTarget(id)) onPlace(id); };
   if (readOnly) onPick = noop;
@@ -170,6 +178,7 @@ export default function PaddockMap({
               <HorseTag key={h} h={h} small x={r.x + r.w / 2} y={r.y + 42 + i * 19}
                 selected={selected === h} onPick={onPick} />
             ))}
+            <HayTag text={hayAt(r.id)} x={r.x + r.w / 2} y={r.y + 42 + horsesAt(r.id).length * 19} />
           </g>
         ))}
 
@@ -186,6 +195,8 @@ export default function PaddockMap({
               <HorseTag key={h} h={h} small x={p.x} y={p.y + (p.tight ? 22 : 28) + i * (p.tight ? 19 : 22)}
                 selected={selected === h} onPick={onPick} />
             ))}
+            <HayTag text={hayAt(id)} x={p.x}
+              y={p.y + (p.tight ? 22 : 28) + horsesAt(id).length * (p.tight ? 19 : 22) + 2} />
           </g>
         ))}
 

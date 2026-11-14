@@ -27,6 +27,9 @@ it is shown, never treated as given, and nothing here writes to ClickUp. A
 record that replaces another says so in its description ("Replaces <name>
 (<task link>)"); the task id from that link is passed as `replaces` and the
 links themselves are stripped, since staff never get sent into ClickUp.
+
+Hay (added 2026-11-14): `hay` lists each open 🌾Hay record as horse + batch,
+so the Feed Buckets map can show which hay goes in each paddock.
 """
 import json
 import logging
@@ -36,7 +39,7 @@ from datetime import datetime, timedelta, timezone
 import threading
 import time
 
-from clickup_live import BASE, HTTP_TIMEOUT, TOKEN, _dropdown_name, _session
+from clickup_live import BASE, HTTP_TIMEOUT, TOKEN, _dropdown_name, _raw_value, _session
 
 log = logging.getLogger("feed_live")
 
@@ -50,8 +53,10 @@ F_VALUE = "1e6e4e2e-863c-4060-addc-921524211049"
 F_UNIT = "df597e49-564e-4d50-b196-e990c728b27d"
 F_AMPM = "a6574975-8c56-4316-aba0-908b78f959b9"
 F_NOTE_TYPE = "c59fdd97-1dab-4492-a0b3-257d62442b36"
+F_TEST_PRODUCT = "dccc4ce1-162e-4fce-adee-76012ac57276"  # short text; hay records keep the batch here
 
 FEED_NOTE_TYPE = "🌾Feed"
+HAY_NOTE_TYPE = "🌾Hay"
 MED_NOTE_TYPE = "💊Treatment"
 MED_NOTE_TYPE_ID = "ad3ed7d8-11d9-4290-8c03-1a440dd765de"
 # ClickUp all-day dates arrive as 04:00 barn time (09:00 UTC) from the app, but
@@ -265,6 +270,24 @@ def _to_record(task):
     }
 
 
+def _to_hay(task):
+    """An open 🌾Hay record -> which hay batch a horse gets, for the paddock map.
+    The batch is the Test/Product text, else the part of the name after
+    "Free-choice hay, " ("Qu: Free-choice hay, Cardinal NWI 1st Crop 2026")."""
+    if _dropdown_name(task, F_NOTE_TYPE) != HAY_NOTE_TYPE or _status(task) != ACTIVE_STATUS:
+        return None
+    horse = _horse_name(task)
+    if not horse:
+        return None
+    batch = (_raw_value(task, F_TEST_PRODUCT) or "").strip()
+    if not batch:
+        name = task.get("name") or ""
+        batch = re.split(r"hay\s*,\s*", name, maxsplit=1, flags=re.I)[-1].strip() if "," in name else ""
+    if not batch:
+        return None
+    return {"horse": horse, "batch": batch, "start": _day(task.get("start_date")), "end": _day(task.get("due_date"))}
+
+
 def _fetch_replaced(session, records):
     """Closed records that an open one says it replaces, so a change can show
     the old amount after the old record has been marked complete."""
@@ -330,6 +353,7 @@ class _FeedCache:
         self.by_horse = {}
         self.active_task_ids = set()
         self.records = []
+        self.hay = []
         self.fetched_at = 0.0
         self.error = None
         self.refreshing = False
@@ -347,6 +371,7 @@ class _FeedCache:
                 "by_horse": {h: {"am": list(v["am"]), "pm": list(v["pm"]), "meds": list(v["meds"])} for h, v in self.by_horse.items()},
                 "active_task_ids": sorted(self.active_task_ids),
                 "records": list(self.records),
+                "hay": list(self.hay),
             }
 
     def refresh(self):
@@ -363,6 +388,7 @@ class _FeedCache:
             fetched = _fetch_feed_tasks(session)
             records = [r for r in (_to_record(t) for t in fetched) if r]
             records += _fetch_replaced(session, records)
+            hay = sorted((h for h in (_to_hay(t) for t in fetched) if h), key=lambda h: h["horse"])
             # Current feeding is still "in progress" only; "to do" is for week prep.
             tasks = [t for t in fetched if _status(t) == ACTIVE_STATUS]
             try:
@@ -402,6 +428,7 @@ class _FeedCache:
                 self.by_horse = by_horse
                 self.active_task_ids = active_task_ids
                 self.records = records
+                self.hay = hay
                 self.fetched_at = time.time()
                 self.error = None
             log.info("feed refresh ok: %d horses, %d active tasks", len(by_horse), len(active_task_ids))
@@ -441,4 +468,5 @@ def feed_payload():
         "by_horse": snap["by_horse"],
         "active_task_ids": snap["active_task_ids"],
         "records": snap["records"],
+        "hay": snap["hay"],
     }
