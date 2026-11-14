@@ -581,13 +581,14 @@ const LABEL = {
 export const sxLabel = (n) => LABEL[n] || n;
 
 // ---------------------------------------------------------------- paddocks
-// Each horse's chip is its feed-bucket colour (new buckets, Oct 2026). Two
-// pairs share a colour (Mickey/Stendahl blue, Hugo/Tammy gray); the bucket size
+// Each horse's chip is its feed-bucket colour (new buckets, Oct 2026; Avelin,
+// Hugo, Linka, Dahlia, Qu and Ratatouille re-coloured Nov 14, 2026). Two pairs
+// share a colour (Mickey/Stendahl blue, Avelin/Tammy gray); the bucket size
 // tells them apart at the bins, and chips always carry the name.
 export const HORSE_COLOR = {
-  Mickey: "#2B6CD4", Ulyssa: "#B86F86", Avelin: "#7A45B8", Stendahl: "#2B6CD4",
-  Hugo: "#7D858C", Linka: "#E0237F", Tammy: "#7D858C", Qu: "#CC2F27",
-  Dahlia: "#2B2B2B", Ratatouille: "#559A18", DeNozzo: "#0E8A55",
+  Mickey: "#2B6CD4", Ulyssa: "#B86F86", Avelin: "#7D858C", Stendahl: "#2B6CD4",
+  Hugo: "#7A45B8", Linka: "#65A30D", Tammy: "#7D858C", Qu: "#2B2B2B",
+  Dahlia: "#E0237F", Ratatouille: "#CC2F27", DeNozzo: "#0E8A55",
 };
 
 export const BUCKET_SIZE = {
