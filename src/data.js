@@ -609,10 +609,11 @@ export const PADDOCKS = [
   { id: "2", name: "Paddock 2", corner: "N", horses: ["DeNozzo"] },
   { id: "3", name: "Paddock 3", corner: "N", horses: ["Qu"] },
   { id: "4", name: "Paddock 4", corner: "NE", horses: ["Dahlia"] },
-  // Hugo, Tammy and Linka share 5 & 6 as one herd; they show on 5.
+  // Paddock 6 is flexible turnout that can open to the 5 or 7 group; these are
+  // primary assignments (clarified Nov 14, 2026), not who can be in 6 today.
   { id: "5", name: "Paddock 5", corner: "SE", horses: ["Hugo", "Tammy", "Linka"] },
-  { id: "6", name: "Paddock 6", corner: "S", horses: [] },
-  { id: "7", name: "Paddock 7", corner: "S", horses: ["Mickey", "Avelin"] },
+  { id: "6", name: "Paddock 6", corner: "S", horses: ["Mickey"] },
+  { id: "7", name: "Paddock 7", corner: "S", horses: ["Avelin"] },
   { id: "8", name: "Paddock 8", corner: "SW", horses: ["Stendahl", "Ulyssa"] },
 ];
 

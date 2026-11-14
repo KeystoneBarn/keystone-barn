@@ -82,6 +82,9 @@ function EatsMap({ hay }) {
         hayAt={hayAt}
         caption="Where each horse eats, from the Eats At line on their ClickUp profile. Horses listed in a paddock eat out in that paddock. 🌾 shows the hay for that paddock's baskets and troughs, from each horse's hay record and where they live."
       />
+      <p className="fp-hay-key">
+        Paddock 6 is flexible turnout space; map names show primary assignments, not exclusive occupancy.
+      </p>
       {key.length > 0 && (
         <p className="fp-hay-key">
           {key.map(([n, batch], i) => (
