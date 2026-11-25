@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import "./blankets.css";
 import { HORSE_COLOR } from "./data";
 import { useTack } from "./useTack";
-import { GUIDELINES, feelsLike, isWet, lineup, rangeOf, weightLabel, windChill } from "./blanketConfig";
+import { GUIDELINES, blanketsFor, feelsLike, isIndoorQuilt, isWet, lineup, rangeOf, weightLabel, windChill } from "./blanketConfig";
 
 const API = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV)
   ? "http://localhost:8000"
@@ -62,7 +62,7 @@ export function BlanketList({ blankets }) {
           <span className="bl-what">
             <strong>{b.name}</strong>
             <span className="bl-meta">
-              {[weightLabel(b), b.neck ? "neck" : null, b.waterproof ? "waterproof" : null, fmtRange(b)].filter(Boolean).join(" · ")}
+              {[weightLabel(b), b.neck ? "neck" : null, isIndoorQuilt(b) ? "indoor only, not a turnout" : b.waterproof ? "waterproof" : null, fmtRange(b)].filter(Boolean).join(" · ")}
             </span>
           </span>
         </li>
@@ -100,8 +100,20 @@ export function BlanketAlert({ onOpen }) {
   const { blankets } = useTack();
   const weather = useWeather();
   const horses = useHorses();
-  if (!weather || weather.low == null || !horses) return null;
-  const { tier, blanket, check } = lineup(horses, blankets, weather);
+  if (!horses) return null;
+  const { t, tier, blanket, check } = lineup(horses, blankets, weather);
+  if (t == null && blanket.length) {
+    return (
+      <button className="bl-alert" onClick={onOpen}>
+        <span className="bl-alert-icon" aria-hidden="true">🧥</span>
+        <span className="bl-alert-body">
+          <strong>Blankets: check manually</strong>
+          <span className="bl-alert-sub">Tonight's weather isn't posted. Look at the conditions for {blanket.map((r) => r.horse).join(", ")}.</span>
+        </span>
+        <span className="bl-alert-go">See lineup →</span>
+      </button>
+    );
+  }
   if (!tier || !blanket.length) return null;
   return (
     <button className="bl-alert" onClick={onOpen}>
@@ -129,8 +141,9 @@ export default function Blankets() {
   const { blankets, live } = useTack();
   const weather = useWeather();
   const horses = useHorses();
-  const { t, tier, blanket, check } = lineup(horses, blankets, weather);
-  const listed = new Set([...blanket, ...check].map((r) => r.horse));
+  const { t, tier, blanket, check, manual } = lineup(horses, blankets, weather);
+  const listed = new Set([...blanket, ...check].map((r) => r.horse).concat(manual));
+  const owners = [...new Set((blankets || []).flatMap((b) => b.horses || []))].sort();
   const natural = Object.keys(horses || HORSE_COLOR).filter((h) => !listed.has(h)).sort();
 
   return (
@@ -169,15 +182,15 @@ export default function Blankets() {
               <span className="bl-pick">
                 {tier ? (
                   <>
-                    <strong>{pickText(r, tier)}{tier.maybe ? " (probably)" : ""}</strong>
+                    <strong>{r.item ? `${pickText(r, tier)}${tier.maybe ? " (probably)" : ""}` : "Blanket tonight"}</strong>
                     {r.item ? (
                       <span className="bl-meta">{[weightLabel(r.item), r.item.waterproof ? "waterproof" : null].filter(Boolean).join(" · ")}</span>
                     ) : (
-                      <span className="bl-meta">No {tier.label} of their own listed in Tack &amp; Equipment</span>
+                      <span className="bl-meta">None of their own on file yet: use any {r.size ? `${r.size} ` : ""}blanket that fits and suits the weather (not an indoor quilt on its own)</span>
                     )}
                   </>
                 ) : t == null ? (
-                  <span className="bl-none">Waiting on tonight's weather</span>
+                  <span className="bl-warn">Check manually: tonight's weather isn't posted</span>
                 ) : (
                   <span className="bl-none">No blanket tonight: 40°F or warmer</span>
                 )}
@@ -198,10 +211,28 @@ export default function Blankets() {
         </div>
       )}
 
+      {manual.length > 0 && (
+        <div className="bl-check">
+          <strong>Check manually:</strong> {manual.join(", ")} <em>(no blanketing rule in their profile yet)</em>
+        </div>
+      )}
+
       {horses && natural.length > 0 && (
         <p className="bl-natural">
-          <strong>Growing a coat, no blanket:</strong> {natural.join(", ")}
+          <strong>Normally naked:</strong> {natural.join(", ")}. Staff can blanket one if they're cold for the conditions.
         </p>
+      )}
+
+      {owners.length > 0 && (
+        <details className="bl-inv">
+          <summary>Blankets on file (reference only, not tonight's pick)</summary>
+          {owners.map((h) => (
+            <div key={h} className="bl-inv-horse">
+              <span className="bl-horse"><Dot horse={h} />{h}</span>
+              <BlanketList blankets={blanketsFor(h, blankets)} />
+            </div>
+          ))}
+        </details>
       )}
 
       <h3 className="sec-h">When to blanket</h3>

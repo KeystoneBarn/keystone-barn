@@ -66,6 +66,9 @@ export function feelsLike(weather) {
   return chill - (isWet(weather) ? WET_PENALTY : 0);
 }
 
+// Indoor-only quilts (Bucas Quilt Stay-Dry) never go out as a turnout alone.
+export const isIndoorQuilt = (b) => /\bquilt\b/i.test(b?.name || "");
+
 export function blanketsFor(horse, blankets) {
   return (blankets || []).filter((b) => (b.horses || []).includes(horse));
 }
@@ -94,6 +97,7 @@ const DELICATE = /keep an eye/i;
 
 export function winterPlan(profile) {
   const g = profile?.["Blanketing guideline"] || "";
+  if (!g.trim()) return "manual";          // no rule on file: don't guess from inventory
   if (BLANKETED.test(g)) return "blanket";
   if (/fjord/i.test(profile?.Breed || "") && (CLIPPED.test(g) || DELICATE.test(g))) {
     return CLIPPED.test(g) ? "clipped" : "delicate";
@@ -109,22 +113,26 @@ const inches = (s) => {
 // Tonight's lineup -> { t, tier, blanket: [...], check: [...] }
 //   blanket: { horse, size, item }  item = their own blanket for this tier, if on file
 //   check:   { horse, why }         clipped / delicate Fjords to look in on
+//   manual:  [horse]                no blanketing rule in their profile
 export function lineup(horses, blankets, weather) {
   const t = feelsLike(weather);
   const tier = tierFor(t);
   const blanket = [];
   const check = [];
+  const manual = [];
   for (const [horse, h] of Object.entries(horses || {}).sort(([a], [b]) => a.localeCompare(b))) {
     const plan = winterPlan(h?.profile);
     if (plan === "blanket") {
       const own = blanketsFor(horse, blankets);
       const item = tier ? own.find((b) => tier.match.test(b.name)) || null : null;
       blanket.push({ horse, size: inches(h.profile["Blanket Size"]) || own[0]?.size || null, item });
+    } else if (plan === "manual") {
+      manual.push(horse);
     } else if (plan !== "natural") {
       check.push({ horse, why: plan });
     }
   }
-  return { t, tier, blanket, check };
+  return { t, tier, blanket, check, manual };
 }
 
 // Staff-facing rules. Sources: Dr. Erin Wilson's notes in the Horse
@@ -144,7 +152,11 @@ export const GUIDELINES = [
   },
   {
     title: "Everyone else grows a coat",
-    body: "Horses not on the list are growing their winter coat, even if they own a blanket. Hay is their heater: make sure there's plenty out on cold nights.",
+    body: "Horses not on the list are normally naked, even if they own a blanket. Use your judgement: if one is cold for the conditions, blanket them and tell Meghann. Hay is their heater: make sure there's plenty out on cold nights.",
+  },
+  {
+    title: "No rule or no weather? Check manually",
+    body: "If a horse has no blanketing rule yet, or tonight's weather isn't posted, look at the horse and the conditions yourself. The site won't guess from what's in the tack room.",
   },
   {
     title: "Never blanket a wet or sweaty horse",
