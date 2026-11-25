@@ -6,17 +6,15 @@
   range ("approximately 10°F to 46°F" in the description). Tonight's low comes
   from the 🌤️ Daily Wx Log (/api/board `weather`).
 
-  The pick: the blanket whose range covers tonight's "feels like" low: the
-  wind chill when it's windy (Wren's posted Wind Chill, else worked out from
-  the low and the wind speed with the National Weather Service formula), then
-  WET_PENALTY colder when rain or snow is likely. Several fit → the one whose
-  range is centred nearest. Warmer than every range → no blanket. Otherwise
-  (between ranges, or colder than all) → the nearest range, flagged when it's
-  colder than that blanket is rated for.
+  Who: each horse's profile "Blanketing guideline" (/api/horses). "Keep
+  blanketed" → on the list. A Fjord that's clipped, or that Meghann "keeps an
+  eye on" in the cold → the check list. Everyone else grows a coat, even if
+  they own blankets (Qu, winter 2026).
 
-  A blanket with no range in ClickUp gets an estimate from its fill
-  (FILL_RANGES) and shows "est." so it's obvious which ones still need the
-  maker's numbers.
+  What: Meghann's 40 / 20 / 0 rule (TIERS) on tonight's feels-like low: the
+  wind chill (Wren's posted Wind Chill, else the NWS formula from the wind),
+  then WET_PENALTY colder when rain or snow is likely. The horse's own blanket
+  for that tier is found by name (Atlantic / Silver) in Tack & Equipment.
 */
 
 export const WET_PENALTY = 5;          // °F colder when it's wet
@@ -72,58 +70,85 @@ export function blanketsFor(horse, blankets) {
   return (blankets || []).filter((b) => (b.horses || []).includes(horse));
 }
 
-// -> { blanket, why, cold } for one horse's blankets at temperature t
-export function pick(own, t) {
-  const ranged = own.map((b) => ({ b, r: rangeOf(b) })).filter((x) => x.r);
-  if (t == null || ranged.length === 0) return { blanket: null, why: "unknown" };
-  const fits = ranged.filter(({ r }) => t >= r.low && t <= r.high);
-  if (fits.length) {
-    fits.sort((a, c) => Math.abs((a.r.low + a.r.high) / 2 - t) - Math.abs((c.r.low + c.r.high) / 2 - t));
-    return { blanket: fits[0].b, why: "fits" };
-  }
-  if (ranged.every(({ r }) => t > r.high)) return { blanket: null, why: "warm" };
-  // Between ranges or below all of them: the nearest range wins.
-  const gap = ({ r }) => (t < r.low ? r.low - t : t - r.high);
-  const nearest = [...ranged].sort((a, c) => gap(a) - gap(c))[0];
-  return { blanket: nearest.b, why: "near", cold: t < nearest.r.low };
+// Meghann's barn rule (Nov 25, 2026), by tonight's feels-like low. Checked
+// coldest first. `match` finds the horse's own blanket by name in ClickUp.
+export const TIERS = [
+  { below: 0, match: /silver/i, label: "Warm blanket (Silver Bucas) + neck piece", neck: true,
+    note: "Below 0°F: for sure the warm blanket and neck piece." },
+  { below: 20, match: /silver/i, label: "Silver Bucas", neck: false, maybe: true,
+    note: "Below 20°F: probably the Silver Bucas. Ask Meghann if unsure." },
+  { below: 40, match: /atlantic/i, label: "Atlantic 200g", neck: false,
+    note: "Below 40°F: the 200g Atlantic." },
+];
+
+export function tierFor(t) {
+  if (t == null) return null;
+  return TIERS.find((x) => t < x.below) || null;
 }
 
-// Tonight's lineup for every horse that has a blanket on file.
-export function lineup(blankets, weather) {
+// Who's on the plan comes from each horse's profile ("Blanketing guideline"
+// line), not from who owns a blanket: Qu has blankets but is growing a coat.
+const BLANKETED = /keep blanketed/i;
+const CLIPPED = /\bclipped (?:on|for|across|over)\b/i;
+const DELICATE = /keep an eye/i;
+
+export function winterPlan(profile) {
+  const g = profile?.["Blanketing guideline"] || "";
+  if (BLANKETED.test(g)) return "blanket";
+  if (/fjord/i.test(profile?.Breed || "") && (CLIPPED.test(g) || DELICATE.test(g))) {
+    return CLIPPED.test(g) ? "clipped" : "delicate";
+  }
+  return "natural";
+}
+
+const inches = (s) => {
+  const m = /(\d+(?:\.\d+)?)/.exec(s || "");
+  return m ? `${m[1]}"` : null;
+};
+
+// Tonight's lineup -> { t, tier, blanket: [...], check: [...] }
+//   blanket: { horse, size, item }  item = their own blanket for this tier, if on file
+//   check:   { horse, why }         clipped / delicate Fjords to look in on
+export function lineup(horses, blankets, weather) {
   const t = feelsLike(weather);
-  const horses = [...new Set((blankets || []).flatMap((b) => b.horses || []))].sort();
-  return horses.map((horse) => {
-    const own = blanketsFor(horse, blankets);
-    return { horse, own, ...pick(own, t) };
-  });
+  const tier = tierFor(t);
+  const blanket = [];
+  const check = [];
+  for (const [horse, h] of Object.entries(horses || {}).sort(([a], [b]) => a.localeCompare(b))) {
+    const plan = winterPlan(h?.profile);
+    if (plan === "blanket") {
+      const own = blanketsFor(horse, blankets);
+      const item = tier ? own.find((b) => tier.match.test(b.name)) || null : null;
+      blanket.push({ horse, size: inches(h.profile["Blanket Size"]) || own[0]?.size || null, item });
+    } else if (plan !== "natural") {
+      check.push({ horse, why: plan });
+    }
+  }
+  return { t, tier, blanket, check };
 }
 
 // Staff-facing rules. Sources: Dr. Erin Wilson's notes in the Horse
 // Healthcare Wiki ("Blanketing & Seasonal Care") and the makers' ranges.
 export const GUIDELINES = [
   {
-    title: "Go by tonight's low",
-    body: "Each blanket has its maker's temperature range. The site picks the one that covers tonight's low from the morning weather log. Blankets go on at evening feed.",
+    title: "Go by the feels-like low",
+    body: "Below 40°F: the 200g Atlantic. Below 20°F: probably the Silver Bucas. Below 0°F: for sure the warm blanket and neck piece. Blankets go on at evening feed.",
   },
   {
-    title: "Wind counts as colder",
-    body: "On a windy night the site picks by the wind chill, not the low. If they're tucked in the shelter out of the wind, one step lighter is fine.",
+    title: "Wind and wet count as colder",
+    body: `On a windy night the site goes by the wind chill. Rain or snow likely? It counts ${WET_PENALTY}°F colder on top. Only waterproof turnouts go out in the wet.`,
   },
   {
-    title: "Wet counts as colder",
-    body: `Rain or snow likely? Treat it as ${WET_PENALTY}°F colder on top of any wind chill. Only waterproof turnouts go out in the wet.`,
+    title: "Check the clipped and delicate Fjords",
+    body: "Whenever anyone is blanketed, look in on the clipped Fjords and the ones Meghann keeps an eye on in the cold: shivering, tucked up, not eating, or GI upset means tell Meghann.",
+  },
+  {
+    title: "Everyone else grows a coat",
+    body: "Horses not on the list are growing their winter coat, even if they own a blanket. Hay is their heater: make sure there's plenty out on cold nights.",
   },
   {
     title: "Never blanket a wet or sweaty horse",
     body: "A blanket over a damp coat traps the cold. Towel them off or wait until they're dry first.",
-  },
-  {
-    title: "No blanket on file? Natural coat",
-    body: "The Fjords grow thick coats and fluff them up to stay warm. A blanket flattens that. Hay is their heater: make sure there's plenty out on cold nights.",
-  },
-  {
-    title: "Shivering or dull? Act",
-    body: "A horse that's shivering, tucked up or quiet is cold. Bring them in or blanket them, and tell Meghann.",
   },
   {
     title: "Check the fit every time",
@@ -131,6 +156,6 @@ export const GUIDELINES = [
   },
   {
     title: "Off in the morning",
-    body: "Blankets come off at morning feed when the day warms past the blanket's range. Sweat under it means it was too warm: go lighter next time and tell Meghann.",
+    body: "Blankets come off at morning feed once the day warms past 40°F. Sweat under it means it was too warm: go lighter next time and tell Meghann.",
   },
 ];

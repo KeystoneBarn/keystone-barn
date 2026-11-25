@@ -16,7 +16,18 @@ const API = (typeof import.meta !== "undefined" && import.meta.env && import.met
   ? "http://localhost:8000"
   : "";
 
-const HORSES = Object.keys(HORSE_COLOR).sort();
+export function useHorses() {
+  const [horses, setHorses] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(API + "/api/horses")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (alive && d) setHorses(d.horses || null); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  return horses;
+}
 
 export function useWeather() {
   const [weather, setWeather] = useState(null);
@@ -77,25 +88,37 @@ function feelsText(weather) {
   return `Picking for ${Math.round(t)}°F (${why.join(", ")})`;
 }
 
+const WHY = { clipped: "clipped", delicate: "watch in the cold" };
+
+function pickText(r, tier) {
+  // Names say "with neck piece"; the neck only goes on below 0°F.
+  if (r.item) return r.item.name.replace(/\s*with neck piece/i, "") + (tier.neck ? " + neck piece" : "");
+  return tier.label;
+}
+
 export function BlanketAlert({ onOpen }) {
   const { blankets } = useTack();
   const weather = useWeather();
-  if (!weather || weather.low == null || !blankets.length) return null;
-  const on = lineup(blankets, weather).filter((r) => r.blanket);
-  if (!on.length) return null;
+  const horses = useHorses();
+  if (!weather || weather.low == null || !horses) return null;
+  const { tier, blanket, check } = lineup(horses, blankets, weather);
+  if (!tier || !blanket.length) return null;
   return (
     <button className="bl-alert" onClick={onOpen}>
       <span className="bl-alert-icon" aria-hidden="true">🧥</span>
       <span className="bl-alert-body">
-        <strong>Blanket tonight</strong>
+        <strong>Blanket tonight: {tier.label}{tier.maybe ? " (probably)" : ""}</strong>
         <span className="bl-alert-sub">{[tonightText(weather), feelsText(weather)].filter(Boolean).join(" · ")}</span>
         <span className="bl-alert-horses">
-          {on.map((r) => (
+          {blanket.map((r) => (
             <span key={r.horse} className="bl-chip">
-              <Dot horse={r.horse} />{r.horse} <em>{r.blanket.size}</em>
+              <Dot horse={r.horse} />{r.horse} <em>{r.size}</em>
             </span>
           ))}
         </span>
+        {check.length > 0 && (
+          <span className="bl-alert-sub">Check on: {check.map((c) => c.horse).join(", ")}</span>
+        )}
       </span>
       <span className="bl-alert-go">See lineup →</span>
     </button>
@@ -105,18 +128,18 @@ export function BlanketAlert({ onOpen }) {
 export default function Blankets() {
   const { blankets, live } = useTack();
   const weather = useWeather();
-  const rows = lineup(blankets, weather);
-  const withBlankets = new Set(rows.map((r) => r.horse));
-  const natural = HORSES.filter((h) => !withBlankets.has(h));
-  const on = rows.filter((r) => r.blanket).length;
+  const horses = useHorses();
+  const { t, tier, blanket, check } = lineup(horses, blankets, weather);
+  const listed = new Set([...blanket, ...check].map((r) => r.horse));
+  const natural = Object.keys(horses || HORSE_COLOR).filter((h) => !listed.has(h)).sort();
 
   return (
     <div className="bl-wrap">
       <div className="bk-intro">
         <h2 style={{ margin: 0, fontSize: 26, letterSpacing: "-0.03em", fontWeight: 700 }}>Blankets</h2>
         <p className="prose" style={{ margin: "8px 0 0" }}>
-          Tonight's lineup: each horse's size and which blanket, picked from tonight's low and each
-          blanket's temperature range.
+          Tonight's lineup: who gets blanketed, in what, and which Fjords to check on. Goes by
+          tonight's feels-like low and each horse's winter plan.
         </p>
       </div>
 
@@ -127,30 +150,36 @@ export default function Blankets() {
           <div className="bl-v">{tonightText(weather) || "Weather isn't available right now."}</div>
           {feelsText(weather) && <div className="bl-s">{feelsText(weather)}</div>}
         </div>
-        {weather?.low != null && rows.length > 0 && (
-          <div className="bl-count">{on ? `${on} to blanket` : "No blankets tonight"}</div>
+        {t != null && horses && (
+          <div className="bl-count">{tier ? `${blanket.length} to blanket` : "No blankets tonight"}</div>
         )}
       </section>
 
+      {tier && <p className="bl-tier">{tier.note}</p>}
+
+      {!horses && <p className="hx-empty">Horse profiles load from ClickUp; they aren't available right now.</p>}
       {!live && <p className="hx-empty">Blankets load from ClickUp; they aren't available right now.</p>}
 
-      {rows.length > 0 && (
+      {blanket.length > 0 && (
         <ul className="bl-lineup">
-          {rows.map((r) => (
-            <li key={r.horse} className="bl-row" data-on={r.blanket ? "1" : "0"}>
+          {blanket.map((r) => (
+            <li key={r.horse} className="bl-row" data-on={tier ? "1" : "0"}>
               <span className="bl-horse"><Dot horse={r.horse} />{r.horse}</span>
-              <span className="bl-big">{r.blanket ? r.blanket.size || "—" : r.own[0]?.size || "—"}</span>
+              <span className="bl-big">{r.size || "—"}</span>
               <span className="bl-pick">
-                {r.blanket ? (
+                {tier ? (
                   <>
-                    <strong>{r.blanket.name}</strong>
-                    <span className="bl-meta">{[weightLabel(r.blanket), r.blanket.neck ? "with neck" : null, fmtRange(r.blanket)].filter(Boolean).join(" · ")}</span>
-                    {r.cold && <span className="bl-warn">Colder than this blanket is rated for. Check on them and tell Meghann.</span>}
+                    <strong>{pickText(r, tier)}{tier.maybe ? " (probably)" : ""}</strong>
+                    {r.item ? (
+                      <span className="bl-meta">{[weightLabel(r.item), r.item.waterproof ? "waterproof" : null].filter(Boolean).join(" · ")}</span>
+                    ) : (
+                      <span className="bl-meta">No {tier.label.toLowerCase()} of their own listed in Tack &amp; Equipment</span>
+                    )}
                   </>
-                ) : r.why === "warm" ? (
-                  <span className="bl-none">No blanket tonight: warmer than their blanket's range</span>
-                ) : (
+                ) : t == null ? (
                   <span className="bl-none">Waiting on tonight's weather</span>
+                ) : (
+                  <span className="bl-none">No blanket tonight: 40°F or warmer</span>
                 )}
               </span>
             </li>
@@ -158,9 +187,20 @@ export default function Blankets() {
         </ul>
       )}
 
-      {live && natural.length > 0 && (
+      {tier && check.length > 0 && (
+        <div className="bl-check">
+          <strong>Check on tonight:</strong>{" "}
+          {check.map((c, i) => (
+            <span key={c.horse}>
+              {i ? ", " : ""}<Dot horse={c.horse} />{c.horse} <em>({WHY[c.why]})</em>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {horses && natural.length > 0 && (
         <p className="bl-natural">
-          <strong>Natural coat, no blanket on file:</strong> {natural.join(", ")}
+          <strong>Growing a coat, no blanket:</strong> {natural.join(", ")}
         </p>
       )}
 

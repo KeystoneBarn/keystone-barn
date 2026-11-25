@@ -73,3 +73,7 @@
   .bl-pick { grid-column: 1 / -1; }
   .bl-alert-go { display: none; }
 }
+
+.bl-tier { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink-2); }
+.bl-check { font-size: 14px; color: var(--ink-2); padding: 10px 12px; border: 1px solid var(--rule); border-left: 4px solid var(--danger); border-radius: 6px; background: var(--panel); }
+.bl-check em { font-style: normal; color: var(--ink-3); }
