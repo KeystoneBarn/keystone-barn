@@ -173,7 +173,7 @@ export default function Blankets() {
                     {r.item ? (
                       <span className="bl-meta">{[weightLabel(r.item), r.item.waterproof ? "waterproof" : null].filter(Boolean).join(" · ")}</span>
                     ) : (
-                      <span className="bl-meta">No {tier.label.toLowerCase()} of their own listed in Tack &amp; Equipment</span>
+                      <span className="bl-meta">No {tier.label} of their own listed in Tack &amp; Equipment</span>
                     )}
                   </>
                 ) : t == null ? (
